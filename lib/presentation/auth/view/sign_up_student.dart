@@ -3,31 +3,22 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:easy_stepper/easy_stepper.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../routes/app_router.dart';
-import '../../../services/teacher_api_service.dart';
-import '../providers/teacher_provider.dart';
 
-class SignUpTeacher extends StatefulWidget {
-  const SignUpTeacher({super.key});
+class SignUpStudent extends StatefulWidget {
+  const SignUpStudent({super.key});
 
   @override
-  State<SignUpTeacher> createState() => _SignUpTeacherState();
+  State<SignUpStudent> createState() => _SignUpStudentState();
 }
 
-class _SignUpTeacherState extends State<SignUpTeacher> {
+class _SignUpStudentState extends State<SignUpStudent> {
   int activeStep = 0;
 
   String name = '';
   String email = '';
-  String _address = '';
-  String _city = '';
-  String _postalCode = '';
-  String _district = '';
-  String _state = '';
-  String _country = '';
   String subject = '';
   String experience = '';
   File? cvFile;
@@ -43,59 +34,49 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
       });
     }
   }
-
-  //this is example i need full data from api
+//this is example i need full data from api
   Future<void> _submitForm() async {
-    final formData = {
-      "name": name,
-      "email": email,
-      "address": _address,
-      "city": _city,
-      "postalCode": _postalCode,
-      "district": _district,
-      "state": _state,
-      "country": _country,
-      "profession": _profession,
-      "readyToWork": _readyToWork,
-      "selectedDays": _selectedDays,
-      "selectedHours": _selectedHours,
-      "teachingGrades": [
-        if (_lowerPrimary) "lowerPrimary",
-        if (_upto10) "upto10",
-        if (_higherSecondary) "higherSecondary",
-        if (_graduate) "graduate",
-        if (_postGraduate) "postGraduate",
-      ],
-      "teachingSubjects": [
-        if (_allSubjects) "all",
-        if (_maths) "maths",
-        if (_science) "science",
-        if (_malayalam) "malayalam",
-        if (_english) "english",
-        if (_other) _otherSubjectController.text,
-      ],
-      "experience": "${_offlineExpController.text},${_onlineExpController.text},${_homeTuitionExpController.text}",
-      "cvFile": cvFile,
-    };
-
-    final container = ProviderScope.containerOf(context, listen: false);
-
     try {
-      final response = await container.read(teacherSignupProvider(formData).future);
+      Dio dio = Dio();
+      String apiUrl = "https://your-api-url.com/signup";
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response["message"] ?? "Registration Successful")),
+      FormData formData = FormData.fromMap({
+        "name": name,
+        "email": email,
+        "subject": subject,
+        "experience": experience,
+        "acc_type": "teacher",
+        if (cvFile != null)
+          "cv": await MultipartFile.fromFile(
+            cvFile!.path,
+            filename: cvFile!.path.split('/').last,
+          ),
+      });
+
+      Response response = await dio.post(
+        apiUrl,
+        data: formData,
+        options: Options(headers: {"Content-Type": "multipart/form-data"}),
       );
 
-      // Navigate
-      context.go('/teacher-dashboard');
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration successful')),
+        );
+        context.go(AppRoutes.teacherDashboard);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${response.statusMessage}')),
+        );
+        context.go(AppRoutes.teacherDashboard);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("❌ Error: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      context.go(AppRoutes.teacherDashboard);
     }
   }
-
 
   // Mode of Interest
   bool _offline = false;
@@ -124,7 +105,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   final TextEditingController _homeTuitionExpController =
       TextEditingController();
 
-  String _profession = 'Teacher';
+  String _profession = 'Student';
   String _readyToWork = 'Yes';
 
   final List<String> _days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -196,7 +177,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
-                    onChanged: (val) => name = val,
                   ),
                   SizedBox(height: 20),
                   TextField(
@@ -208,7 +188,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
-                    onChanged: (val) => name = val,
                   ),
                   SizedBox(height: 20),
                   TextField(
@@ -220,7 +199,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
-                    onChanged: (val) => name = val,
                   ),
                   SizedBox(height: 20),
                   TextField(
@@ -232,7 +210,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
-                    onChanged: (val) => name = val,
                   ),
                   SizedBox(height: 20),
                   TextField(
@@ -244,7 +221,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
-                    onChanged: (val) => name = val,
                   ),
                   SizedBox(height: 20),
                   TextField(
@@ -256,7 +232,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
-                    onChanged: (val) => name = val,
                   ),
                 ],
               ),
@@ -392,13 +367,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                 const SizedBox(height: 10),
                 TextField(
                   controller: _otherSubjectController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: "Enter other subject",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
+                    border: OutlineInputBorder(),
                   ),
-                  onChanged: (val) => name = val,
                 ),
               ],
               const SizedBox(height: 20),
@@ -421,10 +393,8 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                             const SizedBox(height: 8),
                             TextField(
                               controller: _offlineExpController,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
                               ),
                               keyboardType: TextInputType.number,
                             ),
@@ -445,10 +415,8 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                             const SizedBox(height: 8),
                             TextField(
                               controller: _onlineExpController,
-                              decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
                               ),
                               keyboardType: TextInputType.number,
                             ),
@@ -473,10 +441,8 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                       const SizedBox(height: 8),
                       TextField(
                         controller: _homeTuitionExpController,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
                       ),
@@ -652,11 +618,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.upload_file,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
+                        const Icon(Icons.upload_file, size: 40, color: Colors.grey),
                         const SizedBox(height: 8),
                         Text(
                           cvFile != null
@@ -664,9 +626,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                               : 'Click to Upload CV',
                           style: TextStyle(
                             fontSize: 14,
-                            color: cvFile != null
-                                ? Colors.black87
-                                : Colors.black,
+                            color: cvFile != null ? Colors.black87 : Colors.black,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -730,7 +690,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                     Column(
                       children: const [
                         Text(
-                          'I’m a Teacher',
+                          'I’m a Student',
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,

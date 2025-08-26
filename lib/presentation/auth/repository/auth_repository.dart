@@ -1,14 +1,37 @@
-import '../../../services/api_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository();
+});
 
 class AuthRepository {
-  final ApiService apiService;
-  AuthRepository(this.apiService);
+  final String baseUrl = "https://bookmyteacher.shefii.com/api";
 
   Future<Map<String, dynamic>> sendOtp(String mobile) async {
-    return await apiService.sendOtp(mobile);
+    final response = await http.post(
+      Uri.parse("$baseUrl/send-otp"),
+      body: {"mobile": mobile},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to send OTP");
+    }
   }
 
   Future<Map<String, dynamic>> verifyOtp(String mobile, String otp) async {
-    return await apiService.verifyOtp(mobile, otp);
+    final response = await http.post(
+      Uri.parse("$baseUrl/verify-otp"),
+      body: {"mobile": mobile, "otp": otp},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to verify OTP");
+    }
   }
 }

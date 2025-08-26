@@ -8,6 +8,11 @@ class Endpoints {
   static const verifyOtp = "/verify-otp";
   static const logout = "/logout";
 
+  // Registration
+  static const teachersRegister = "/teachers/register";
+
+
+
   // Classes
   static const myClasses = "/classes";
   static const joinClass = "/classes/join";

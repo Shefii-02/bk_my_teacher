@@ -1,4 +1,3 @@
-import 'package:app/presentation/auth/view/signup_stepper.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,19 +13,17 @@ class SignInScreen extends ConsumerStatefulWidget {
 }
 
 class _SignInScreenState extends ConsumerState<SignInScreen> {
-  final TextEditingController phoneController = TextEditingController();
-  final mobileController = TextEditingController();
-  final otpController = TextEditingController();
-  bool otpSent = false;
+  final TextEditingController _phoneController = TextEditingController();
   bool _isChecked = false;
   String _selectedCode = "+91";
-  final TextEditingController _phoneController = TextEditingController();
+  bool _isLoading = false;
+
   void _showTopPopup(BuildContext context) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      transitionDuration: Duration(milliseconds: 300),
+      transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (ctx, anim1, anim2) {
         return Align(
           alignment: Alignment.topCenter,
@@ -34,12 +31,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             color: Colors.transparent,
             child: Container(
               width: double.infinity,
-              padding: EdgeInsets.all(16),
-              margin: EdgeInsets.only(top: 60, left: 12, right: 12),
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(top: 60, left: 12, right: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                boxShadow: [
+                boxShadow: const [
                   BoxShadow(
                     blurRadius: 10,
                     color: Colors.black26,
@@ -53,7 +50,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      const Text(
                         "Login or Sign In Instruction",
                         style: TextStyle(
                           fontSize: 16,
@@ -61,15 +58,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.close),
+                        icon: const Icon(Icons.close),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),
-                  Divider(),
-                  Text(
+                  const Divider(),
+                  const Text(
                     "This is your offcanvas-top style popup with animation. "
-                    "You can add any content here.",
+                        "You can add any content here.",
                     style: TextStyle(fontSize: 14),
                   ),
                 ],
@@ -81,8 +78,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       transitionBuilder: (ctx, anim, secAnim, child) {
         return SlideTransition(
           position: Tween<Offset>(
-            begin: Offset(0, -1), // start from top
-            end: Offset(0, 0),
+            begin: const Offset(0, -1),
+            end: const Offset(0, 0),
           ).animate(anim),
           child: child,
         );
@@ -90,10 +87,127 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     );
   }
 
+  // Future<void> _sendOtp() async {
+  //   if (!_isChecked) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text("Please accept Terms and Conditions"),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //     return;
+  //   }
+  //
+  //   if (_phoneController.text.length != 10) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text("Please enter a valid 10-digit mobile number"),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //     return;
+  //   }
+  //
+  //   setState(() {
+  //     _isLoading = true;
+  //   });
+  //
+  //   final fullPhoneNumber = _selectedCode + _phoneController.text;
+  //   final authController = ref.read(authControllerProvider.notifier);
+  //
+  //   try {
+  //     final success = await authController.sendOtp(fullPhoneNumber);
+  //
+  //     if (success) {
+  //       // Navigate to verification screen with phone number
+  //       context.go('/verification-screen', extra: {
+  //         'phoneNumber': fullPhoneNumber,
+  //         'resendAllowed': true,
+  //         'resendCount': 0,
+  //       });
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text("Failed to send OTP. Please try again."),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text("Error: ${e.toString()}"),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() {
+  //         _isLoading = false;
+  //       });
+  //     }
+  //   }
+  // }
+
+  // Update your SignInScreen's send OTP method:
+  Future<void> _sendOtp() async {
+    if (!_isChecked) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please accept Terms and Conditions"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (_phoneController.text.length != 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter a valid 10-digit mobile number"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    // _selectedCode +
+    final fullPhoneNumber = _phoneController.text;
+    final authController = ref.read(authControllerProvider.notifier);
+
+    // Clear any previous errors
+    authController.clearError();
+
+    final success = await authController.sendOtp(fullPhoneNumber);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("OTP Sent Successfully..."),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // Navigate to verification screen with phone number
+      context.go('/verification-screen', extra: {
+        'phoneNumber': fullPhoneNumber,
+      });
+
+
+    } else {
+      // Error is already set in the state, we can show it
+      final error = ref.read(authControllerProvider).error;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final authController = ref.watch(authControllerProvider);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -104,11 +218,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             child: Image.asset(
               'assets/images/background/full-bg.jpg',
               fit: BoxFit.fill,
-              // width: double.infinity,
-              // height: double.infinity,
             ),
           ),
-
           // Main Content with Rounded Container
           Column(
             children: [
@@ -119,34 +230,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Back button
-                    SizedBox(
-                      width: 40,
-                      height: 40,
-                      // decoration: BoxDecoration(
-                      //   shape: BoxShape.circle,
-                      //   color: Colors.white.withOpacity(0.8),
-                      // ),
-                      child: Text(''),
-                      // IconButton(
-                      //   icon: const Icon(Icons.arrow_back, color: Colors.black),
-                      //   iconSize: 20,
-                      //   padding: EdgeInsets.zero,
-                      //   onPressed: () => {
-                      //     if (context.canPop())
-                      //       {context.pop()}
-                      //     else
-                      //       {
-                      //         SystemNavigator.pop(),
-                      //       },
-                      //   },
-                      //   // Navigator.pop(context),
-                      // ),
-                    ),
-
-                    // Title
-                    Column(
-                      children: const [
+                    const SizedBox(width: 40, height: 40),
+                    const Column(
+                      children: [
                         Text(
                           'Login',
                           style: TextStyle(
@@ -157,7 +243,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          'Let’s get you started',
+                          'Let\'s get you started',
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.w500,
@@ -166,16 +252,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         ),
                       ],
                     ),
-                    // Help button
                     Container(
                       width: 35,
                       height: 35,
-                      margin: EdgeInsets.only(right: 14.0),
-                      // decoration: BoxDecoration(
-                      //   shape: BoxShape.circle,
-                      //   border: Border.all(color: Colors.grey, width: 0.8),
-                      //   color: Colors.transparent,
-                      // ),
+                      margin: const EdgeInsets.only(right: 14.0),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white.withOpacity(0.8),
@@ -216,21 +296,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     padding: const EdgeInsets.all(24),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        minHeight:
-                            MediaQuery.of(context).size.height -
-                            290, // minus appbar height
+                        minHeight: MediaQuery.of(context).size.height - 290,
                       ),
                       child: Center(
                         child: Column(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center, // vertical centering
+                          mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 40),
                             Center(
                               child: Column(
                                 children: [
-                                  Text(
+                                  const Text(
                                     'Welcome to',
                                     style: TextStyle(
                                       color: Colors.black45,
@@ -238,12 +315,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                       fontSize: 30,
                                     ),
                                   ),
-                                  SizedBox(height: 1),
+                                  const SizedBox(height: 1),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: const [
                                       Text(
                                         'Book',
                                         style: TextStyle(
@@ -270,14 +346,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                       ),
                                     ],
                                   ),
-                                  // Text(
-                                  //   'BookMyTeacher',
-                                  //   style: TextStyle(
-                                  //     color: Colors.black,
-                                  //     fontWeight: FontWeight.bold,
-                                  //     fontSize: 30,
-                                  //   ),
-                                  // ),
                                 ],
                               ),
                             ),
@@ -294,26 +362,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                               children: [
                                 // Country code dropdown
                                 Container(
-                                  height: 48, // same height as TextField
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                  ),
+                                  height: 48,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
                                   decoration: BoxDecoration(
-                                    // border: Border.all(color: Colors.grey),
                                     border: Border(
-                                      top: BorderSide(
-                                        color: Colors.grey,
-                                        width: 1,
-                                      ),
-                                      left: BorderSide(
-                                        color: Colors.grey,
-                                        width: 1,
-                                      ),
+                                      top: const BorderSide(color: Colors.grey, width: 1),
+                                      left: const BorderSide(color: Colors.grey, width: 1),
                                       right: BorderSide.none,
-                                      bottom: BorderSide(
-                                        color: Colors.grey,
-                                        width: 1,
-                                      ),
+                                      bottom: const BorderSide(color: Colors.grey, width: 1),
                                     ),
                                     borderRadius: const BorderRadius.only(
                                       topLeft: Radius.circular(20.0),
@@ -342,11 +398,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                     ),
                                   ),
                                 ),
-
                                 // Phone number input
                                 Expanded(
                                   child: SizedBox(
-                                    height: 48, // match height
+                                    height: 48,
                                     child: TextField(
                                       controller: _phoneController,
                                       keyboardType: TextInputType.number,
@@ -354,14 +409,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                         FilteringTextInputFormatter.digitsOnly,
                                         LengthLimitingTextInputFormatter(10),
                                       ],
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                         hintText: "Enter Mobile Number",
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 15,
-                                            ),
+                                        contentPadding: EdgeInsets.symmetric(horizontal: 15),
                                         border: OutlineInputBorder(
-                                          borderRadius: const BorderRadius.only(
+                                          borderRadius: BorderRadius.only(
                                             topRight: Radius.circular(20.0),
                                             bottomRight: Radius.circular(20.0),
                                           ),
@@ -391,9 +443,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                         children: [
                                           TextSpan(
                                             text: 'I agree to ',
-                                            style: TextStyle(
-                                              color: Colors.black87,
-                                            ),
+                                            style: TextStyle(color: Colors.black87),
                                           ),
                                           TextSpan(
                                             text: 'Terms and Conditions',
@@ -410,49 +460,31 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                 ),
                               ],
                             ),
-
                             const SizedBox(height: 20),
                             Center(
                               child: SizedBox(
-                                width: 150.0, // Specific button width
-                                height: 40.0, // Specific button height
+                                width: 150.0,
+                                height: 40.0,
                                 child: ElevatedButton(
-                                  onPressed: () async {
-                                    try {
-                                      // if (!otpSent) {
-                                      final msg = await authController.sendOtp(
-                                        mobileController.text,
-                                      );
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text(msg)),
-                                      );
-                                      context.go('/verification-screen');
-
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text(e.toString())),
-                                      );
-                                      context.go('/verification-screen');
-                                    }
-                                  },
+                                  onPressed: _isLoading ? null : _sendOtp,
                                   style: ElevatedButton.styleFrom(
-                                    minimumSize: Size(double.infinity, 40),
-                                    backgroundColor: Colors
-                                        .green, // Background color of the button
-                                    foregroundColor: Colors
-                                        .white, // Text/icon color on the button
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                    disabledBackgroundColor: Colors.grey,
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment
-                                        .center, // vertical centering
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                  child: _isLoading
+                                      ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                      : const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Text("Send OTP"),
+                                      Text("Send OTP"),
                                       Icon(Icons.play_arrow_sharp),
                                     ],
                                   ),
@@ -487,28 +519,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             const SizedBox(height: 20),
                             Center(
                               child: SizedBox(
-                                width: 400.0, // Specific button width
-                                height: 60.0, // Specific button height
+                                width: 400.0,
+                                height: 60.0,
                                 child: ElevatedButton(
                                   onPressed: () {
-                                    // ref.refresh(googleSignInProvider);
+                                    // Google sign-in implementation
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    minimumSize: Size(double.infinity, 35),
-                                    backgroundColor: Colors
-                                        .green[50], // Background color of the button
-                                    foregroundColor: Colors
-                                        .white, // Text/icon color on the button
+                                    backgroundColor: Colors.green[50],
+                                    foregroundColor: Colors.white,
                                   ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment
-                                        .center, // vertical centering
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Image.asset(
-                                        'assets/images/icons/icon-google.png',
-                                      ),
+                                      Image.asset('assets/images/icons/icon-google.png'),
                                       const SizedBox(width: 15, height: 30),
                                       const Text(
                                         "Sign in using your Google",
@@ -519,7 +543,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                 ),
                               ),
                             ),
-
                             const SizedBox(height: 40.0),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -530,11 +553,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const SignUpStepper(),
-                                      ),
-                                    );
+                                    context.go('/signup-stepper');
                                   },
                                   child: const Text(
                                     'Sign up',
@@ -562,11 +581,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   Future<void> _launchTerms() async {
-    final Uri url = Uri.parse(
-      'https://www.bookmyteachar.co.in/terms-and-conditions',
-    );
+    final Uri url = Uri.parse('https://www.bookmyteachar.co.in/terms-and-conditions');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
   }
 }

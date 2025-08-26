@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class SignUpStepper extends StatefulWidget {
   const SignUpStepper({super.key});
@@ -21,7 +22,7 @@ class _SignUpStepperState extends State<SignUpStepper> {
         margin: const EdgeInsets.symmetric(vertical: 25),
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(19),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: _selectedRole == value ? Colors.green : Colors.black26,
             width: 1.5,
@@ -87,7 +88,9 @@ class _SignUpStepperState extends State<SignUpStepper> {
                         icon: const Icon(Icons.arrow_back, color: Colors.black),
                         iconSize: 20,
                         padding: EdgeInsets.zero,
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          context.go('/auth');
+                        },
                       ),
                     ),
 
@@ -173,7 +176,7 @@ class _SignUpStepperState extends State<SignUpStepper> {
                                 fontSize: 25,
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 10),
                             _buildRadioOption("teacher", "I am a Teacher"),
                             _buildRadioOption("student", "I am a Student"),
                             const SizedBox(height: 20),
@@ -184,7 +187,13 @@ class _SignUpStepperState extends State<SignUpStepper> {
                                 foregroundColor: Colors
                                     .white, // Sets the text/icon color to white
                               ),
-                              onPressed: () async {},
+                              onPressed: () async {
+                                if (_selectedRole == "teacher") {
+                                  context.go('/signup-teacher');
+                                } else if (_selectedRole == "student") {
+                                  context.go('/signup-student');
+                                }
+                              },
                               child: SizedBox(
                                 width: 100,
                                 height: 30,

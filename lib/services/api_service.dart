@@ -1,82 +1,167 @@
+// lib/data/api/auth_api_service.dart
+import 'dart:async';
 import 'dart:convert';
-
-import 'package:dio/dio.dart';
-import '../core/constants/endpoints.dart';
+import 'package:app/core/constants/endpoints.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
-class ApiService {
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: Endpoints.base,
-      connectTimeout: const Duration(seconds: 60),
-      receiveTimeout: const Duration(seconds: 60),
-    ),
-  );
+class ApiResponse<T> {
+  final bool success;
+  final String message;
+  final T? data;
 
-  final String baseUrl = Endpoints.base;
+  ApiResponse({required this.success, required this.message, this.data});
+}
 
-  Future<Map<String, dynamic>> sendOtp(String mobile) async {
-    final url = Uri.parse("$baseUrl/send-otp");
-    print(mobile);
-    final requestData = {"mobile": '8075261300'};
+class AuthApiService {
+  static const String baseUrl = Endpoints.base; // Replace with your API URL
 
-    print("Calling URL: $url");
-    print("With Data: $requestData");
+  final http.Client client;
 
+  AuthApiService({required this.client});
+
+  Future<ApiResponse<Map<String, dynamic>>> sendOtp(String phoneNumber) async {
+    print(phoneNumber);
     try {
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(requestData),
-      );
+      final response = await client.post(
+        Uri.parse('$baseUrl/send-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'mobile': phoneNumber,'type' : 'first'}),
+      ).timeout(const Duration(seconds: 30));
 
-      print("Status Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
-
+      final responseData = json.decode(response.body);
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return ApiResponse(
+          success: true,
+          message: responseData['message'] ?? 'OTP sent successfully',
+          data: responseData,
+        );
       } else {
-        throw Exception("Failed: ${response.body}");
+        return ApiResponse(
+          success: false,
+          message: responseData['message'] ?? 'Failed to send OTP',
+          data: responseData,
+        );
       }
+    } on http.ClientException catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Network error: ${e.message}',
+      );
+    } on TimeoutException {
+      return ApiResponse(
+        success: false,
+        message: 'Request timeout. Please try again.',
+      );
     } catch (e) {
-      print(e);
-      throw Exception("Error: $e");
+      return ApiResponse(
+        success: false,
+        message: 'An unexpected error occurred: ${e.toString()}',
+      );
     }
   }
 
-  // Request OTP
-  // Future<Map<String, dynamic>> sendOtp(String mobile) async {
-  //   try {
-  //     final response = await _dio.post(
-  //       Endpoints.sendOtp,
-  //       data: {"mobile": mobile},
-  //     );
-  //
-  //     if (response.data is Map<String, dynamic>) {
-  //       return response.data;
-  //     } else {
-  //       throw Exception("Unexpected response format: ${response.data}");
-  //     }
-  //   } on DioException catch (e) {
-  //     print(e.response);
-  //     print("******** API Error ********");
-  //     print("Status Code: ${e.response?.statusCode}");
-  //     print("Error Data: ${e.response?.data}");
-  //     print("***************************");
-  //     throw Exception(e.response?.data["message"] ?? "Something went wrong");
-  //   }
-  // }
-
-  // Verify OTP
-  Future<Map<String, dynamic>> verifyOtp(String mobile, String otp) async {
+  Future<ApiResponse<Map<String, dynamic>>> verifyOtp(String phoneNumber, String otp) async {
     try {
-      final response = await _dio.post(
-        Endpoints.verifyOtp,
-        data: {"mobile": mobile, "otp": otp},
+      final response = await client.post(
+        Uri.parse('$baseUrl/verify-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'mobile': phoneNumber, 'otp': otp}),
+      ).timeout(const Duration(seconds: 30));
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return ApiResponse(
+          success: true,
+          message: responseData['message'] ?? 'OTP verified successfully',
+          data: responseData,
+        );
+      } else {
+        return ApiResponse(
+          success: false,
+          message: responseData['message'] ?? 'Invalid OTP',
+          data: responseData,
+        );
+      }
+    } on http.ClientException catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Network error: ${e.message}',
       );
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception(e.response?.data["message"] ?? "Invalid OTP");
+    } on TimeoutException {
+      return ApiResponse(
+        success: false,
+        message: 'Request timeout. Please try again.',
+      );
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'An unexpected error occurred: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> resendOtp(String phoneNumber) async {
+    try {
+      final response = await client.post(
+        Uri.parse('$baseUrl/send-otp'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'phone': phoneNumber,'type' : 'resend'}),
+      ).timeout(const Duration(seconds: 30));
+
+      final responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return ApiResponse(
+          success: true,
+          message: responseData['message'] ?? 'OTP resent successfully',
+          data: responseData,
+        );
+      } else {
+        return ApiResponse(
+          success: false,
+          message: responseData['message'] ?? 'Failed to resend OTP',
+          data: responseData,
+        );
+      }
+    } on http.ClientException catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'Network error: ${e.message}',
+      );
+    } on TimeoutException {
+      return ApiResponse(
+        success: false,
+        message: 'Request timeout. Please try again.',
+      );
+    } catch (e) {
+      return ApiResponse(
+        success: false,
+        message: 'An unexpected error occurred: ${e.toString()}',
+      );
     }
   }
 }
+
+
+// import 'dart:convert';
+// import 'package:app/core/constants/endpoints.dart';
+// import 'package:http/http.dart' as http;
+//
+// class ApiService {
+//   static const String baseUrl = Endpoints.base;
+//
+//   Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> body) async {
+//     final url = Uri.parse("$baseUrl/$endpoint");
+//     final response = await http.post(url,
+//         body: jsonEncode(body),
+//         headers: {"Content-Type": "application/json"});
+//
+//     if (response.statusCode == 200) {
+//       return jsonDecode(response.body);
+//     } else {
+//       throw Exception("Failed request: ${response.body}");
+//     }
+//   }
+// }
