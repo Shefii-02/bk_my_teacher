@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import '../core/constants/endpoints.dart';
 
-class TeacherApiService {
+class StudentApiService {
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: Endpoints.base,
@@ -11,9 +11,10 @@ class TeacherApiService {
     ),
   );
 
-  Future<Map<String, dynamic>> registerTeacher({
-    required String teacherId,
-    required String name,
+  Future<Map<String, dynamic>> registerStudent({
+    required String studentId,
+    required String studentName,
+    required String parentName,
     required String email,
     required String address,
     required String city,
@@ -22,23 +23,17 @@ class TeacherApiService {
     required String state,
     required String country,
     required String interest,
-    required String profession,
-    required String readyToWork,
-    required String offlineExp,
-    required String onlineExp,
-    required String homeExp,
     required List<String> selectedDays,
     required List<String> selectedHours,
-    required List<String> teachingGrades,
-    required List<String> teachingSubjects,
-    required String experience,
-    File? cvFile,
+    required List<String> seekingGrades,
+    required List<String> seekingSubjects,
     File? avatar,
   }) async {
     try {
       final formData = FormData.fromMap({
-        "teacher_id": teacherId,
-        "name": name,
+        "student_id": studentId,
+        "student_name": studentName,
+        "parent_name": parentName,
         "email": email,
         "address": address,
         "city": city,
@@ -46,36 +41,24 @@ class TeacherApiService {
         "district": district,
         "state": state,
         "country": country,
-        "interest": interest,
 
-        "profession": profession,
-        "ready_to_work": readyToWork,
-        "experience": experience,
+        "interest": interest,
         "working_days": selectedDays.join(","),
         "working_hours": selectedHours.join(","),
-        "teaching_grades": teachingGrades.join(","),
-        "teaching_subjects": teachingSubjects.join(","),
-        "offline_exp": offlineExp,
-        "online_exp": onlineExp,
-        "home_exp": homeExp,
+        "teaching_grades": seekingGrades.join(","),
+        "teaching_subjects": seekingSubjects.join(","),
 
         if (avatar != null)
           "avatar": await MultipartFile.fromFile(
             avatar.path,
             filename: avatar.path.split('/').last,
           ),
-
-        if (cvFile != null)
-          "cv_file": await MultipartFile.fromFile(
-            cvFile.path,
-            filename: cvFile.path.split('/').last,
-          ),
       });
 
       print("➡️ Posting Teacher Signup");
       print("Data: ${formData.fields}");
 
-      final response = await _dio.post(Endpoints.teacherSignup, data: formData);
+      final response = await _dio.post(Endpoints.studentSignup, data: formData);
       print("✅ Response: ${response.data}");
       return response.data;
     } on DioException catch (e) {

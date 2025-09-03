@@ -1,9 +1,12 @@
-import 'package:app/presentation/auth/view/sign_up_student.dart';
-import 'package:app/presentation/auth/view/signup_stepper.dart';
+
 import 'package:go_router/go_router.dart';
 
-import '../presentation/auth/view/auth_screen.dart dart.dart';
+import '../presentation/auth/view/auth_screen.dart';
+import '../presentation/auth/view/sign_up_otp_screen.dart';
+import '../presentation/auth/view/sign_up_student.dart';
 import '../presentation/auth/view/sign_up_teacher.dart';
+import '../presentation/auth/view/sign_up_verification_screen.dart';
+import '../presentation/auth/view/signup_stepper.dart';
 import '../presentation/auth/view/verification_screen.dart';
 import '../presentation/errror/error_screen.dart';
 import '../presentation/onboarding/onboarding_screen.dart';
@@ -52,6 +55,23 @@ final GoRouter appRouter = GoRouter(
         // final mobile = state.extra as String? ?? '';
         return VerificationScreen(phoneNumber: mobile);
       },
+    ),
+    GoRoute(
+      path: AppRoutes.signupOtpScreen,
+      builder: (context, state) => const SignUpOtpScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.verificationScreenSignup,
+      builder: (context, state) {
+        final extras = state.extra as Map<String, dynamic>? ?? {};
+        final mobile = extras['phoneNumber'] as String? ?? '';
+        // final mobile = state.extra as String? ?? '';
+        return SignUpVerificationScreen(phoneNumber: mobile);
+      },
+    ),
+    GoRoute(
+      path: '/home',
+      builder: (context, state) => const ErrorScreen(),
     ),
     GoRoute(
       path: '/error',

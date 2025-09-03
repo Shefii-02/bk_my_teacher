@@ -40,7 +40,9 @@ class AuthController extends StateNotifier<AuthState> {
       error: null,
       phoneNumber: phoneNumber,
     );
+
     print(phoneNumber);
+
     try {
       final response = await apiService.sendOtp(phoneNumber);
 
@@ -83,16 +85,22 @@ class AuthController extends StateNotifier<AuthState> {
 
       if (response.success) {
         // Extract token from response if available
+
         final token =
             response.data?['token'] ?? response.data?['data']?['token'];
+
+        final user = response.data?['user'] ?? response.data?['user']?['token'];
 
         state = state.copyWith(
           isLoading: false,
           isVerified: true,
           authToken: token,
           error: null,
+          userData: user,
         );
+
         return true;
+
       } else {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;
@@ -150,6 +158,119 @@ class AuthController extends StateNotifier<AuthState> {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;
       }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'An unexpected error occurred: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  // Send signup OTP method
+  Future<bool> signupSendOtp(String phoneNumber) async {
+    // Validate phone number
+    if (phoneNumber.isEmpty || phoneNumber.length < 10) {
+      state = state.copyWith(
+        error: 'Please enter a valid phone number',
+        isLoading: false,
+      );
+      return false;
+    }
+
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      phoneNumber: phoneNumber,
+    );
+
+    try {
+      final response = await apiService.signupSendOtp(phoneNumber);
+
+      if (response.success) {
+        state = state.copyWith(
+          isLoading: false,
+          resendCount: 0, // Reset resend count on successful send
+          canResend: true,
+        );
+        return true;
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+        return false;
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'An unexpected error occurred: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  // Verify OTP method
+  Future<bool> signupVerifyOtp(String otp) async {
+    if (state.phoneNumber == null) {
+      state = state.copyWith(error: 'Phone number not found');
+      return false;
+    }
+
+    if (otp.isEmpty || otp.length != 4) {
+      state = state.copyWith(error: 'Please enter a valid 4-digit OTP');
+      return false;
+    }
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final response = await apiService.verifyOtp(state.phoneNumber!, otp);
+
+      if (response.success) {
+        // Extract token from response if available
+        final token =
+            response.data?['token'] ?? response.data?['data']?['token'];
+
+        state = state.copyWith(
+          isLoading: false,
+          isVerified: true,
+          authToken: token,
+          error: null,
+        );
+        return true;
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+        return false;
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'An unexpected error occurred: ${e.toString()}',
+      );
+      return false;
+    }
+  }
+
+  Future<bool> getUserData() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    if (state.phoneNumber == null) {
+      state = state.copyWith(error: 'Phone number not found');
+      return false;
+    }
+
+    try {
+      final response = await apiService.getUserData(state.phoneNumber!);
+
+      if (response.success) {
+        state = state.copyWith(
+          isLoading: false,
+          userData: response.data, // ✅ Save user data in state
+        );
+        print(response.data);
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+        return false;
+      }
+      return true;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,

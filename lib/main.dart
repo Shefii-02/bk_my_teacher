@@ -1,4 +1,4 @@
-import 'package:app/routes/router.dart';
+import './routes/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -15,6 +15,7 @@ void main() async {
   // Open required Hive boxes
   final settingsBox = await Hive.openBox('settings');
   final appDataBox = await Hive.openBox('app_data');
+  final appStorage = await Hive.openBox('app_storage');
 
   // Check onboarding status
   bool hasSeen = settingsBox.get('hasSeenOnboarding', defaultValue: false);
@@ -28,7 +29,8 @@ void main() async {
   final useCase = CheckLaunchStatusUseCase(appRepo);
 
   runApp(
-    ProviderScope( // ✅ wrap with ProviderScope
+    ProviderScope(
+      // ✅ wrap with ProviderScope
       child: MyApp(useCase: useCase),
     ),
   );

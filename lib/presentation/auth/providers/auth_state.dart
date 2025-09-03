@@ -11,6 +11,7 @@ class AuthState {
   final String? phoneNumber;
   final String? authToken;
   final bool isVerified;
+  final Map<String, dynamic>? userData;
 
   const AuthState({
     this.isLoading = false,
@@ -21,6 +22,7 @@ class AuthState {
     this.phoneNumber,
     this.authToken,
     this.isVerified = false,
+    this.userData
   });
 
   AuthState copyWith({
@@ -32,6 +34,7 @@ class AuthState {
     String? phoneNumber,
     String? authToken,
     bool? isVerified,
+    Map<String, dynamic>? userData,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -42,11 +45,12 @@ class AuthState {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       authToken: authToken ?? this.authToken,
       isVerified: isVerified ?? this.isVerified,
+      userData: userData ?? this.userData,
     );
   }
 
   @override
   String toString() {
-    return 'AuthState{isLoading: $isLoading, error: $error, resendCount: $resendCount, canResend: $canResend, resendCooldown: $resendCooldown, phoneNumber: $phoneNumber, isVerified: $isVerified}';
+    return 'AuthState{isLoading: $isLoading, error: $error, resendCount: $resendCount, canResend: $canResend, resendCooldown: $resendCooldown, phoneNumber: $phoneNumber, isVerified: $isVerified, userData: $userData}';
   }
 }

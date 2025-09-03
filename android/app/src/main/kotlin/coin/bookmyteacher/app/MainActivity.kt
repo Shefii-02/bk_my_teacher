@@ -1,4 +1,4 @@
-package com.example.app
+package coin.bookmyteacher.app
 
 import io.flutter.embedding.android.FlutterActivity
 

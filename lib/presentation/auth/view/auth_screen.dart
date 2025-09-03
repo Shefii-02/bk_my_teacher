@@ -1,8 +1,7 @@
-import 'package:app/presentation/auth/view/signin_screen.dart';
-import 'package:app/presentation/auth/view/signup_stepper.dart';
 
+import 'signup_stepper.dart';
+import 'signin_screen.dart';
 import 'package:flutter/material.dart';
-
 
 class AuthScreen extends StatelessWidget {
   const AuthScreen({super.key});
@@ -13,10 +12,7 @@ class AuthScreen extends StatelessWidget {
       body: PageView(
         physics: const NeverScrollableScrollPhysics(),
         controller: PageController(initialPage: 0),
-        children: const [
-          SignInScreen(),
-          SignUpStepper(),
-        ],
+        children: const [SignInScreen(), SignUpStepper()],
       ),
     );
   }

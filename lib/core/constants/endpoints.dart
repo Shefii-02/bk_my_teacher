@@ -4,14 +4,32 @@ class Endpoints {
   static const base = "https://bookmyteacher.shefii.com/api";
 
   // Auth
-  static const sendOtp = "/send-otp";
-  static const verifyOtp = "/verify-otp";
+  static const sendOtpSignIn = "/send-otp-signIn";
+  static const verifyOtpSignIn = "/verify-otp-signIn";
+
+  static const sendOtpSignUp = "/send-otp-signUp";
+  static const verifyOtpSignUp = "/verify-otp-signUp";
+
+  static const sendEmailOtp = "/send-email-otp";
+  static const verifyEmailOtp = "/verify-email-otp";
+
+  static const teacherSignup = "/teacher-signup";
+  static const studentSignup = "/student-signup";
+
+  static const userDetails = "/user-details";
+  static const updateStudentDetails = "/student-details/update";
+  static const updateTeacherDetails = "/teacher-details/update";
+  static const teacherHome = "/teacher-home";
+  static const studentHome = "/student-home";
+  static const teacherProfile = "/teacher-profile";
+  static const teacherMyCourses = "/teacher-mycourses";
+  static const studentProfile = "/student-profile";
+  static const notifications = "/notifications";
   static const logout = "/logout";
+
 
   // Registration
   static const teachersRegister = "/teachers/register";
-
-
 
   // Classes
   static const myClasses = "/classes";
@@ -31,6 +49,5 @@ class Endpoints {
   static const earnings = "/earnings";
   static const withdraw = "/earnings/withdraw";
 
-  // Notifications
-  static const notifications = "/notifications";
+
 }

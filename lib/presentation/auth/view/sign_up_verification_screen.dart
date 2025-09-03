@@ -5,19 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:flutter/services.dart';
-import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
 
-class VerificationScreen extends ConsumerStatefulWidget {
+class SignUpVerificationScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
 
-  const VerificationScreen({super.key, required this.phoneNumber});
+  const SignUpVerificationScreen({super.key, required this.phoneNumber});
 
   @override
-  ConsumerState<VerificationScreen> createState() => _VerificationScreenState();
+  ConsumerState<SignUpVerificationScreen> createState() => _SignUpVerificationScreenState();
 }
 
-class _VerificationScreenState extends ConsumerState<VerificationScreen>
+class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScreen>
     with CodeAutoFill {
   String otpCode = "";
   bool _isLoading = false;
@@ -62,43 +61,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     });
   }
 
-  // Future<void> _verifyOtp() async {
-  //   if (otpCode.length != 4) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text("Please enter a valid 4-digit OTP")),
-  //     );
-  //     return;
-  //   }
-  //
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-  //
-  //   final authController = ref.read(authControllerProvider.notifier);
-  //   authController.clearError();
-  //
-  //   final verified = await authController.verifyOtp(otpCode);
-  //
-  //   setState(() {
-  //     _isLoading = false;
-  //   });
-  //
-  //   if (verified) {
-  //     // Navigate to home screen on successful verification
-  //     context.go('/teacher');
-  //     // await authController.getUserData(phoneNumber);
-  //
-  //   } else {
-  //     // Show error from state
-  //     final error = ref.read(authControllerProvider).error;
-  //     if (error != null) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text(error)),
-  //       );
-  //     }
-  //   }
-  // }
-
   Future<void> _verifyOtp() async {
     if (otpCode.length != 4) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -121,50 +83,16 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     });
 
     if (verified) {
-
-      // Fetch user data after successful verification
-      final success = await authController.getUserData();
-
-
-      if (success) {
-        final userData = ref.read(authControllerProvider).userData;
-
-        if (userData == null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("User data not found")));
-          return;
-        }
-        final userDetails = userData['data'];
-
-        final userRole = userDetails['acc_type'] ?? 'guest';
-        await LaunchStatusService.setUserRole(userRole);
-
-        // ✅ Redirect based on account type
-        if (userDetails['acc_type'] == 'teacher') {
-          if(userDetails['profile_fill'] == 1){
-            context.go('/teacher-dashboard');
-          }
-          else{
-            context.go('/signup-stepper');
-          }
-
-        } else if (userDetails['acc_type'] == 'student') {
-          context.go('/student-dashboard');
-          // } else if (userData['acc_type'] == 'parent') {
-          //   context.go('/parent-dashboard');
-        } else {
-          // Default or unknown account type
-          context.go('/error');
-        }
-      }
+      // Navigate to home screen on successful verification
+      await authController.getUserData();
+      context.go('/signup-stepper');
     } else {
       // Show error from state
       final error = ref.read(authControllerProvider).error;
       if (error != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
       }
     }
   }
@@ -173,9 +101,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     if (_resendAttempts >= 2 && _resendCooldown > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            "Please wait ${_formatCooldownTime(_resendCooldown)} before resending",
-          ),
+          content: Text("Please wait ${_formatCooldownTime(_resendCooldown)} before resending"),
         ),
       );
       return;
@@ -183,11 +109,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
 
     if (_resendAttempts >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Maximum resend attempts reached. Please wait 5 minutes.",
-          ),
-        ),
+        const SnackBar(content: Text("Maximum resend attempts reached. Please wait 5 minutes.")),
       );
       return;
     }
@@ -217,9 +139,9 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     });
 
     if (success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("OTP sent successfully")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("OTP sent successfully")),
+      );
 
       // Clear OTP field
       setState(() {
@@ -229,9 +151,9 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       // Show error from state
       final error = ref.read(authControllerProvider).error;
       if (error != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
       }
     }
   }
@@ -290,7 +212,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                   const Divider(),
                   const Text(
                     "This is your offcanvas-top style popup with animation. "
-                    "You can add any content here.",
+                        "You can add any content here.",
                     style: TextStyle(fontSize: 14),
                   ),
                 ],
@@ -487,9 +409,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                                     ),
                                     padding: EdgeInsets.zero,
                                     onPressed: () {
-                                      ref
-                                          .read(authControllerProvider.notifier)
-                                          .reset();
+                                      ref.read(authControllerProvider.notifier).reset();
                                       context.go('/signin');
                                     },
                                   ),
@@ -506,12 +426,8 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                                 codeLength: 4,
                                 decoration: BoxLooseDecoration(
                                   radius: const Radius.circular(15),
-                                  strokeColorBuilder: FixedColorBuilder(
-                                    Colors.grey[50]!,
-                                  ),
-                                  bgColorBuilder: FixedColorBuilder(
-                                    Colors.grey.shade200,
-                                  ),
+                                  strokeColorBuilder: FixedColorBuilder(Colors.grey[50]!),
+                                  bgColorBuilder: FixedColorBuilder(Colors.grey.shade200),
                                   textStyle: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -571,9 +487,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                                   ),
 
                                 if (_resendAttempts >= 1)
-                                  Text(
-                                    "${3 - _resendAttempts} attempts remaining",
-                                  ),
+                                  Text("${3 - _resendAttempts} attempts remaining"),
                               ],
                             ),
 
@@ -600,16 +514,16 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
 // import 'package:go_router/go_router.dart';
 // import '../controller/auth_controller.dart';
 //
-// class VerificationScreen extends ConsumerStatefulWidget {
+// class SignUpVerificationScreen extends ConsumerStatefulWidget {
 //   final Map<String, dynamic> extra;
 //
-//   const VerificationScreen({super.key, required this.extra});
+//   const SignUpVerificationScreen({super.key, required this.extra});
 //
 //   @override
-//   ConsumerState<VerificationScreen> createState() => _VerificationScreenState();
+//   ConsumerState<SignUpVerificationScreen> createState() => _SignUpVerificationScreenState();
 // }
 //
-// class _VerificationScreenState extends ConsumerState<VerificationScreen> {
+// class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScreen> {
 //   final List<TextEditingController> _otpControllers = List.generate(6, (index) => TextEditingController());
 //   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 //   String _phoneNumber = '';

@@ -19,6 +19,9 @@ class LaunchStatusService {
     }
 
     final userRole = box.get(_userRoleKey);
+    print('***********');
+    print(userRole);
+    print('***********');
     if (userRole == 'student' || userRole == 'teacher') {
       return LaunchStatus.logged;
     } else {

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive/hive.dart';
 import '../../../core/constants/image_paths.dart';
 import '../../core/enums/launch_status.dart';
 import '../../services/launch_status_service.dart';
+import '../../services/update_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,6 +34,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     _fadeController.forward();
 
+    Future.delayed(Duration.zero, () {
+      UpdateService.checkForUpdate(context);
+    });
+
     _initAndRedirect();
   }
 
@@ -41,13 +47,24 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(seconds: 6)); // simulate loading
     final status = await LaunchStatusService.getLaunchStatus();
 
-    // print("********************");
-    // print(status);
-    // print("********************");
+    print("********************");
+    print(status);
+    print("********************");
+    final box = await Hive.openBox('app_storage');
+    final userRole = box.get('user_role');
+    print(userRole);
+
     switch (status) {
       case LaunchStatus.firstTime:
         context.go('/onboarding');
       case LaunchStatus.logged:
+        if (userRole == 'teacher') {
+          context.go('/teacher-dashboard');
+        } else if (userRole == 'student') {
+          context.go('/student-dashboard');
+        } else {
+          context.go('/error');
+        }
       case LaunchStatus.notLoggedIn:
         context.go('/auth');
     }
@@ -79,7 +96,4 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
-
-
-
 }

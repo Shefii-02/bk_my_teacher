@@ -2,12 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../../../core/constants/endpoints.dart';
+
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
 });
 
 class AuthRepository {
-  final String baseUrl = "https://bookmyteacher.shefii.com/api";
+  final String baseUrl = Endpoints.base;
 
   Future<Map<String, dynamic>> sendOtp(String mobile) async {
     final response = await http.post(
