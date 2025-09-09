@@ -69,13 +69,34 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   String _readyToWork = 'Yes';
 
   // Preferable Days & Hours (chips)
-  final List<String> _days = const ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  final List<String> _days = const [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
   final List<String> _selectedDays = [];
   final List<String> _hours = const [
-    "06.00-07.00 AM","07.00-08.00 AM","08.00-09.00 AM","09.00-10.00 AM",
-    "10.00-11.00 AM","11.00-12.00 PM","12.00-01.00 PM","01.00-02.00 PM",
-    "02.00-03.00 PM","03.00-04.00 PM","04.00-05.00 PM","05.00-06.00 PM",
-    "06.00-07.00 PM","07.00-08.00 PM","08.00-09.00 PM","09.00-10.00 PM","10.00-11.00 PM",
+    "06.00-07.00 AM",
+    "07.00-08.00 AM",
+    "08.00-09.00 AM",
+    "09.00-10.00 AM",
+    "10.00-11.00 AM",
+    "11.00-12.00 PM",
+    "12.00-01.00 PM",
+    "01.00-02.00 PM",
+    "02.00-03.00 PM",
+    "03.00-04.00 PM",
+    "04.00-05.00 PM",
+    "05.00-06.00 PM",
+    "06.00-07.00 PM",
+    "07.00-08.00 PM",
+    "08.00-09.00 PM",
+    "09.00-10.00 PM",
+    "10.00-11.00 PM",
   ];
   final List<String> _selectedHours = [];
 
@@ -86,7 +107,8 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   final ImagePicker _picker = ImagePicker();
 
   // ---------- Helpers: validators ----------
-  String? _req(String? v) => (v == null || v.trim().isEmpty) ? 'Required' : null;
+  String? _req(String? v) =>
+      (v == null || v.trim().isEmpty) ? 'Required' : null;
 
   String? _email(String? v) {
     if (v == null || v.trim().isEmpty) return 'Required';
@@ -118,9 +140,9 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
       final image = await _picker.pickImage(source: ImageSource.gallery);
       if (image != null) setState(() => _avatarFile = File(image.path));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Photos permission denied')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Photos permission denied')));
     }
   }
 
@@ -140,11 +162,20 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     final ok = _fStep2.currentState?.validate() ?? false;
     if (!ok) return false;
 
-    if (!(_lowerPrimary || _upto10 || _higherSecondary || _graduate || _postGraduate)) {
+    if (!(_lowerPrimary ||
+        _upto10 ||
+        _higherSecondary ||
+        _graduate ||
+        _postGraduate)) {
       _toast('Please select at least one Teaching Grade');
       return false;
     }
-    if (!(_allSubjects || _maths || _science || _malayalam || _english || _other)) {
+    if (!(_allSubjects ||
+        _maths ||
+        _science ||
+        _malayalam ||
+        _english ||
+        _other)) {
       _toast('Please select at least one Teaching Subject');
       return false;
     }
@@ -171,12 +202,14 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     return true;
   }
 
-  void _toast(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+  void _toast(String m) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
 
   // ---------- Submit ----------
   Future<void> _submitForm() async {
     // Collect experience string
-    final experience = "${_offlineExpCtrl.text},${_onlineExpCtrl.text},${_homeExpCtrl.text}";
+    final experience =
+        "${_offlineExpCtrl.text},${_onlineExpCtrl.text},${_homeExpCtrl.text}";
 
     final container = ProviderScope.containerOf(context, listen: false);
     final authState = container.read(authControllerProvider);
@@ -225,10 +258,14 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     };
 
     try {
-      final response = await container.read(teacherSignupProvider(formData).future);
+      final response = await container.read(
+        teacherSignupProvider(formData).future,
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response["message"] ?? "Registration Successful")),
+        SnackBar(
+          content: Text(response["message"] ?? "Registration Successful"),
+        ),
       );
 
       final userRole = response['user']?['acc_type'] ?? 'guest';
@@ -332,7 +369,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                         color: Colors.transparent,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.question_mark_sharp, color: Colors.black),
+                        icon: const Icon(
+                          Icons.question_mark_sharp,
+                          color: Colors.black,
+                        ),
                         iconSize: 18,
                         padding: EdgeInsets.zero,
                         onPressed: () {},
@@ -367,7 +407,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                       children: [
                         // Stepper
                         Container(
-                          margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 10.0,
+                            horizontal: 10.0,
+                          ),
                           child: EasyStepper(
                             steppingEnabled: false,
                             internalPadding: 60,
@@ -405,7 +448,9 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                               EasyStep(
                                 customTitle: Padding(
                                   padding: EdgeInsets.only(top: 8.0),
-                                  child: Center(child: Text('Teaching Details')),
+                                  child: Center(
+                                    child: Text('Teaching Details'),
+                                  ),
                                 ),
                                 customStep: CircleAvatar(
                                   radius: 5,
@@ -425,7 +470,8 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                                 ),
                               ),
                             ],
-                            onStepReached: (index) => setState(() => activeStep = index),
+                            onStepReached: (index) =>
+                                setState(() => activeStep = index),
                           ),
                         ),
 
@@ -436,7 +482,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
 
                         // Nav buttons
                         Padding(
-                          padding: const EdgeInsets.only(right: 40.0, bottom: 30),
+                          padding: const EdgeInsets.only(
+                            right: 40.0,
+                            bottom: 30,
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -449,14 +498,18 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                               ElevatedButton(
                                 onPressed: () {
                                   if (activeStep == 0) {
-                                    if (_validateStep1()) setState(() => activeStep = 1);
+                                    if (_validateStep1())
+                                      setState(() => activeStep = 1);
                                   } else if (activeStep == 1) {
-                                    if (_validateStep2()) setState(() => activeStep = 2);
+                                    if (_validateStep2())
+                                      setState(() => activeStep = 2);
                                   } else {
                                     if (_validateStep3()) _submitForm();
                                   }
                                 },
-                                child: Text(activeStep == 2 ? 'Submit' : 'Next'),
+                                child: Text(
+                                  activeStep == 2 ? 'Submit' : 'Next',
+                                ),
                               ),
                             ],
                           ),
@@ -501,9 +554,15 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: _avatarFile != null ? FileImage(_avatarFile!) : null,
+                  backgroundImage: _avatarFile != null
+                      ? FileImage(_avatarFile!)
+                      : null,
                   child: _avatarFile == null
-                      ? const Icon(Icons.camera_alt, size: 40, color: Colors.white70)
+                      ? const Icon(
+                          Icons.camera_alt,
+                          size: 40,
+                          color: Colors.white70,
+                        )
                       : null,
                 ),
               ),
@@ -511,13 +570,23 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             const SizedBox(height: 20),
             _tf(_nameCtrl, 'Full Name', validator: _req),
             const SizedBox(height: 20),
-            _tf(_emailCtrl, 'Email Id', keyboardType: TextInputType.emailAddress, validator: _email),
+            _tf(
+              _emailCtrl,
+              'Email Id',
+              keyboardType: TextInputType.emailAddress,
+              validator: _email,
+            ),
             const SizedBox(height: 20),
             _tf(_addressCtrl, 'Address', validator: _req),
             const SizedBox(height: 20),
             _tf(_cityCtrl, 'City', validator: _req),
             const SizedBox(height: 20),
-            _tf(_postalCtrl, 'Postal code', keyboardType: TextInputType.number, validator: _req),
+            _tf(
+              _postalCtrl,
+              'Postal code',
+              keyboardType: TextInputType.number,
+              validator: _req,
+            ),
             const SizedBox(height: 20),
             _tf(_districtCtrl, 'District', validator: _req),
             const SizedBox(height: 20),
@@ -539,7 +608,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Mode of Interest", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              "Mode of Interest",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             Row(
               children: [
                 Expanded(
@@ -576,36 +648,93 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             ),
 
             const SizedBox(height: 20),
-            const Text("Teaching Grade", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              "Teaching Grade",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             Wrap(
               spacing: 8,
               children: [
-                FilterChip(label: const Text("Lower Primary"), selected: _lowerPrimary, onSelected: (v) => setState(() => _lowerPrimary = v)),
-                FilterChip(label: const Text("Up to 10th"), selected: _upto10, onSelected: (v) => setState(() => _upto10 = v)),
-                FilterChip(label: const Text("Higher Secondary"), selected: _higherSecondary, onSelected: (v) => setState(() => _higherSecondary = v)),
-                FilterChip(label: const Text("Graduate Level"), selected: _graduate, onSelected: (v) => setState(() => _graduate = v)),
-                FilterChip(label: const Text("Post Graduate Level"), selected: _postGraduate, onSelected: (v) => setState(() => _postGraduate = v)),
+                FilterChip(
+                  label: const Text("Lower Primary"),
+                  selected: _lowerPrimary,
+                  onSelected: (v) => setState(() => _lowerPrimary = v),
+                ),
+                FilterChip(
+                  label: const Text("Up to 10th"),
+                  selected: _upto10,
+                  onSelected: (v) => setState(() => _upto10 = v),
+                ),
+                FilterChip(
+                  label: const Text("Higher Secondary"),
+                  selected: _higherSecondary,
+                  onSelected: (v) => setState(() => _higherSecondary = v),
+                ),
+                FilterChip(
+                  label: const Text("Graduate Level"),
+                  selected: _graduate,
+                  onSelected: (v) => setState(() => _graduate = v),
+                ),
+                FilterChip(
+                  label: const Text("Post Graduate Level"),
+                  selected: _postGraduate,
+                  onSelected: (v) => setState(() => _postGraduate = v),
+                ),
               ],
             ),
 
             const SizedBox(height: 20),
-            const Text("Teaching Subjects", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              "Teaching Subjects",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             Wrap(
               spacing: 8,
               children: [
-                FilterChip(label: const Text("All Subjects"), selected: _allSubjects, onSelected: (v) => setState(() => _allSubjects = v)),
-                FilterChip(label: const Text("Mathematics"), selected: _maths, onSelected: (v) => setState(() => _maths = v)),
-                FilterChip(label: const Text("Science"), selected: _science, onSelected: (v) => setState(() => _science = v)),
-                FilterChip(label: const Text("Malayalam"), selected: _malayalam, onSelected: (v) => setState(() => _malayalam = v)),
-                FilterChip(label: const Text("English"), selected: _english, onSelected: (v) => setState(() => _english = v)),
-                FilterChip(label: const Text("Other"), selected: _other, onSelected: (v) => setState(() => _other = v)),
+                FilterChip(
+                  label: const Text("All Subjects"),
+                  selected: _allSubjects,
+                  onSelected: (v) => setState(() => _allSubjects = v),
+                ),
+                FilterChip(
+                  label: const Text("Mathematics"),
+                  selected: _maths,
+                  onSelected: (v) => setState(() => _maths = v),
+                ),
+                FilterChip(
+                  label: const Text("Science"),
+                  selected: _science,
+                  onSelected: (v) => setState(() => _science = v),
+                ),
+                FilterChip(
+                  label: const Text("Malayalam"),
+                  selected: _malayalam,
+                  onSelected: (v) => setState(() => _malayalam = v),
+                ),
+                FilterChip(
+                  label: const Text("English"),
+                  selected: _english,
+                  onSelected: (v) => setState(() => _english = v),
+                ),
+                FilterChip(
+                  label: const Text("Other"),
+                  selected: _other,
+                  onSelected: (v) => setState(() => _other = v),
+                ),
               ],
             ),
             if (_other) ...[
               const SizedBox(height: 20),
-              const Text("Enter except above other subject", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text(
+                "Enter except above other subject",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 10),
-              _tf(_otherSubjectCtrl, "Enter other subject", validator: (v) => _other ? _req(v) : null),
+              _tf(
+                _otherSubjectCtrl,
+                "Enter other subject",
+                validator: (v) => _other ? _req(v) : null,
+              ),
             ],
 
             const SizedBox(height: 20),
@@ -618,9 +747,20 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                     Expanded(
                       child: Column(
                         children: [
-                          const Text("Years of experience in offline", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          const Text(
+                            "Years of experience in offline",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          _tf(_offlineExpCtrl, "", keyboardType: TextInputType.number, validator: _nonNegInt),
+                          _tf(
+                            _offlineExpCtrl,
+                            "",
+                            keyboardType: TextInputType.number,
+                            validator: _nonNegInt,
+                          ),
                         ],
                       ),
                     ),
@@ -628,18 +768,37 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                     Expanded(
                       child: Column(
                         children: [
-                          const Text("Years of experience in online", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          const Text(
+                            "Years of experience in online",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          _tf(_onlineExpCtrl, "", keyboardType: TextInputType.number, validator: _nonNegInt),
+                          _tf(
+                            _onlineExpCtrl,
+                            "",
+                            keyboardType: TextInputType.number,
+                            validator: _nonNegInt,
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                const Text("Years of experience in Home tuition", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text(
+                  "Years of experience in Home tuition",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
-                _tf(_homeExpCtrl, "", keyboardType: TextInputType.number, validator: _nonNegInt),
+                _tf(
+                  _homeExpCtrl,
+                  "",
+                  keyboardType: TextInputType.number,
+                  validator: _nonNegInt,
+                ),
                 const SizedBox(height: 14),
               ],
             ),
@@ -648,7 +807,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text("Current Working Profession", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const Text(
+                  "Current Working Profession",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 Row(
                   children: [
                     Expanded(
@@ -712,7 +874,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             ),
 
             const SizedBox(height: 16),
-            const Text("Preferable Working Days", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              "Preferable Working Days",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 10,
@@ -732,7 +897,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             ),
 
             const SizedBox(height: 16),
-            const Text("Preferable Working Hours", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              "Preferable Working Hours",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 10,
@@ -744,7 +912,9 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                   selected: selected,
                   onSelected: (v) {
                     setState(() {
-                      v ? _selectedHours.add(time) : _selectedHours.remove(time);
+                      v
+                          ? _selectedHours.add(time)
+                          : _selectedHours.remove(time);
                     });
                   },
                 );
@@ -765,7 +935,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Upload Your CV", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              "Upload Your CV",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
             GestureDetector(
               onTap: _pickCV,
@@ -781,10 +954,16 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.upload_file, size: 40, color: Colors.grey),
+                      const Icon(
+                        Icons.upload_file,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(height: 8),
                       Text(
-                        cvFile != null ? cvFile!.path.split('/').last : 'Click to Upload CV',
+                        cvFile != null
+                            ? cvFile!.path.split('/').last
+                            : 'Click to Upload CV',
                         style: TextStyle(
                           fontSize: 14,
                           color: cvFile != null ? Colors.black87 : Colors.black,
@@ -804,11 +983,11 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
 
   // Shared text field builder in your style
   Widget _tf(
-      TextEditingController c,
-      String label, {
-        TextInputType? keyboardType,
-        String? Function(String?)? validator,
-      }) {
+    TextEditingController c,
+    String label, {
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
     return TextFormField(
       controller: c,
       validator: validator,

@@ -312,7 +312,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                     style: TextStyle(
                                       color: Colors.black45,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 30,
+                                      fontSize: 22,
                                     ),
                                   ),
                                   const SizedBox(height: 1),
@@ -325,7 +325,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 30,
+                                          fontSize: 25,
                                         ),
                                       ),
                                       Text(
@@ -341,7 +341,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                         style: TextStyle(
                                           color: Colors.black,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 30,
+                                          fontSize: 25,
                                         ),
                                       ),
                                     ],
@@ -353,7 +353,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             const Text(
                               "Mobile Number",
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 14,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -492,58 +492,58 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                               ),
                             ),
                             const SizedBox(height: 40.0),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: Divider(
-                                    thickness: 0.7,
-                                    color: Colors.grey.withOpacity(0.5),
-                                  ),
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 10),
-                                  child: Text(
-                                    'Sign in with single click',
-                                    style: TextStyle(color: Colors.black45),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Divider(
-                                    thickness: 0.7,
-                                    color: Colors.grey.withOpacity(0.5),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            Center(
-                              child: SizedBox(
-                                width: 400.0,
-                                height: 60.0,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    // Google sign-in implementation
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green[50],
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset('assets/images/icons/icon-google.png'),
-                                      const SizedBox(width: 15, height: 30),
-                                      const Text(
-                                        "Sign in using your Google",
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 40.0),
+                            // Row(
+                            //   mainAxisAlignment: MainAxisAlignment.center,
+                            //   children: [
+                            //     Expanded(
+                            //       child: Divider(
+                            //         thickness: 0.7,
+                            //         color: Colors.grey.withOpacity(0.5),
+                            //       ),
+                            //     ),
+                            //     const Padding(
+                            //       padding: EdgeInsets.symmetric(horizontal: 10),
+                            //       child: Text(
+                            //         'Sign in with single click',
+                            //         style: TextStyle(color: Colors.black45),
+                            //       ),
+                            //     ),
+                            //     Expanded(
+                            //       child: Divider(
+                            //         thickness: 0.7,
+                            //         color: Colors.grey.withOpacity(0.5),
+                            //       ),
+                            //     ),
+                            //   ],
+                            // ),
+                            // const SizedBox(height: 20),
+                            // Center(
+                            //   child: SizedBox(
+                            //     width: 400.0,
+                            //     height: 60.0,
+                            //     child: ElevatedButton(
+                            //       onPressed: () {
+                            //         // Google sign-in implementation
+                            //       },
+                            //       style: ElevatedButton.styleFrom(
+                            //         backgroundColor: Colors.green[50],
+                            //         foregroundColor: Colors.white,
+                            //       ),
+                            //       child: Row(
+                            //         mainAxisAlignment: MainAxisAlignment.center,
+                            //         children: [
+                            //           Image.asset('assets/images/icons/icon-google.png'),
+                            //           const SizedBox(width: 15, height: 30),
+                            //           const Text(
+                            //             "Sign in using your Google",
+                            //             style: TextStyle(color: Colors.black),
+                            //           ),
+                            //         ],
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                            // const SizedBox(height: 40.0),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
