@@ -125,7 +125,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       // Fetch user data after successful verification
       final success = await authController.getUserData();
 
-
       if (success) {
         final userData = ref.read(authControllerProvider).userData;
 
@@ -138,17 +137,18 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
         final userDetails = userData['data'];
 
         final userRole = userDetails['acc_type'] ?? 'guest';
+        final userId   = userDetails['id'] ?? '';
         await LaunchStatusService.setUserRole(userRole);
+        await LaunchStatusService.setUserId(userId);
 
+        // print(LaunchStatusService);
         // ✅ Redirect based on account type
         if (userDetails['acc_type'] == 'teacher') {
-          if(userDetails['profile_fill'] == 1){
+          if (userDetails['profile_fill'] == 1) {
             context.go('/teacher-dashboard');
-          }
-          else{
+          } else {
             context.go('/signup-stepper');
           }
-
         } else if (userDetails['acc_type'] == 'student') {
           context.go('/student-dashboard');
           // } else if (userData['acc_type'] == 'parent') {
@@ -161,6 +161,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     } else {
       // Show error from state
       final error = ref.read(authControllerProvider).error;
+      print(error);
       if (error != null) {
         ScaffoldMessenger.of(
           context,
@@ -289,8 +290,9 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                   ),
                   const Divider(),
                   const Text(
-                    "This is your offcanvas-top style popup with animation. "
-                    "You can add any content here.",
+                    "",
+                    // "This is your offcanvas-top style popup with animation. "
+                    // "You can add any content here.",
                     style: TextStyle(fontSize: 14),
                   ),
                 ],

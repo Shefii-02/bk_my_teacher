@@ -268,10 +268,26 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
         ),
       );
 
-      final userRole = response['user']?['acc_type'] ?? 'guest';
+      final userRole = response['user']?['acc_type'] ?? 'teacher';
       await LaunchStatusService.setUserRole(userRole);
+      // print("**************");
+      // print(userId!.toString());
+      // print("**************");
+      await LaunchStatusService.setUserId(userId!.toString());
 
-      context.go('/teacher-dashboard');
+      // print(response);
+      // print('******************');
+      // print(response['user']);
+      // print('******************');
+      // print('******************');
+      // print(response['user']?['acc_type']);
+      // print('******************');
+
+      // print(LaunchStatusService.getUserRole());
+
+      // print(userRole);
+      context.go('/teacher-dashboard', extra: {'teacherId': userId});
+      // context.go('/teacher-dashboard');
     } catch (e) {
       debugPrint("Submit error: $e");
       _toast("❌ Error: $e");
@@ -475,8 +491,19 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                           ),
                         ),
 
-                        // Step content (keeps your look)
-                        _buildStepContent(),
+                        SizedBox(
+                          width: 450,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Step content (keeps your look)
+                                _buildStepContent(),
+                              ],
+                            ),
+                          ),
+                        ),
 
                         const SizedBox(height: 20),
 

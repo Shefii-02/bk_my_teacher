@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/launch_status_service.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, required Map<String, dynamic> teacherData});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();

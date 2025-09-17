@@ -1,4 +1,4 @@
-# app
+# BookMyTeacher
 
 A new Flutter project.
 

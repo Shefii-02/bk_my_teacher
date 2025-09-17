@@ -1,4 +1,3 @@
-
 import 'package:go_router/go_router.dart';
 
 import '../presentation/auth/view/auth_screen.dart';
@@ -18,10 +17,7 @@ import 'app_router.dart';
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
   routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const SplashScreen(),
-    ),
+    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: AppRoutes.onboarding,
       builder: (context, state) => const OnboardingScreen(),
@@ -30,7 +26,10 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.auth,
       builder: (context, state) => const AuthScreen(),
     ),
-    GoRoute(path: AppRoutes.signUpStepper,builder: (context, state) => const SignUpStepper()),
+    GoRoute(
+      path: AppRoutes.signUpStepper,
+      builder: (context, state) => const SignUpStepper(),
+    ),
     GoRoute(
       path: AppRoutes.signupTeacher,
       builder: (context, state) => const SignUpTeacher(),
@@ -45,7 +44,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.teacherDashboard,
-      builder: (context, state) => const TeacherDashboard(),
+      builder: (context, state) {
+        final teacherData = state.extra as Map<String, dynamic>;
+        return TeacherDashboard(teacherData: teacherData);
+      },
     ),
     GoRoute(
       path: AppRoutes.verificationScreen,
@@ -69,13 +71,7 @@ final GoRouter appRouter = GoRouter(
         return SignUpVerificationScreen(phoneNumber: mobile);
       },
     ),
-    GoRoute(
-      path: '/home',
-      builder: (context, state) => const ErrorScreen(),
-    ),
-    GoRoute(
-      path: '/error',
-      builder: (context, state) => const ErrorScreen(),
-    ),
+    GoRoute(path: '/home', builder: (context, state) => const ErrorScreen()),
+    GoRoute(path: '/error', builder: (context, state) => const ErrorScreen()),
   ],
 );

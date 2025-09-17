@@ -16,7 +16,7 @@ description: "Complete Tution App"
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.3+3
+version: 1.0.3+4
 
 environment:
   sdk: ^3.9.0
@@ -53,6 +53,7 @@ dependencies:
   rename_app: ^1.6.5
   new_version_plus: ^0.1.1
   package_info_plus: ^8.3.1
+  image_picker_for_web: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -78,6 +80,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - assets/fonts/
     - assets/images/
     - assets/images/icons/
     - assets/images/logo/
@@ -95,11 +98,28 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
+  fonts:
+     - family: PetrovSans
+       fonts:
+#         - asset: assets/fonts/PETROVSANS-BLACK.TTF
+#         - asset: assets/fonts/PETROVSANS-BLACKITALIC.TTF
+#         - asset: assets/fonts/PETROVSANS-BOLD.TTF
+#         - asset: assets/fonts/PETROVSANS-BOLDITALIC.TTF
+#         - asset: assets/fonts/PETROVSANS-BOOK.TTF
+#         - asset: assets/fonts/PETROVSANS-BOOKITALIC.TTF
+#         - asset: assets/fonts/PETROVSANS-EXTRABOLD.TTF
+#         - asset: assets/fonts/PETROVSANS-EXTRABOLDITALIC.TTF
+#         - asset: assets/fonts/PETROVSANS-EXTRALIGHT.TTF
+#         - asset: assets/fonts/PETROVSANS-EXTRALIGHTITALIC.TTF
+#         - asset: assets/fonts/PETROVSANS-LIGHT.TTF
+#         - asset: assets/fonts/PETROVSANS-LIGHTITALIC.TTF
+#         - asset: assets/fonts/PETROVSANS-REGULAR.TTF
+#         - asset: assets/fonts/PETROVSANS-REGULARITALIC.TTF
+         - asset: assets/fonts/PETROVSANS-SEMIBOLD.TTF
+#         - asset: assets/fonts/PETROVSANS-SEMIBOLDITALIC.TTF
+#         - asset: assets/fonts/PETROVSANS-THIN.TTF
+#         - asset: assets/fonts/PETROVSANS-THINITALIC.TTF
+
   #         style: italic
   #   - family: Trajan Pro
   #     fonts:

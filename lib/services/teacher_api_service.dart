@@ -82,4 +82,53 @@ class TeacherApiService {
       throw Exception(e.response?.data ?? "Signup failed");
     }
   }
+
+  // Future<Map<String, dynamic>> fetchTeacherData(String teacherId) async {
+  //   try {
+  //     final formData = FormData.fromMap({
+  //       "teacher_id": teacherId,
+  //     });
+  //
+  //     final response = await _dio.post(
+  //       Endpoints.teacherHome,
+  //       data: formData, // send as JSON body
+  //     );
+  //
+  //     if (response.statusCode == 200 && response.data != null) {
+  //       // Dio automatically parses JSON response to Map<String, dynamic>
+  //       print("****************");
+  //       print(response);
+  //       print("****************");
+  //       return response.data;
+  //     } else {
+  //       throw Exception("Failed to load teacher data");
+  //     }
+  //   } on DioException catch (e) {
+  //     throw Exception(e.response?.data ?? "Error fetching teacher data");
+  //   }
+  // }
+
+  Future<Map<String, dynamic>> fetchTeacherData(String teacherId) async {
+    try {
+      final formData = FormData.fromMap({
+        "teacher_id": teacherId,
+      });
+
+      final response = await _dio.post(
+        Endpoints.teacherHome,
+        data: formData, // send as a form data body
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        // Dio automatically parses JSON response to Map<String, dynamic>
+        return response.data;
+      } else {
+        throw Exception("Failed to load teacher data: Server responded with status ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      // Catch Dio-specific errors (e.g., network issues, bad status codes)
+      throw Exception(e.response?.data ?? "Error fetching teacher data");
+    }
+  }
+
 }

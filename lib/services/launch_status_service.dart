@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:hive/hive.dart';
 import '../core/enums/launch_status.dart';
 
@@ -5,6 +7,7 @@ class LaunchStatusService {
   static const String _boxName = 'app_storage';
   static const String _isFirstLaunchKey = 'is_first_launch';
   static const String _userRoleKey = 'user_role'; // 'student', 'teacher'
+  static const String _userIdKey = 'user_id';
 
   /// Gets the current launch status of the app.
   static Future<LaunchStatus> getLaunchStatus() async {
@@ -19,17 +22,16 @@ class LaunchStatusService {
     }
 
     final userRole = box.get(_userRoleKey);
-    print('***********');
-    print(userRole);
-    print('***********');
+    // print('***********');
+    // print('Lauch Service');
+    // print(userRole);
+    // print('***********');
     if (userRole == 'student' || userRole == 'teacher') {
       return LaunchStatus.logged;
     } else {
       return LaunchStatus.notLoggedIn;
     }
-
   }
-
 
   /// For setting user role after login
   static Future<void> setUserRole(String role) async {
@@ -37,10 +39,36 @@ class LaunchStatusService {
     await box.put(_userRoleKey, role);
   }
 
+  static Future<void> getUserRole() async {
+    final box = await Hive.openBox(_boxName);
+    final userRole = box.get(_userRoleKey);
+    return userRole;
+    // print('***********');
+    // print('Lauch Service');
+    // print(userRole);
+    // print('***********');
+  }
+
+  /// For setting user role after login
+  static Future<void> setUserId(String userId) async {
+    final box = await Hive.openBox(_boxName);
+    await box.put(_userIdKey, userId);
+    // print("******-----********");
+    // print(userId);
+    // print("******-----********");
+  }
+
+
+  static Future<void> getUserId() async {
+    final box = await Hive.openBox(_boxName);
+    final userId = box.get(_userIdKey);
+    return userId;
+
+  }
+
   /// Optional: Use to reset app (e.g. during logout or testing)
   static Future<void> resetApp() async {
     final box = await Hive.openBox(_boxName);
     await box.clear();
   }
-
 }

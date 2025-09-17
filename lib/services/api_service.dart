@@ -245,15 +245,15 @@ class AuthApiService {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> getUserData(
-      String phoneNumber
-      ) async {
+    String phoneNumber,
+  ) async {
     try {
       final response = await client
           .post(
-        Uri.parse('$baseUrl${Endpoints.userDetails}'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'mobile': phoneNumber}),
-      )
+            Uri.parse('$baseUrl${Endpoints.userDetails}'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'mobile': phoneNumber}),
+          )
           .timeout(const Duration(seconds: 30));
 
       final responseData = json.decode(response.body);
@@ -288,7 +288,6 @@ class AuthApiService {
       );
     }
   }
-
 }
 
 // import 'dart:convert';

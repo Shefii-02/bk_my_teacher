@@ -253,6 +253,7 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
 
     if (state.phoneNumber == null) {
+
       state = state.copyWith(error: 'Phone number not found');
       return false;
     }
@@ -265,7 +266,7 @@ class AuthController extends StateNotifier<AuthState> {
           isLoading: false,
           userData: response.data, // ✅ Save user data in state
         );
-        print(response.data);
+
       } else {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;

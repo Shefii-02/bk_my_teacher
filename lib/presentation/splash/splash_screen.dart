@@ -23,7 +23,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
 
     _fadeController = AnimationController(
-      duration: const Duration(seconds: 6),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
@@ -44,24 +44,24 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _initAndRedirect() async {
     // await LaunchStatusService.resetApp();
 
-    await Future.delayed(const Duration(seconds: 6)); // simulate loading
+    await Future.delayed(const Duration(seconds: 2)); // simulate loading
     final status = await LaunchStatusService.getLaunchStatus();
 
-    print("********************");
-    print(status);
-    print("********************");
+
     final box = await Hive.openBox('app_storage');
     final userRole = box.get('user_role');
-    print(userRole);
+    final userId = box.get('user_id');
 
     switch (status) {
       case LaunchStatus.firstTime:
         context.go('/onboarding');
       case LaunchStatus.logged:
         if (userRole == 'teacher') {
-          context.go('/teacher-dashboard');
+          context.go('/teacher-dashboard', extra: {'teacherId': userId});
+          // context.go('/teacher-dashboard');
         } else if (userRole == 'student') {
-          context.go('/student-dashboard');
+          context.go('/teacher-dashboard', extra: {'teacherId': userId});
+          // context.go('/student-dashboard');
         } else {
           context.go('/error');
         }

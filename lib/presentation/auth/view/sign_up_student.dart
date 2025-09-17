@@ -156,14 +156,13 @@ class _SignUpStudentState extends State<SignUpStudent> {
         ),
       );
 
-      print(response);
-      print(response['user']);
+      final userRole = response['user']?['acc_type'] ?? 'student';
 
-      final userRole = response['user']?['acc_type'] ?? 'guest';
-      print(userRole);
       await LaunchStatusService.setUserRole(userRole);
+      await LaunchStatusService.setUserId(userId!.toString());
 
-      context.go('/student-dashboard');
+      // context.go('/student-dashboard');
+      context.go('/student-dashboard', extra: {'studentId': userId});
     } catch (e) {
       print(e);
       _toast("❌ Error: $e");
