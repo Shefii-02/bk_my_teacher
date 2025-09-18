@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
+import 'package:file_picker/file_picker.dart';
 import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
 import '../providers/student_provider.dart';
@@ -17,6 +18,7 @@ class SignUpStudent extends StatefulWidget {
 
 class _SignUpStudentState extends State<SignUpStudent> {
   int activeStep = 0;
+  bool _isLoading = false;
 
   // ====== STEP 1: Personal Info ======
   final _fStep1 = GlobalKey<FormState>();
@@ -34,6 +36,10 @@ class _SignUpStudentState extends State<SignUpStudent> {
   // ====== STEP 2: Study Details ======
   final _fStep2 = GlobalKey<FormState>();
   String _interest = "offline"; // offline | online | both
+
+  File? _avatarFile;
+  Uint8List? _avatarBytes; // For web
+  String? _avatarName; // Store filename for web
 
   // Teaching Grades (chips)
   bool _lowerPrimary = false;
@@ -98,6 +104,33 @@ class _SignUpStudentState extends State<SignUpStudent> {
     return null;
   }
 
+  Future<void> _pickAvatar() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png'],
+    );
+
+    if (result != null) {
+      if (kIsWeb) {
+        // On Web
+        setState(() {
+          _avatarFile = null;
+          _avatarBytes = result.files.single.bytes;
+          _avatarName = result.files.single.name;
+        });
+      } else {
+        // On Mobile/Desktop
+        setState(() {
+          _avatarFile = File(result.files.single.path!);
+        });
+      }
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No image selected')));
+    }
+  }
+
   // ---------- Step validators ----------
   bool _validateStep1() => _fStep1.currentState?.validate() ?? false;
   bool _validateStep2() => _fStep2.currentState?.validate() ?? false;
@@ -107,6 +140,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
 
   // ---------- Submit ----------
   Future<void> _submitForm() async {
+    if (_isLoading) return;
     final container = ProviderScope.containerOf(context, listen: false);
     final authState = container.read(authControllerProvider);
     final userData = authState.userData?['data'];
@@ -117,14 +151,14 @@ class _SignUpStudentState extends State<SignUpStudent> {
       "student_name": _studentNameCtrl.text.trim(),
       "parent_name": _parentNameCtrl.text.trim(),
       "email": _emailCtrl.text.trim(),
-      "phone": _phoneCtrl.text.trim(),
+      // "phone": _phoneCtrl.text.trim(),
       "address": _addressCtrl.text.trim(),
       "city": _cityCtrl.text.trim(),
       "postalCode": _postalCtrl.text.trim(),
       "district": _districtCtrl.text.trim(),
       "state": _stateCtrl.text.trim(),
       "country": _countryCtrl.text.trim(),
-
+      "avatar": _avatarFile,
       "interest": _interest,
       "selectedDays": _selectedDays,
       "selectedHours": _selectedHours,
@@ -161,11 +195,25 @@ class _SignUpStudentState extends State<SignUpStudent> {
       await LaunchStatusService.setUserRole(userRole);
       await LaunchStatusService.setUserId(userId!.toString());
 
+      setState(() => _isLoading = true); // ⏳ Show loader
+
       // context.go('/student-dashboard');
-      context.go('/student-dashboard', extra: {'studentId': userId});
+      context.go('/student-dashboard', extra: {'studentId': userId.toString()});
+      // }
+      // catch (e) {
+      //   print(e);
+      //   _toast("❌ Error: $e");
+      // }
     } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
       print(e);
-      _toast("❌ Error: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false); // ✅ Hide loader
     }
   }
 
@@ -175,7 +223,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
     _studentNameCtrl.dispose();
     _parentNameCtrl.dispose();
     _emailCtrl.dispose();
-    _phoneCtrl.dispose();
+    // _phoneCtrl.dispose();
     _addressCtrl.dispose();
     _cityCtrl.dispose();
     _postalCtrl.dispose();
@@ -425,6 +473,29 @@ class _SignUpStudentState extends State<SignUpStudent> {
         key: _fStep1,
         child: Column(
           children: [
+            const SizedBox(height: 10),
+            Center(
+              child: GestureDetector(
+                onTap: _pickAvatar,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: _avatarFile != null
+                      ? FileImage(_avatarFile!) // Mobile/Desktop
+                      : _avatarBytes != null
+                      ? MemoryImage(_avatarBytes!)
+                            as ImageProvider // Web
+                      : null,
+                  child: (_avatarFile == null && _avatarBytes == null)
+                      ? const Icon(
+                          Icons.camera_alt,
+                          size: 40,
+                          color: Colors.white70,
+                        )
+                      : null,
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
             _tf(_studentNameCtrl, 'Student Name', validator: _req),
             const SizedBox(height: 20),
@@ -437,12 +508,12 @@ class _SignUpStudentState extends State<SignUpStudent> {
               validator: _email,
             ),
             const SizedBox(height: 20),
-            _tf(
-              _phoneCtrl,
-              'Phone',
-              keyboardType: TextInputType.phone,
-              validator: _phone,
-            ),
+            // _tf(
+            //   _phoneCtrl,
+            //   'Phone',
+            //   keyboardType: TextInputType.phone,
+            //   validator: _phone,
+            // ),
             const SizedBox(height: 20),
             _tf(_addressCtrl, 'Address', validator: _req),
             const SizedBox(height: 20),

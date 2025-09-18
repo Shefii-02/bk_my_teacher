@@ -39,16 +39,23 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const SignUpStudent(),
     ),
     GoRoute(
-      path: AppRoutes.studentDashboard,
-      builder: (context, state) => const StudentDashboard(),
-    ),
-    GoRoute(
-      path: AppRoutes.teacherDashboard,
+      path: '/teacher-dashboard',
       builder: (context, state) {
-        final teacherData = state.extra as Map<String, dynamic>;
-        return TeacherDashboard(teacherData: teacherData);
+        final extra = state.extra as Map<String, dynamic>;
+        final teacherId = extra['teacherId'] as String;
+        return TeacherDashboard(teacherId: teacherId);
       },
     ),
+    GoRoute(
+      path: '/student-dashboard',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        final studentId = extra['studentId'] as String;
+        return StudentDashboard(studentId: studentId);
+      },
+    ),
+
+
     GoRoute(
       path: AppRoutes.verificationScreen,
       builder: (context, state) {

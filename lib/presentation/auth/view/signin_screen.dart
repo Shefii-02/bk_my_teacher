@@ -152,6 +152,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   // Update your SignInScreen's send OTP method:
   Future<void> _sendOtp() async {
+    if (_isLoading) return;
     if (!_isChecked) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -171,39 +172,48 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       );
       return;
     }
+
+    setState(() => _isLoading = true); // ⏳ Show loader
+
     // _selectedCode +
     final fullPhoneNumber = _phoneController.text;
     final authController = ref.read(authControllerProvider.notifier);
 
     // Clear any previous errors
     authController.clearError();
+    try {
+      final success = await authController.sendOtp(fullPhoneNumber);
 
-    final success = await authController.sendOtp(fullPhoneNumber);
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("OTP Sent Successfully..."),
-          backgroundColor: Colors.green,
-        ),
-      );
-      // Navigate to verification screen with phone number
-      context.go('/verification-screen', extra: {
-        'phoneNumber': fullPhoneNumber,
-      });
-
-
-    } else {
-      // Error is already set in the state, we can show it
-      final error = ref.read(authControllerProvider).error;
-      if (error != null) {
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(error),
-            backgroundColor: Colors.red,
+            content: Text("OTP Sent Successfully..."),
+            backgroundColor: Colors.green,
           ),
         );
+        // Navigate to verification screen with phone number
+        context.go(
+          '/verification-screen',
+          extra: {'phoneNumber': fullPhoneNumber},
+        );
+      } else {
+        // Error is already set in the state, we can show it
+        final error = ref.read(authControllerProvider).error;
+        if (error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error), backgroundColor: Colors.red),
+          );
+        }
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false); // ✅ Hide loader
     }
   }
 
@@ -305,9 +315,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             SizedBox(
-                            width: 350,
-                            child:
-                              Center(
+                              width: 350,
+                              child: Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -325,8 +334,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                           ),
                                           const SizedBox(height: 1),
                                           Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
                                             children: const [
                                               Text(
                                                 'Book',
@@ -374,23 +385,41 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                         // Country code dropdown
                                         Container(
                                           height: 48,
-                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                          ),
                                           decoration: const BoxDecoration(
                                             border: Border(
-                                              top: const BorderSide(color: Colors.grey, width: 1),
-                                              left: const BorderSide(color: Colors.grey, width: 1),
+                                              top: const BorderSide(
+                                                color: Colors.grey,
+                                                width: 1,
+                                              ),
+                                              left: const BorderSide(
+                                                color: Colors.grey,
+                                                width: 1,
+                                              ),
                                               right: BorderSide.none,
-                                              bottom: const BorderSide(color: Colors.grey, width: 1),
+                                              bottom: const BorderSide(
+                                                color: Colors.grey,
+                                                width: 1,
+                                              ),
                                             ),
-                                            borderRadius: const BorderRadius.only(
-                                              topLeft: Radius.circular(20.0),
-                                              bottomLeft: Radius.circular(20.0),
-                                            ),
+                                            borderRadius:
+                                                const BorderRadius.only(
+                                                  topLeft: Radius.circular(
+                                                    20.0,
+                                                  ),
+                                                  bottomLeft: Radius.circular(
+                                                    20.0,
+                                                  ),
+                                                ),
                                           ),
                                           child: DropdownButtonHideUnderline(
                                             child: DropdownButton<String>(
                                               value: _selectedCode,
-                                              icon: const Icon(Icons.arrow_drop_down),
+                                              icon: const Icon(
+                                                Icons.arrow_drop_down,
+                                              ),
                                               style: const TextStyle(
                                                 fontSize: 16,
                                                 color: Colors.black,
@@ -403,7 +432,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                               ],
                                               onChanged: (value) {
                                                 if (value != null) {
-                                                  setState(() => _selectedCode = value);
+                                                  setState(
+                                                    () => _selectedCode = value,
+                                                  );
                                                 }
                                               },
                                             ),
@@ -415,19 +446,33 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                             height: 48,
                                             child: TextField(
                                               controller: _phoneController,
-                                              keyboardType: TextInputType.number,
+                                              keyboardType:
+                                                  TextInputType.number,
                                               inputFormatters: [
-                                                FilteringTextInputFormatter.digitsOnly,
-                                                LengthLimitingTextInputFormatter(10),
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly,
+                                                LengthLimitingTextInputFormatter(
+                                                  10,
+                                                ),
                                               ],
                                               decoration: const InputDecoration(
                                                 hintText: "Enter Mobile Number",
-                                                contentPadding: EdgeInsets.symmetric(horizontal: 15),
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                      horizontal: 15,
+                                                    ),
                                                 border: OutlineInputBorder(
-                                                  borderRadius: BorderRadius.only(
-                                                    topRight: Radius.circular(20.0),
-                                                    bottomRight: Radius.circular(20.0),
-                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                        topRight:
+                                                            Radius.circular(
+                                                              20.0,
+                                                            ),
+                                                        bottomRight:
+                                                            Radius.circular(
+                                                              20.0,
+                                                            ),
+                                                      ),
                                                 ),
                                               ),
                                             ),
@@ -454,14 +499,19 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                                 children: [
                                                   TextSpan(
                                                     text: 'I agree to ',
-                                                    style: TextStyle(color: Colors.black87),
+                                                    style: TextStyle(
+                                                      color: Colors.black87,
+                                                    ),
                                                   ),
                                                   TextSpan(
-                                                    text: 'Terms and Conditions',
+                                                    text:
+                                                        'Terms and Conditions',
                                                     style: TextStyle(
                                                       color: Colors.black,
-                                                      fontWeight: FontWeight.bold,
-                                                      decoration: TextDecoration.none,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      decoration:
+                                                          TextDecoration.none,
                                                     ),
                                                   ),
                                                 ],
@@ -473,40 +523,85 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                     ),
                                     const SizedBox(height: 20),
                                     Center(
-                                      child: SizedBox(
-                                        width: 150.0,
-                                        height: 40.0,
-                                        child: ElevatedButton(
-                                          onPressed: _isLoading ? null : _sendOtp,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green,
-                                            foregroundColor: Colors.white,
-                                            disabledBackgroundColor: Colors.grey,
-                                          ),
-                                          child: _isLoading
-                                              ? const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              color: Colors.white,
-                                              strokeWidth: 2,
+                                      child:
+                                          // SizedBox(
+                                          //   width: 150.0,
+                                          //   height: 40.0,
+                                          //   child: ElevatedButton(
+                                          //     onPressed: _isLoading
+                                          //         ? null
+                                          //         : _sendOtp,
+                                          //     style: ElevatedButton.styleFrom(
+                                          //       backgroundColor: Colors.green,
+                                          //       foregroundColor: Colors.white,
+                                          //       disabledBackgroundColor:
+                                          //           Colors.grey,
+                                          //     ),
+                                          //     child: _isLoading
+                                          //         ? const SizedBox(
+                                          //             width: 20,
+                                          //             height: 20,
+                                          //             child:
+                                          //                 CircularProgressIndicator(
+                                          //                   color: Colors.white,
+                                          //                   strokeWidth: 2,
+                                          //                 ),
+                                          //           )
+                                          //         : const Row(
+                                          //             mainAxisAlignment:
+                                          //                 MainAxisAlignment.center,
+                                          //             children: [
+                                          //               Text("Send OTP"),
+                                          //               Icon(
+                                          //                 Icons.play_arrow_sharp,
+                                          //               ),
+                                          //             ],
+                                          //           ),
+                                          //   ),
+                                          // ),
+                                          SizedBox(
+                                            width: 150.0,
+                                            height: 40.0,
+                                            child: ElevatedButton(
+                                              onPressed: _isLoading
+                                                  ? null
+                                                  : _sendOtp, // 🔒 Disabled when loading
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.green,
+                                                foregroundColor: Colors.white,
+                                                disabledBackgroundColor:
+                                                    Colors.grey,
+                                              ),
+                                              child: _isLoading
+                                                  ? const SizedBox(
+                                                      width: 20,
+                                                      height: 20,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                            color: Colors.white,
+                                                            strokeWidth: 2,
+                                                          ),
+                                                    )
+                                                  : const Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Text("Send OTP"),
+                                                        Icon(
+                                                          Icons
+                                                              .play_arrow_sharp,
+                                                        ),
+                                                      ],
+                                                    ),
                                             ),
-                                          )
-                                              : const Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Text("Send OTP"),
-                                              Icon(Icons.play_arrow_sharp),
-                                            ],
                                           ),
-                                        ),
-                                      ),
                                     ),
                                     const SizedBox(height: 40.0),
                                   ],
                                 ),
-                              )
-                              ,),
+                              ),
+                            ),
 
                             // Row(
                             //   mainAxisAlignment: MainAxisAlignment.center,
@@ -598,7 +693,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   Future<void> _launchTerms() async {
-    final Uri url = Uri.parse('https://www.bookmyteachar.co.in/terms-and-conditions');
+    final Uri url = Uri.parse(
+      'https://www.bookmyteachar.co.in/terms-and-conditions',
+    );
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }

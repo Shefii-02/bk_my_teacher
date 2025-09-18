@@ -4,8 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/teacher_api_service.dart';
 
 class DashboardHome extends StatefulWidget {
-  final String teacherData; // teacherId
-  const DashboardHome({super.key, required this.teacherData});
+  final Future<Map<String, dynamic>> teacherDataFuture;
+  const DashboardHome({super.key, required this.teacherDataFuture, required teacherId});
 
   @override
   State<DashboardHome> createState() => _DashboardHomeState();
@@ -17,24 +17,30 @@ class _DashboardHomeState extends State<DashboardHome> {
   @override
   void initState() {
     super.initState();
-    _teacherDataFuture = _fetchTeacherData();
-  }
-
-  Future<Map<String, dynamic>> _fetchTeacherData() async {
-    final api = TeacherApiService();
-    return await api.fetchTeacherData(widget.teacherData); // must return {teacher, steps}
+    _teacherDataFuture = widget.teacherDataFuture;
   }
 
   // WhatsApp
   Future<void> _openWhatsApp() async {
     const phoneNumber = "+917510115544";
     const message = "Hello, I want to connect with your team.";
-    final url = Uri.parse("https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}");
+    final url = Uri.parse(
+      "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}",
+    );
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      debugPrint("Could not launch WhatsApp");
+    }
+  }
+
+  StepStatus _mapStatus(String status) {
+    switch (status) {
+      case "completed":
+        return StepStatus.completed;
+      case "inProgress":
+        return StepStatus.inProgress;
+      default:
+        return StepStatus.pending;
     }
   }
 
@@ -65,7 +71,7 @@ class _DashboardHomeState extends State<DashboardHome> {
         final stepsData = teacher['steps'] as List<dynamic>;
 
         final avatar = teacher['avatar'] ?? "https://via.placeholder.com/150";
-        final name = teacher['name'] ?? "Unknown Teacher";
+        final name = teacher['user']['name'] ?? "Unknown Teacher";
 
         // Convert API steps → StepData
         final steps = stepsData.map((step) {
@@ -209,16 +215,7 @@ class _DashboardHomeState extends State<DashboardHome> {
     );
   }
 
-  StepStatus _mapStatus(String status) {
-    switch (status) {
-      case "completed":
-        return StepStatus.completed;
-      case "inProgress":
-        return StepStatus.inProgress;
-      default:
-        return StepStatus.pending;
-    }
-  }
+
 }
 
 // ===== Custom Stepper Widget =====

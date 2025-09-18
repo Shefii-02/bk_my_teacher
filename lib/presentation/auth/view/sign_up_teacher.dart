@@ -1,6 +1,10 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
+// import 'dart:io';
+import 'dart:io' show File; // works only on mobile/desktop
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
+
+import 'package:flutter/material.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -104,6 +108,9 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   final _fStep3 = GlobalKey<FormState>();
   File? cvFile;
 
+  Uint8List? _avatarBytes; // For web
+  String? _avatarName; // Store filename for web
+
   final ImagePicker _picker = ImagePicker();
 
   // ---------- Helpers: validators ----------
@@ -134,16 +141,50 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     }
   }
 
+  // Future<void> _pickAvatar() async {
+  //   final status = await Permission.photos.request();
+  //   if (status.isGranted) {
+  //     final image = await _picker.pickImage(source: ImageSource.gallery);
+  //     if (image != null) setState(() => _avatarFile = File(image.path));
+  //   } else {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(const SnackBar(content: Text('Photos permission denied')));
+  //   }
+  // }
+
   Future<void> _pickAvatar() async {
-    final status = await Permission.photos.request();
-    if (status.isGranted) {
-      final image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) setState(() => _avatarFile = File(image.path));
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Photos permission denied')));
-    }
+    // final status = await Permission.photos.request();
+    // if (status.isGranted) {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png'],
+      );
+
+      if (result != null) {
+        if (kIsWeb) {
+          // On Web
+          setState(() {
+            _avatarFile = null;
+            _avatarBytes = result.files.single.bytes;
+            _avatarName = result.files.single.name;
+          });
+        } else {
+          // On Mobile/Desktop
+          setState(() {
+            _avatarFile = File(result.files.single.path!);
+          });
+        }
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No image selected')));
+      }
+    // } else {
+    //   ScaffoldMessenger.of(
+    //     context,
+    //   ).showSnackBar(const SnackBar(content: Text('Photos permission denied')));
+    // }
   }
 
   // ---------- Step validators ----------
@@ -151,11 +192,12 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     final ok = _fStep1.currentState?.validate() ?? false;
     if (!ok) return false;
 
-    if (_avatarFile == null) {
-      _toast('Please select an avatar image');
+    if (_avatarFile != null || _avatarBytes != null) {
+      return true;
+    } else {
+      _toast('Please select an profile image');
       return false;
     }
-    return true;
   }
 
   bool _validateStep2() {
@@ -270,23 +312,8 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
 
       final userRole = response['user']?['acc_type'] ?? 'teacher';
       await LaunchStatusService.setUserRole(userRole);
-      // print("**************");
-      // print(userId!.toString());
-      // print("**************");
       await LaunchStatusService.setUserId(userId!.toString());
-
-      // print(response);
-      // print('******************');
-      // print(response['user']);
-      // print('******************');
-      // print('******************');
-      // print(response['user']?['acc_type']);
-      // print('******************');
-
-      // print(LaunchStatusService.getUserRole());
-
-      // print(userRole);
-      context.go('/teacher-dashboard', extra: {'teacherId': userId});
+      context.go('/teacher-dashboard', extra: {'teacherId': userId.toString()});
       // context.go('/teacher-dashboard');
     } catch (e) {
       debugPrint("Submit error: $e");
@@ -582,9 +609,12 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                   radius: 50,
                   backgroundColor: Colors.grey[300],
                   backgroundImage: _avatarFile != null
-                      ? FileImage(_avatarFile!)
+                      ? FileImage(_avatarFile!) // Mobile/Desktop
+                      : _avatarBytes != null
+                      ? MemoryImage(_avatarBytes!)
+                            as ImageProvider // Web
                       : null,
-                  child: _avatarFile == null
+                  child: (_avatarFile == null && _avatarBytes == null)
                       ? const Icon(
                           Icons.camera_alt,
                           size: 40,

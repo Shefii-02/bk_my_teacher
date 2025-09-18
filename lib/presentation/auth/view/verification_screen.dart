@@ -139,18 +139,33 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
         final userRole = userDetails['acc_type'] ?? 'guest';
         final userId   = userDetails['id'] ?? '';
         await LaunchStatusService.setUserRole(userRole);
-        await LaunchStatusService.setUserId(userId);
+        await LaunchStatusService.setUserId(userId.toString());
 
+        print(userId);
         // print(LaunchStatusService);
         // ✅ Redirect based on account type
+
         if (userDetails['acc_type'] == 'teacher') {
+
           if (userDetails['profile_fill'] == 1) {
-            context.go('/teacher-dashboard');
+            context.go(
+              '/teacher-dashboard',
+              extra: {'teacherId': userId.toString()},
+            );
+            // context.go('/teacher-dashboard',extra: userId.toString());
           } else {
             context.go('/signup-stepper');
           }
         } else if (userDetails['acc_type'] == 'student') {
-          context.go('/student-dashboard');
+          if (userDetails['profile_fill'] == 1) {
+            context.go(
+              '/student-dashboard',
+              extra: {'studentId': userId.toString()},
+            );
+            // context.go('/student-dashboard',extra: userId.toString());
+          } else {
+            context.go('/signup-stepper');
+          }
           // } else if (userData['acc_type'] == 'parent') {
           //   context.go('/parent-dashboard');
         } else {

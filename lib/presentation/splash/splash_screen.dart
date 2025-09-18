@@ -47,7 +47,6 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(seconds: 2)); // simulate loading
     final status = await LaunchStatusService.getLaunchStatus();
 
-
     final box = await Hive.openBox('app_storage');
     final userRole = box.get('user_role');
     final userId = box.get('user_id');
@@ -57,10 +56,12 @@ class _SplashScreenState extends State<SplashScreen>
         context.go('/onboarding');
       case LaunchStatus.logged:
         if (userRole == 'teacher') {
-          context.go('/teacher-dashboard', extra: {'teacherId': userId});
+          context.go('/teacher-dashboard', extra: {'teacherId': userId.toString()});
+          // context.go('/teacher-dashboard', extra: {'teacherId': userId});
           // context.go('/teacher-dashboard');
         } else if (userRole == 'student') {
-          context.go('/teacher-dashboard', extra: {'teacherId': userId});
+          context.go('/student-dashboard', extra: {'studentId': userId.toString()});
+          // context.go('/student-dashboard', extra: {'studentId': userId});
           // context.go('/student-dashboard');
         } else {
           context.go('/error');
