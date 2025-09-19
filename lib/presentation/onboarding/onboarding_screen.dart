@@ -20,19 +20,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'title': 'Online Learning',
       'image': 'assets/images/onboarding/slide-1.png',
       'description':
-          'We Provide Classes Online Classes and Pre Recorded Leactures.!',
+      'We Provide Online Classes and Pre-Recorded Lectures!',
       'skip': true,
     },
     {
       'color': '#FFFFFF',
-      'title': 'Learn from Anytime',
+      'title': 'Learn Anytime',
       'image': 'assets/images/onboarding/slide-2.png',
-      'description': 'Booked or Same the Lectures for Future',
+      'description': 'Book or Save Lectures for the Future',
       'skip': true,
     },
     {
       'color': '#FFFFFF',
-      'title': 'Performance visualization',
+      'title': 'Performance Visualization',
       'image': 'assets/images/onboarding/slide-3.png',
       'description': 'Check Your Performance and Track Your Education',
       'skip': false,
@@ -56,48 +56,50 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               return _buildPageContent(_pages[index]);
             },
           ),
+
+          // Bottom controls (dots + buttons) inside SafeArea
           Positioned(
-            bottom: 30,
-            left: 30,
-            // right: 0,
-            child: Column(
-              children: <Widget>[
-                DotsIndicator(
-                  dotsCount: _pages.length,
-                  position: _currentIndex.toDouble(),
-                  decorator: DotsDecorator(
-                    activeColor: Colors.green,
-                    size: const Size.square(9.0),
-                    activeSize: const Size(18.0, 9.0),
-                    activeShape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: 20,
             left: 0,
             right: 0,
-            child: Column(
-              children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
+            bottom: 0,
+            child: SafeArea(
+              minimum: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Dots indicator
+                  DotsIndicator(
+                    dotsCount: _pages.length,
+                    position: _currentIndex.toDouble(),
+                    decorator: DotsDecorator(
+                      activeColor: Colors.green,
+                      size: const Size.square(9.0),
+                      activeSize: const Size(18.0, 9.0),
+                      activeShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Buttons
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       if (_currentIndex != _pages.length - 1)
                         ElevatedButton(
                           style: ButtonStyle(
-                            backgroundColor: WidgetStateProperty.all(Colors.green), // Background color
-                            foregroundColor: WidgetStateProperty.all(Colors.white), // Text/icon color
-                            elevation: WidgetStateProperty.all(5.0), // Shadow elevation
+                            backgroundColor: WidgetStateProperty.all(Colors.green),
+                            foregroundColor: WidgetStateProperty.all(Colors.white),
+                            elevation: WidgetStateProperty.all(5.0),
                             shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
-                            ), // Button shape
-                            padding: WidgetStateProperty.all(EdgeInsets.all(16.0)), // Padding
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25.0),
+                              ),
+                            ),
+                            padding: WidgetStateProperty.all(
+                              const EdgeInsets.all(16.0),
+                            ),
                           ),
                           onPressed: () {
                             _pageController.nextPage(
@@ -105,16 +107,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               curve: Curves.easeInOut,
                             );
                           },
-                          child: const Icon(Icons.arrow_forward), //
+                          child: const Icon(Icons.arrow_forward),
                         ),
-                      // if (_currentIndex == _pages.length - 1) const Spacer(),
                       if (_currentIndex == _pages.length - 1)
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors
-                                .green, // Sets the background color to blue
-                            foregroundColor: Colors
-                                .white, // Sets the text/icon color to white
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
                           ),
                           onPressed: () async {
                             final box = Hive.box('settings');
@@ -125,8 +124,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -137,8 +136,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildPageContent(Map<String, dynamic> page) {
     final bgColor = page['color'] != null
         ? Color(
-            int.parse(page['color'].substring(1, 7), radix: 16) + 0xFF000000,
-          )
+      int.parse(page['color'].substring(1, 7), radix: 16) + 0xFF000000,
+    )
         : Colors.white;
 
     return Container(

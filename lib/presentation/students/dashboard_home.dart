@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../services/browser_service.dart';
 import '../../services/student_api_service.dart';
 
 class DashboardHome extends StatefulWidget {
@@ -21,17 +22,6 @@ class _DashboardHomeState extends State<DashboardHome> {
   }
 
   // WhatsApp
-  Future<void> _openWhatsApp() async {
-    const phoneNumber = "+917510115544";
-    const message = "Hello, I want to connect with your team.";
-    final url = Uri.parse(
-      "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}",
-    );
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
-  }
 
   StepStatus _mapStatus(String status) {
     switch (status) {
@@ -175,12 +165,14 @@ class _DashboardHomeState extends State<DashboardHome> {
                             CustomVerticalStepper(steps: steps),
                             const SizedBox(height: 20),
                             ElevatedButton.icon(
-                              onPressed: _openWhatsApp,
-                              icon: const Icon(
-                                Icons.chat_bubble,
-                                color: Colors.white,
-                                size: 20,
-                              ),
+                              onPressed: () {
+                                openWhatsApp(
+                                  context,
+                                  phone: "917510115544", // no '+'
+                                  message: "Hello, I want to connect with your team.",
+                                );
+                              },
+                              icon: const Icon(Icons.chat_bubble, color: Colors.white, size: 20),
                               label: const Text(
                                 "Connect With Our Team",
                                 style: TextStyle(
@@ -191,16 +183,34 @@ class _DashboardHomeState extends State<DashboardHome> {
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF25D366),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                 elevation: 6,
                               ),
                             ),
+                            const SizedBox(height: 20),
+                            // ElevatedButton.icon(
+                            //   onPressed: () {
+                            //     // context.go('/signup-teacher');
+                            //     context.go('/upload-sample');
+                            //   },
+                            //   icon: const Icon(Icons.chat_bubble, color: Colors.white, size: 20),
+                            //   label: const Text(
+                            //     "Sample",
+                            //     style: TextStyle(
+                            //       fontSize: 15,
+                            //       fontWeight: FontWeight.bold,
+                            //       color: Colors.white,
+                            //     ),
+                            //   ),
+                            //   style: ElevatedButton.styleFrom(
+                            //     backgroundColor: const Color(0xFF25D366),
+                            //     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                            //     elevation: 6,
+                            //   ),
+                            // ),
+
                           ],
                         ),
                       ),

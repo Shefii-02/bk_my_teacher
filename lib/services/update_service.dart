@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:new_version_plus/new_version_plus.dart';
 
+
 class UpdateService {
-  static Future<void> checkForUpdate(BuildContext context) async {
+  static Future<bool> checkForUpdate(BuildContext context) async {
     final newVersion = NewVersionPlus(
       androidId: "coin.bookmyteacher.app",
     );
@@ -10,7 +11,7 @@ class UpdateService {
     final status = await newVersion.getVersionStatus();
 
     if (status != null && status.canUpdate) {
-      // Mandatory update alert
+      // Show mandatory update dialog
       showDialog(
         context: context,
         barrierDismissible: false, // cannot dismiss
@@ -37,7 +38,6 @@ class UpdateService {
                   ),
                 ),
                 onPressed: () {
-                  // ✅ pass the store URL now
                   newVersion.launchAppStore(status.appStoreLink);
                 },
                 child: const Text("Update Now"),
@@ -46,6 +46,8 @@ class UpdateService {
           ),
         ),
       );
+      return true; // ✅ update available
     }
+    return false; // ✅ no update
   }
 }

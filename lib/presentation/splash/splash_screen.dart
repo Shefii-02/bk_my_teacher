@@ -5,6 +5,7 @@ import '../../../core/constants/image_paths.dart';
 import '../../core/enums/launch_status.dart';
 import '../../services/launch_status_service.dart';
 import '../../services/update_service.dart';
+import 'package:flutter/foundation.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,15 +35,24 @@ class _SplashScreenState extends State<SplashScreen>
 
     _fadeController.forward();
 
-    Future.delayed(Duration.zero, () {
-      UpdateService.checkForUpdate(context);
-    });
+    // Future.delayed(Duration.zero, () {
+    //   UpdateService.checkForUpdate(context);
+    // });
 
     _initAndRedirect();
   }
 
   Future<void> _initAndRedirect() async {
     // await LaunchStatusService.resetApp();
+    // First check for update
+    if (!kIsWeb) {
+      final updateAvailable = await UpdateService.checkForUpdate(context);
+
+      if (updateAvailable) {
+        // 🚨 Stop navigation, wait for user to update
+        return;
+      }
+    }
 
     await Future.delayed(const Duration(seconds: 2)); // simulate loading
     final status = await LaunchStatusService.getLaunchStatus();
@@ -56,11 +66,17 @@ class _SplashScreenState extends State<SplashScreen>
         context.go('/onboarding');
       case LaunchStatus.logged:
         if (userRole == 'teacher') {
-          context.go('/teacher-dashboard', extra: {'teacherId': userId.toString()});
+          context.go(
+            '/teacher-dashboard',
+            extra: {'teacherId': userId.toString()},
+          );
           // context.go('/teacher-dashboard', extra: {'teacherId': userId});
           // context.go('/teacher-dashboard');
         } else if (userRole == 'student') {
-          context.go('/student-dashboard', extra: {'studentId': userId.toString()});
+          context.go(
+            '/student-dashboard',
+            extra: {'studentId': userId.toString()},
+          );
           // context.go('/student-dashboard', extra: {'studentId': userId});
           // context.go('/student-dashboard');
         } else {

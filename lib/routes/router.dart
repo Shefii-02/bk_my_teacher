@@ -1,3 +1,4 @@
+import 'package:BookMyTeacher/services/upload_sample.dart';
 import 'package:go_router/go_router.dart';
 
 import '../presentation/auth/view/auth_screen.dart';
@@ -54,7 +55,12 @@ final GoRouter appRouter = GoRouter(
         return StudentDashboard(studentId: studentId);
       },
     ),
-
+    GoRoute(
+      path: '/upload-sample',
+      builder: (context, state) {
+        return UploadSample();
+      },
+    ),
 
     GoRoute(
       path: AppRoutes.verificationScreen,
