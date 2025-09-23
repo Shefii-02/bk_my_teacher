@@ -1,4 +1,3 @@
-
 import 'package:hive/hive.dart';
 import '../core/enums/launch_status.dart';
 
@@ -7,6 +6,9 @@ class LaunchStatusService {
   static const String _isFirstLaunchKey = 'is_first_launch';
   static const String _userRoleKey = 'user_role'; // 'student', 'teacher'
   static const String _userIdKey = 'user_id';
+  static const String _lastVersionKey = 'last_version';
+  static const String _authTokenKey = 'auth_token';
+  static const String _userDataKey = 'user_data';
 
   /// Gets the current launch status of the app.
   static Future<LaunchStatus> getLaunchStatus() async {
@@ -25,7 +27,7 @@ class LaunchStatusService {
     // print('Lauch Service');
     // print(userRole);
     // print('***********');
-    if (userRole == 'student' || userRole == 'teacher') {
+    if (userRole == 'student' || userRole == 'teacher' || userRole == 'guest') {
       return LaunchStatus.logged;
     } else {
       return LaunchStatus.notLoggedIn;
@@ -42,27 +44,57 @@ class LaunchStatusService {
     final box = await Hive.openBox(_boxName);
     final userRole = box.get(_userRoleKey);
     return userRole;
-    // print('***********');
-    // print('Lauch Service');
-    // print(userRole);
-    // print('***********');
   }
 
   /// For setting user role after login
   static Future<void> setUserId(String userId) async {
     final box = await Hive.openBox(_boxName);
     await box.put(_userIdKey, userId);
-    // print("******-----********");
-    // print(userId);
-    // print("******-----********");
   }
-
 
   static Future<void> getUserId() async {
     final box = await Hive.openBox(_boxName);
     final userId = box.get(_userIdKey);
     return userId;
+  }
 
+  static Future<void> setNewUpdate(String newUpdate) async {
+    final box = await Hive.openBox(_boxName);
+    await box.put(_lastVersionKey, newUpdate);
+  }
+
+  static Future<void> getNewUpdate() async {
+    final box = await Hive.openBox(_boxName);
+    final newUpdate = box.get(_lastVersionKey);
+    return newUpdate;
+  }
+
+  static Future<void> saveAuthToken(String token) async {
+    final box = await Hive.openBox(_boxName);
+    await box.put(_authTokenKey, token);
+    // await box.put('auth_token', token);
+  }
+
+  static Future<void> saveUserData(Map<String, dynamic> data) async {
+    final box = await Hive.openBox(_boxName);
+    // Store as Map<String, dynamic>
+    await box.put(_userDataKey, Map<String, dynamic>.from(data));
+    // await box.put('user_data', data);
+  }
+
+  static Future<String?> getAuthToken() async {
+    final box = await Hive.openBox(_boxName);
+    return box.get(_authTokenKey);
+  }
+
+  static Future<Map<String, dynamic>?> getUserData() async {
+    final box = await Hive.openBox(_boxName);
+    final stored = box.get(_userDataKey);
+
+    if (stored is Map) {
+      return Map<String, dynamic>.from(stored); // Convert safely
+    }
+    return null;
   }
 
   /// Optional: Use to reset app (e.g. during logout or testing)

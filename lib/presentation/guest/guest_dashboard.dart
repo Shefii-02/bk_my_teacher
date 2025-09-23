@@ -1,57 +1,69 @@
+import 'package:BookMyTeacher/presentation/students/teachers_list.dart';
+import 'package:BookMyTeacher/services/student_api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../../services/launch_status_service.dart';
 import '../../services/teacher_api_service.dart';
 import '../../services/user_check_service.dart';
-import 'students_list.dart';
-import 'courses_screen.dart';
-import 'dashboard_home.dart';
-import 'my_class_list.dart';
-import 'profile_screen.dart';
+import '../students/dashboard_home.dart';
+import '../students/courses_screen.dart';
+import '../students/my_class_list.dart';
+import '../students/profile_screen.dart';
+import '../students/teachers_list.dart';
 
-class TeacherDashboard extends StatefulWidget {
-  final String teacherId;
-  const TeacherDashboard({super.key, required this.teacherId});
+class GuestDashboard extends StatefulWidget {
+  final String guestId;
+
+  const GuestDashboard({super.key, required this.guestId});
+
   @override
-  State<TeacherDashboard> createState() => _TeacherDashboardState();
+  State<GuestDashboard> createState() => _GuestDashboardState();
 }
 
-class _TeacherDashboardState extends State<TeacherDashboard> {
+class _GuestDashboardState extends State<GuestDashboard> {
   int _currentIndex = 0;
-  late Future<Map<String, dynamic>> _teacherDataFuture;
+  late Future<Map<String, dynamic>> _studentDataFuture;
   late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
-
-    print(widget.teacherId);
+    print("***");
+    print(widget.guestId);
+    print("***");
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkUser();
     });
     //
-    final teacherId = widget.teacherId;
-    // _teacherDataFuture = _fetchTeacherData();
-    _teacherDataFuture = TeacherApiService().fetchTeacherData(teacherId);
+    final studentId = widget.guestId.toString();
+    // _studentDataFuture = _fetchstudentData();
+    _studentDataFuture = StudentApiService().fetchStudentData(studentId);
 
-    // print(_teacherDataFuture);
-    // ✅ Pass teacherData to DashboardHome and ProfileScreen (example)
+    // print(_studentDataFuture);
+    // ✅ Pass studentData to DashboardHome and ProfileScreen (example)
     _screens = [
       DashboardHome(
-        teacherDataFuture: _teacherDataFuture,
-        teacherId: teacherId,
+        studentDataFuture: _studentDataFuture,
+        studentId: studentId,
       ),
-      StudentsList(teacherId: teacherId),
-      CoursesScreen(teacherId: teacherId),
-      MyClassList(teacherId: teacherId),
+      TeachersList(studentId: studentId),
+      CoursesScreen(studentId: studentId),
+      MyClassList(studentId: studentId),
       ProfileScreen(
-        teacherDataFuture: _teacherDataFuture,
-        teacherId: teacherId,
+        studentDataFuture: _studentDataFuture,
+        studentId: studentId,
       ),
     ];
 
   }
+
+  // Future<Map<String, dynamic>> _fetchstudentData() async {
+  //   final api = TeacherApiService();
+  //   return await api.fetchstudentData(
+  //     widget.studentData['studentId'],
+  //   ); // must return {teacher, steps}
+  // }
 
   Future<void> _checkUser() async {
     final box = Hive.box('app_storage');
@@ -64,7 +76,10 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
       );
       return;
     }
+
     final isValid = await UserCheckService().isUserValid(userId,userRole);
+    print(")))))))");
+    print(isValid);
     if (isValid) {
       return;
     } else {
@@ -76,17 +91,11 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
     }
   }
 
-  // Future<Map<String, dynamic>> _fetchTeacherData() async {
-  //   final api = TeacherApiService();
-  //   return await api.fetchTeacherData(
-  //     widget.teacherData['teacherId'],
-  //   ); // must return {teacher, steps}
-  // }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
-      future: _teacherDataFuture,
+      future: _studentDataFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -102,7 +111,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
 
         if (!snapshot.hasData || snapshot.data == null) {
           return const Scaffold(
-            body: Center(child: Text("No teacher data found")),
+            body: Center(child: Text("No Student data found")),
           );
         }
 
@@ -122,7 +131,10 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
             unselectedItemColor: Colors.grey,
             showUnselectedLabels: true,
             items: const [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: "Home"
+              ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.group),
                 label: "Students",

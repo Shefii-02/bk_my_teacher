@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 import 'package:flutter/services.dart';
+import '../../../core/enums/app_config.dart';
+import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
 
 class SignUpVerificationScreen extends ConsumerStatefulWidget {
@@ -85,6 +87,30 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
     if (verified) {
       // Navigate to home screen on successful verification
       await authController.getUserData();
+      final userData = ref.read(authControllerProvider).userData;
+      final token = ref.read(authControllerProvider).authToken;
+      print("****************************");
+      print("userData Result");
+      print(userData);
+      print("****************************");
+
+      print("****************************");
+      print("token Result");
+      print(token);
+      print("****************************");
+
+      if (userData == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("User data not found")));
+        return;
+      }
+
+      if (token != null) {
+        await LaunchStatusService.saveAuthToken(token);
+        await LaunchStatusService.saveUserData(userData);
+      }
+
       context.go('/signup-stepper');
     } else {
       // Show error from state
@@ -210,9 +236,9 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
                     ],
                   ),
                   const Divider(),
-                  const Text(
-                    "This is your offcanvas-top style popup with animation. "
-                        "You can add any content here.",
+                  const Text("",
+                    // "This is your offcanvas-top style popup with animation. "
+                    //     "You can add any content here.",
                     style: TextStyle(fontSize: 14),
                   ),
                 ],

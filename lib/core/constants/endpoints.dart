@@ -1,7 +1,24 @@
 class Endpoints {
+  //Domain
+  static const domain = "https://bookmyteacher.shefii.com";
+
   // Base
   // static const base = "https://dashboard.bookmyteacher.co.in/api";
-  static const base = "https://bookmyteacher.shefii.com/api";
+  static const base = "$domain/api";
+
+  // /check-server
+
+  static const checkServer = "/check-server";
+
+  // User Check
+  static const checkUser = "/check-user";
+
+  static const setUserToken = "/set-user-token";
+  static const getUserDetails = "/get-user-details";
+
+  // Fetch Data
+  static const fetchGrads = "/fetch-grades";
+  static const fetchSubjects = "/fetch-subjects";
 
   // Auth
   static const sendOtpSignIn = "/send-otp-signIn";
@@ -10,11 +27,14 @@ class Endpoints {
   static const sendOtpSignUp = "/send-otp-signUp";
   static const verifyOtpSignUp = "/verify-otp-signUp";
 
+  static const reSendOtp = "/re-send-otp";
+
   static const sendEmailOtp = "/send-email-otp";
   static const verifyEmailOtp = "/verify-email-otp";
 
   static const teacherSignup = "/teacher-signup";
   static const studentSignup = "/student-signup";
+  static const guestSignup = "/guest-signup";
 
   static const userDetails = "/user-details";
   static const updateStudentDetails = "/student-details/update";
@@ -26,7 +46,6 @@ class Endpoints {
   static const studentProfile = "/student-profile";
   static const notifications = "/notifications";
   static const logout = "/logout";
-
 
   // Registration
   static const teachersRegister = "/teachers/register";
@@ -48,6 +67,4 @@ class Endpoints {
   // Earnings
   static const earnings = "/earnings";
   static const withdraw = "/earnings/withdraw";
-
-
 }

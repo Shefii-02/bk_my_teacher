@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
 import 'package:file_picker/file_picker.dart';
+import '../../../core/enums/app_config.dart';
 import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
 import '../providers/student_provider.dart';
@@ -37,7 +39,8 @@ class _SignUpStudentState extends State<SignUpStudent> {
   final _fStep2 = GlobalKey<FormState>();
   String _interest = "offline"; // offline | online | both
 
-  File? _avatarFile;
+  // File? _avatarFile;
+  PlatformFile? _avatarFile;
   Uint8List? _avatarBytes; // For web
   String? _avatarName; // Store filename for web
 
@@ -104,35 +107,56 @@ class _SignUpStudentState extends State<SignUpStudent> {
     return null;
   }
 
-  Future<void> _pickAvatar() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png'],
-    );
+  // Future<void> _pickAvatar() async {
+  //   final result = await FilePicker.platform.pickFiles(
+  //     type: FileType.custom,
+  //     allowedExtensions: ['jpg', 'jpeg', 'png'],
+  //   );
+  //
+  //   if (result != null) {
+  //     if (kIsWeb) {
+  //       // On Web
+  //       setState(() {
+  //         _avatarFile = null;
+  //         _avatarBytes = result.files.single.bytes;
+  //         _avatarName = result.files.single.name;
+  //       });
+  //     } else {
+  //       // On Mobile/Desktop
+  //       setState(() {
+  //         _avatarFile = File(result.files.single.path!);
+  //       });
+  //     }
+  //   } else {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(const SnackBar(content: Text('No image selected')));
+  //   }
+  // }
 
+  Future<void> _pickAvatar() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null) {
-      if (kIsWeb) {
-        // On Web
-        setState(() {
-          _avatarFile = null;
-          _avatarBytes = result.files.single.bytes;
-          _avatarName = result.files.single.name;
-        });
-      } else {
-        // On Mobile/Desktop
-        setState(() {
-          _avatarFile = File(result.files.single.path!);
-        });
-      }
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No image selected')));
+      setState(() {
+        _avatarFile = result.files.first;
+      });
     }
   }
 
   // ---------- Step validators ----------
-  bool _validateStep1() => _fStep1.currentState?.validate() ?? false;
+  // bool _validateStep1() => _fStep1.currentState?.validate() ?? false;
+  bool _validateStep1() {
+    final ok = _fStep1.currentState?.validate() ?? false;
+    if (!ok) return false;
+
+    if (_avatarFile != null || _avatarBytes != null) {
+      return true;
+    } else {
+      _toast('Please select an profile image');
+      return false;
+    }
+  }
+
   bool _validateStep2() => _fStep2.currentState?.validate() ?? false;
 
   void _toast(String m) =>
@@ -247,7 +271,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
             width: double.infinity,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background/full-bg.jpg'),
+                image: NetworkImage(AppConfig.headerTop),
                 fit: BoxFit.fill,
               ),
             ),
@@ -481,12 +505,14 @@ class _SignUpStudentState extends State<SignUpStudent> {
                   radius: 50,
                   backgroundColor: Colors.grey[300],
                   backgroundImage: _avatarFile != null
-                      ? FileImage(_avatarFile!) // Mobile/Desktop
-                      : _avatarBytes != null
-                      ? MemoryImage(_avatarBytes!)
-                            as ImageProvider // Web
+                      ? (kIsWeb
+                            ? MemoryImage(_avatarFile!.bytes!) // ✅ Web
+                            : FileImage(
+                                    File(_avatarFile!.path!),
+                                  ) // ✅ Mobile/Desktop
+                                  as ImageProvider)
                       : null,
-                  child: (_avatarFile == null && _avatarBytes == null)
+                  child: _avatarFile == null
                       ? const Icon(
                           Icons.camera_alt,
                           size: 40,

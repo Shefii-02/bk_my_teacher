@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:BookMyTeacher/services/student_api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,8 +19,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
   @override
   void initState() {
     super.initState();
-    final api = TeacherApiService();
-    _teacherDataFuture = api.fetchTeacherData(widget.studentId);
+    final api = StudentApiService();
+    _teacherDataFuture = api.fetchStudentData(widget.studentId);
   }
 
   @override

@@ -1,7 +1,10 @@
 import 'package:BookMyTeacher/presentation/students/teachers_list.dart';
 import 'package:BookMyTeacher/services/student_api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import '../../services/launch_status_service.dart';
 import '../../services/teacher_api_service.dart';
+import '../../services/user_check_service.dart';
 import '../students/dashboard_home.dart';
 import '../students/courses_screen.dart';
 import '../students/my_class_list.dart';
@@ -28,6 +31,10 @@ class _StudentDashboardState extends State<StudentDashboard> {
     print("***");
     print(widget.studentId);
     print("***");
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkUser();
+    });
     //
     final studentId = widget.studentId.toString();
     // _studentDataFuture = _fetchstudentData();
@@ -48,6 +55,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
         studentId: studentId,
       ),
     ];
+
   }
 
   // Future<Map<String, dynamic>> _fetchstudentData() async {
@@ -56,6 +64,33 @@ class _StudentDashboardState extends State<StudentDashboard> {
   //     widget.studentData['studentId'],
   //   ); // must return {teacher, steps}
   // }
+
+  Future<void> _checkUser() async {
+    final box = Hive.box('app_storage');
+    final userId = box.get('user_id');
+    final userRole = box.get('user_role');
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("User ID not found. Please login again.")),
+      );
+      return;
+    }
+
+    final isValid = await UserCheckService().isUserValid(userId,userRole);
+    print(")))))))");
+    print(isValid);
+    if (isValid) {
+      return;
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("User ID not found. App Rest..")));
+      await LaunchStatusService.resetApp();
+      return;
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +111,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
         if (!snapshot.hasData || snapshot.data == null) {
           return const Scaffold(
-            body: Center(child: Text("No teacher data found")),
+            body: Center(child: Text("No Student data found")),
           );
         }
 

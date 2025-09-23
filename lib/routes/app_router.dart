@@ -10,6 +10,8 @@ class AppRoutes {
   static const String signUpStepper = '/signup-stepper';
   static const String signupTeacher = '/signup-teacher';
   static const String signupStudent = '/signup-student';
+  static const String signupGuest = '/signup-guest';
   static const String home = '/home';
   static const String profile = '/profile';
+  static const String maintenance = "/maintenance";
 }

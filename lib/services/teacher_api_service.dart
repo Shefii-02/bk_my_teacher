@@ -1,6 +1,8 @@
-import 'dart:io';
+import 'dart:io' show File; // Only for mobile/desktop
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart'; // for kIsWeb
 import '../core/constants/endpoints.dart';
+import 'package:file_picker/file_picker.dart';
 
 class TeacherApiService {
   final Dio _dio = Dio(
@@ -32,8 +34,8 @@ class TeacherApiService {
     required List<String> teachingGrades,
     required List<String> teachingSubjects,
     required String experience,
-    File? cvFile,
-    File? avatar,
+    PlatformFile? cvFile,
+    PlatformFile? avatar,
   }) async {
     try {
       final formData = FormData.fromMap({
@@ -47,7 +49,6 @@ class TeacherApiService {
         "state": state,
         "country": country,
         "interest": interest,
-
         "profession": profession,
         "ready_to_work": readyToWork,
         "experience": experience,
@@ -58,77 +59,121 @@ class TeacherApiService {
         "offline_exp": offlineExp,
         "online_exp": onlineExp,
         "home_exp": homeExp,
-
-        if (avatar != null)
-          "avatar": await MultipartFile.fromFile(
-            avatar.path,
-            filename: avatar.path.split('/').last,
-          ),
-
-        if (cvFile != null)
-          "cv_file": await MultipartFile.fromFile(
-            cvFile.path,
-            filename: cvFile.path.split('/').last,
-          ),
       });
 
-      print("➡️ Posting Teacher Signup");
-      print("Data: ${formData.fields}");
+      // ✅ Avatar handling
+      if (avatar != null) {
+        if (kIsWeb) {
+          formData.files.add(
+            MapEntry(
+              "avatar",
+              MultipartFile.fromBytes(
+                avatar.bytes!,
+                filename: avatar.name,
+              ),
+            ),
+          );
+        } else {
+          formData.files.add(
+            MapEntry(
+              "avatar",
+              await MultipartFile.fromFile(
+                avatar.path!,
+                filename: avatar.name,
+              ),
+            ),
+          );
+        }
+      }
 
-      final response = await _dio.post(Endpoints.teacherSignup, data: formData);
-      print("✅ Response: ${response.data}");
+      // ✅ CV handling
+      if (cvFile != null) {
+        if (kIsWeb) {
+          formData.files.add(
+            MapEntry(
+              "cv_file",
+              MultipartFile.fromBytes(
+                cvFile.bytes!,
+                filename: cvFile.name,
+              ),
+            ),
+          );
+        } else {
+          formData.files.add(
+            MapEntry(
+              "cv_file",
+              await MultipartFile.fromFile(
+                cvFile.path!,
+                filename: cvFile.name,
+              ),
+            ),
+          );
+        }
+      }
+      final headers = {
+        "X-Request-Source": kIsWeb ? "browser" : "app",
+      };
+
+      // print("➡️ Posting Teacher Signup");
+      // print("Fields: ${formData.fields}");
+      // print("Files: ${formData.files}");
+
+      final response = await _dio.post(Endpoints.teacherSignup, data: formData,options: Options(headers: headers));
+      // print("✅ Response: ${response.data}");
       return response.data;
     } on DioException catch (e) {
       throw Exception(e.response?.data ?? "Signup failed");
     }
   }
 
-  // Future<Map<String, dynamic>> fetchTeacherData(String teacherId) async {
-  //   try {
-  //     final formData = FormData.fromMap({
-  //       "teacher_id": teacherId,
-  //     });
-  //
-  //     final response = await _dio.post(
-  //       Endpoints.teacherHome,
-  //       data: formData, // send as JSON body
-  //     );
-  //
-  //     if (response.statusCode == 200 && response.data != null) {
-  //       // Dio automatically parses JSON response to Map<String, dynamic>
-  //       print("****************");
-  //       print(response);
-  //       print("****************");
-  //       return response.data;
-  //     } else {
-  //       throw Exception("Failed to load teacher data");
-  //     }
-  //   } on DioException catch (e) {
-  //     throw Exception(e.response?.data ?? "Error fetching teacher data");
-  //   }
-  // }
-
   Future<Map<String, dynamic>> fetchTeacherData(String teacherId) async {
     try {
-      final formData = FormData.fromMap({
-        "teacher_id": teacherId,
-      });
+      final formData = FormData.fromMap({"teacher_id": teacherId});
 
-      final response = await _dio.post(
-        Endpoints.teacherHome,
-        data: formData, // send as a form data body
-      );
+      final response = await _dio.post(Endpoints.teacherHome, data: formData);
 
       if (response.statusCode == 200 && response.data != null) {
-        // Dio automatically parses JSON response to Map<String, dynamic>
         return response.data;
       } else {
-        throw Exception("Failed to load teacher data: Server responded with status ${response.statusCode}");
+        throw Exception("Failed: ${response.statusCode}");
       }
     } on DioException catch (e) {
-      // Catch Dio-specific errors (e.g., network issues, bad status codes)
       throw Exception(e.response?.data ?? "Error fetching teacher data");
     }
   }
+  /// Fetch teaching grades
+  Future<List<Map<String, dynamic>>> getTeachingGrades() async {
+    try {
+      final response = await _dio.post(Endpoints.fetchGrads);
+
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data["data"] is List) {
+        return List<Map<String, dynamic>>.from(response.data["data"]);
+      } else {
+        throw Exception("Failed: ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data ?? "Error fetching grades");
+    }
+  }
+
+  /// Fetch teaching subjects
+  Future<List<Map<String, dynamic>>> getTeachingSubjects() async {
+    try {
+      final response = await _dio.post(Endpoints.fetchSubjects);
+
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data["data"] is List) {
+        return List<Map<String, dynamic>>.from(response.data["data"]);
+      } else {
+        throw Exception("Failed: ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data ?? "Error fetching subjects");
+    }
+  }
+
 
 }

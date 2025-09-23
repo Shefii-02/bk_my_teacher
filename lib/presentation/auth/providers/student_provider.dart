@@ -2,13 +2,16 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../services/student_api_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 
-final teacherApiProvider = Provider<StudentApiService>((ref) {
+
+final studentApiProvider = Provider<StudentApiService>((ref) {
   return StudentApiService();
 });
 
 final studentSignupProvider = FutureProvider.family<Map<String, dynamic>, Map<String, dynamic>>((ref, data) async {
-  final api = ref.read(teacherApiProvider);
+  final api = ref.read(studentApiProvider);
 
   return api.registerStudent(
     studentId: data["student_id"],
@@ -26,6 +29,6 @@ final studentSignupProvider = FutureProvider.family<Map<String, dynamic>, Map<St
     seekingGrades: List<String>.from(data["seekingGrades"] ?? []),
     seekingSubjects: List<String>.from(data["seekingSubjects"] ?? []),
     interest: data["interest"],
-    avatar: data["avatar"] as File?,
+    avatar: data["avatar"] as PlatformFile?,
   );
 });

@@ -22,8 +22,6 @@ class _DashboardHomeState extends State<DashboardHome> {
   }
 
 
-
-
   StepStatus _mapStatus(String status) {
     switch (status) {
       case "completed":

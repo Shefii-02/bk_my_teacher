@@ -1,18 +1,18 @@
 // lib/controller/auth_controller.dart
 import 'dart:async';
+import 'package:BookMyTeacher/services/user_check_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
-import '../../../services/api_service.dart';
 import '../providers/auth_state.dart';
+import '../../../services/api_service.dart';
 
 // Provider for the API service
 final authApiServiceProvider = Provider<AuthApiService>((ref) {
-  return AuthApiService(client: http.Client());
+  return AuthApiService(); // ✅ Now using Dio-based service (no http.Client)
 });
 
 // Provider for the auth controller
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
-  (ref) {
+      (ref) {
     final apiService = ref.watch(authApiServiceProvider);
     return AuthController(apiService: apiService);
   },
@@ -24,9 +24,8 @@ class AuthController extends StateNotifier<AuthState> {
 
   AuthController({required this.apiService}) : super(const AuthState());
 
-  // Send OTP method
+  // Send OTP
   Future<bool> sendOtp(String phoneNumber) async {
-    // Validate phone number
     if (phoneNumber.isEmpty || phoneNumber.length < 10) {
       state = state.copyWith(
         error: 'Please enter a valid phone number',
@@ -35,13 +34,7 @@ class AuthController extends StateNotifier<AuthState> {
       return false;
     }
 
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-      phoneNumber: phoneNumber,
-    );
-
-    print(phoneNumber);
+    state = state.copyWith(isLoading: true, error: null, phoneNumber: phoneNumber);
 
     try {
       final response = await apiService.sendOtp(phoneNumber);
@@ -49,7 +42,7 @@ class AuthController extends StateNotifier<AuthState> {
       if (response.success) {
         state = state.copyWith(
           isLoading: false,
-          resendCount: 0, // Reset resend count on successful send
+          resendCount: 0,
           canResend: true,
         );
         return true;
@@ -58,15 +51,12 @@ class AuthController extends StateNotifier<AuthState> {
         return false;
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'An unexpected error occurred: ${e.toString()}',
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
-  // Verify OTP method
+  // Verify OTP
   Future<bool> verifyOtp(String otp) async {
     if (state.phoneNumber == null) {
       state = state.copyWith(error: 'Phone number not found');
@@ -84,62 +74,45 @@ class AuthController extends StateNotifier<AuthState> {
       final response = await apiService.verifyOtp(state.phoneNumber!, otp);
 
       if (response.success) {
-        // Extract token from response if available
-
-        final token =
-            response.data?['token'] ?? response.data?['data']?['token'];
-
-        final user = response.data?['user'] ?? response.data?['user']?['token'];
+        final token = response.data?['token'] ?? response.data?['data']?['token'];
+        final user  = response.data?['user'] ?? response.data?['data']?['user'];
 
         state = state.copyWith(
           isLoading: false,
           isVerified: true,
           authToken: token,
-          error: null,
           userData: user,
         );
-
         return true;
-
       } else {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'An unexpected error occurred: ${e.toString()}',
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
-  // Resend OTP method with limitations
+  // Resend OTP
   Future<bool> resendOtp() async {
     if (state.phoneNumber == null) {
       state = state.copyWith(error: 'Phone number not found');
       return false;
     }
 
-    // Check resend limitations
     if (state.resendCount >= 2 && !state.canResend) {
       state = state.copyWith(error: 'Please wait before resending');
       return false;
     }
 
     if (state.resendCount >= 3) {
-      // Start 5-minute cooldown after 3 attempts
       state = state.copyWith(
         canResend: false,
-        resendCooldown: 300, // 5 minutes in seconds
-      );
-
-      // Start countdown timer
-      _startCooldownTimer();
-
-      state = state.copyWith(
+        resendCooldown: 300,
         error: 'Maximum attempts reached. Please wait 5 minutes.',
       );
+      _startCooldownTimer();
       return false;
     }
 
@@ -159,17 +132,13 @@ class AuthController extends StateNotifier<AuthState> {
         return false;
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'An unexpected error occurred: ${e.toString()}',
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
-  // Send signup OTP method
+  // Signup OTP send
   Future<bool> signupSendOtp(String phoneNumber) async {
-    // Validate phone number
     if (phoneNumber.isEmpty || phoneNumber.length < 10) {
       state = state.copyWith(
         error: 'Please enter a valid phone number',
@@ -178,11 +147,7 @@ class AuthController extends StateNotifier<AuthState> {
       return false;
     }
 
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-      phoneNumber: phoneNumber,
-    );
+    state = state.copyWith(isLoading: true, error: null, phoneNumber: phoneNumber);
 
     try {
       final response = await apiService.signupSendOtp(phoneNumber);
@@ -190,7 +155,7 @@ class AuthController extends StateNotifier<AuthState> {
       if (response.success) {
         state = state.copyWith(
           isLoading: false,
-          resendCount: 0, // Reset resend count on successful send
+          resendCount: 0,
           canResend: true,
         );
         return true;
@@ -199,15 +164,12 @@ class AuthController extends StateNotifier<AuthState> {
         return false;
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'An unexpected error occurred: ${e.toString()}',
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
-  // Verify OTP method
+  // Signup verify OTP
   Future<bool> signupVerifyOtp(String otp) async {
     if (state.phoneNumber == null) {
       state = state.copyWith(error: 'Phone number not found');
@@ -222,18 +184,15 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await apiService.verifyOtp(state.phoneNumber!, otp);
+      final response = await apiService.signupVerifyOtp(state.phoneNumber!, otp);
 
       if (response.success) {
-        // Extract token from response if available
-        final token =
-            response.data?['token'] ?? response.data?['data']?['token'];
+        final token = response.data?['token'] ?? response.data?['data']?['token'];
 
         state = state.copyWith(
           isLoading: false,
           isVerified: true,
           authToken: token,
-          error: null,
         );
         return true;
       } else {
@@ -241,47 +200,37 @@ class AuthController extends StateNotifier<AuthState> {
         return false;
       }
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'An unexpected error occurred: ${e.toString()}',
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
+  // Get user data
   Future<bool> getUserData() async {
-    state = state.copyWith(isLoading: true, error: null);
-
     if (state.phoneNumber == null) {
-
       state = state.copyWith(error: 'Phone number not found');
       return false;
     }
 
+    state = state.copyWith(isLoading: true, error: null);
+
     try {
-      final response = await apiService.getUserData(state.phoneNumber!);
+      final response = await UserCheckService().getUserData(state.phoneNumber!);
 
       if (response.success) {
-        state = state.copyWith(
-          isLoading: false,
-          userData: response.data, // ✅ Save user data in state
-        );
-
+        state = state.copyWith(isLoading: false, userData: response.data);
+        return true;
       } else {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;
       }
-      return true;
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: 'An unexpected error occurred: ${e.toString()}',
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
       return false;
     }
   }
 
-  // Start cooldown timer
+  // Cooldown timer
   void _startCooldownTimer() {
     _cooldownTimer?.cancel();
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -294,14 +243,12 @@ class AuthController extends StateNotifier<AuthState> {
     });
   }
 
-  // Clear error
   void clearError() {
     if (state.error != null) {
       state = state.copyWith(error: null);
     }
   }
 
-  // Reset state (for logout)
   void reset() {
     _cooldownTimer?.cancel();
     state = const AuthState();

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import '../../../core/enums/app_config.dart';
 import '../controller/auth_controller.dart';
 
 class SignUpOtpScreen extends ConsumerStatefulWidget {
@@ -121,6 +122,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
     authController.clearError();
 
     final success = await authController.signupSendOtp(fullPhoneNumber);
+
     try {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -138,6 +140,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
         // Error is already set in the state, we can show it
         final error = ref.read(authControllerProvider).error;
         if (error != null) {
+          print(error);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(error), backgroundColor: Colors.red),
           );
@@ -164,8 +167,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
           SizedBox(
             height: 200,
             width: double.infinity,
-            child: Image.asset(
-              'assets/images/background/full-bg.jpg',
+            child: Image.network(AppConfig.headerTop,
               fit: BoxFit.fill,
             ),
           ),

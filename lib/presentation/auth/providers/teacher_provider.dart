@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../services/teacher_api_service.dart';
+import 'package:file_picker/file_picker.dart';
 
 final teacherApiProvider = Provider<TeacherApiService>((ref) {
   return TeacherApiService();
@@ -30,8 +31,8 @@ final teacherSignupProvider = FutureProvider.family<Map<String, dynamic>, Map<St
     onlineExp: data["online_exp"],
     homeExp: data["home_exp"],
     experience: data["experience"],
-    cvFile: data["cvFile"] as File?,
-    avatar: data["avatar"] as File?,
+    cvFile: data["cvFile"] as PlatformFile?,
+    avatar: data["avatar"] as PlatformFile?,
     teacherId: data["teacher_id"],
   );
 });

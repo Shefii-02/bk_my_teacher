@@ -12,7 +12,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 // keep your own imports if you use them in _submitForm
+import '../../../core/enums/app_config.dart';
 import '../../../services/launch_status_service.dart';
+import '../../../services/teacher_api_service.dart';
 import '../controller/auth_controller.dart';
 import '../providers/teacher_provider.dart';
 
@@ -37,7 +39,18 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   final _stateCtrl = TextEditingController();
   final _countryCtrl = TextEditingController();
 
-  File? _avatarFile;
+  PlatformFile? _avatarFile;
+  PlatformFile? cvFile;
+
+  // File? _avatarFile;
+  Uint8List? _avatarBytes;   // for Web
+  String? _avatarName;
+
+  // CV
+  // File? cvFile;              // for Mobile/Desktop
+  Uint8List? _cvBytes;       // for Web
+  String? _cvName;
+
 
   // ====== STEP 2: Teaching Details ======
   final _fStep2 = GlobalKey<FormState>();
@@ -106,12 +119,46 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
 
   // ====== STEP 3: CV upload ======
   final _fStep3 = GlobalKey<FormState>();
-  File? cvFile;
 
-  Uint8List? _avatarBytes; // For web
-  String? _avatarName; // Store filename for web
 
   final ImagePicker _picker = ImagePicker();
+
+
+  // Teaching data from API
+  List<Map<String, dynamic>> teachingGrades = [];
+  List<Map<String, dynamic>> teachingSubjects = [];
+  String? selectedGrade;
+  String? selectedSubject;
+  bool isLoadingGrades = true;
+  bool isLoadingSubjects = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTeachingData();
+  }
+
+
+  Future<void> _loadTeachingData() async {
+    final api = TeacherApiService();
+    try {
+      final grades = await api.getTeachingGrades();
+      final subjects = await api.getTeachingSubjects();
+
+      setState(() {
+        teachingGrades = grades;
+        teachingSubjects = subjects;
+        isLoadingGrades = false;
+        isLoadingSubjects = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingGrades = false;
+        isLoadingSubjects = false;
+      });
+      debugPrint("Error fetching data: $e");
+    }
+  }
 
   // ---------- Helpers: validators ----------
   String? _req(String? v) =>
@@ -131,15 +178,40 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   }
 
   // ---------- Pickers ----------
-  Future<void> _pickCV() async {
+  Future<void> pickAvatar() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
+    if (result != null) {
+      setState(() {
+        _avatarFile = result.files.first;
+      });
+    }
+  }
+
+  Future<void> pickCV() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'doc', 'docx'],
     );
-    if (result != null && result.files.single.path != null) {
-      setState(() => cvFile = File(result.files.single.path!));
+    if (result != null) {
+      setState(() {
+        cvFile = result.files.first;
+      });
     }
   }
+
+
+
+  // Future<void> _pickCV() async {
+  //   final result = await FilePicker.platform.pickFiles(
+  //     type: FileType.custom,
+  //     allowedExtensions: ['pdf', 'doc', 'docx'],
+  //   );
+  //   if (result != null && result.files.single.path != null) {
+  //     setState(() => cvFile = File(result.files.single.path!));
+  //   }
+  // }
 
   // Future<void> _pickAvatar() async {
   //   final status = await Permission.photos.request();
@@ -153,39 +225,39 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   //   }
   // }
 
-  Future<void> _pickAvatar() async {
-    // final status = await Permission.photos.request();
-    // if (status.isGranted) {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['jpg', 'jpeg', 'png'],
-      );
-
-      if (result != null) {
-        if (kIsWeb) {
-          // On Web
-          setState(() {
-            _avatarFile = null;
-            _avatarBytes = result.files.single.bytes;
-            _avatarName = result.files.single.name;
-          });
-        } else {
-          // On Mobile/Desktop
-          setState(() {
-            _avatarFile = File(result.files.single.path!);
-          });
-        }
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('No image selected')));
-      }
-    // } else {
-    //   ScaffoldMessenger.of(
-    //     context,
-    //   ).showSnackBar(const SnackBar(content: Text('Photos permission denied')));
-    // }
-  }
+  // Future<void> _pickAvatar() async {
+  //   // final status = await Permission.photos.request();
+  //   // if (status.isGranted) {
+  //     final result = await FilePicker.platform.pickFiles(
+  //       type: FileType.custom,
+  //       allowedExtensions: ['jpg', 'jpeg', 'png'],
+  //     );
+  //
+  //     if (result != null) {
+  //       if (kIsWeb) {
+  //         // On Web
+  //         setState(() {
+  //           _avatarFile = null;
+  //           _avatarBytes = result.files.single.bytes;
+  //           _avatarName = result.files.single.name;
+  //         });
+  //       } else {
+  //         // On Mobile/Desktop
+  //         setState(() {
+  //           _avatarFile = File(result.files.single.path!);
+  //         });
+  //       }
+  //     } else {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(const SnackBar(content: Text('No image selected')));
+  //     }
+  //   // } else {
+  //   //   ScaffoldMessenger.of(
+  //   //     context,
+  //   //   ).showSnackBar(const SnackBar(content: Text('Photos permission denied')));
+  //   // }
+  // }
 
   // ---------- Step validators ----------
   bool _validateStep1() {
@@ -237,12 +309,13 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   }
 
   bool _validateStep3() {
-    if (cvFile == null) {
+    if (cvFile == null && _cvBytes == null) {
       _toast('Please upload your CV');
       return false;
     }
     return true;
   }
+
 
   void _toast(String m) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
@@ -351,7 +424,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             width: double.infinity,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background/full-bg.jpg'),
+                image: NetworkImage(AppConfig.headerTop),
                 fit: BoxFit.fill,
               ),
             ),
@@ -604,24 +677,23 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             const SizedBox(height: 10),
             Center(
               child: GestureDetector(
-                onTap: _pickAvatar,
+                onTap: pickAvatar,
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey[300],
                   backgroundImage: _avatarFile != null
-                      ? FileImage(_avatarFile!) // Mobile/Desktop
-                      : _avatarBytes != null
-                      ? MemoryImage(_avatarBytes!)
-                            as ImageProvider // Web
+                      ? (kIsWeb
+                      ? MemoryImage(_avatarFile!.bytes!)
+                      : FileImage(
+                    // ignore: unnecessary_non_null_assertion
+                    File(_avatarFile!.path!),
+                  ) as ImageProvider)
                       : null,
-                  child: (_avatarFile == null && _avatarBytes == null)
-                      ? const Icon(
-                          Icons.camera_alt,
-                          size: 40,
-                          color: Colors.white70,
-                        )
-                      : null,
+                  child: _avatarFile == null
+                      ? const Icon(Icons.person, size: 50, color: Colors.white)
+                      : const Icon(Icons.camera_alt, size: 50, color: Colors.white),
                 ),
+
               ),
             ),
             const SizedBox(height: 20),
@@ -998,7 +1070,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             ),
             const SizedBox(height: 20),
             GestureDetector(
-              onTap: _pickCV,
+              onTap: pickCV,
               child: Container(
                 width: double.infinity,
                 height: 120,
@@ -1019,7 +1091,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                       const SizedBox(height: 8),
                       Text(
                         cvFile != null
-                            ? cvFile!.path.split('/').last
+                            ? "Picked: ${cvFile!.name}"
                             : 'Click to Upload CV',
                         style: TextStyle(
                           fontSize: 14,

@@ -1,3 +1,4 @@
+import 'package:BookMyTeacher/presentation/auth/view/sign_up_guest.dart';
 import 'package:BookMyTeacher/services/upload_sample.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,6 +10,7 @@ import '../presentation/auth/view/sign_up_verification_screen.dart';
 import '../presentation/auth/view/signup_stepper.dart';
 import '../presentation/auth/view/verification_screen.dart';
 import '../presentation/errror/error_screen.dart';
+import '../presentation/errror/maintenance_screen.dart';
 import '../presentation/onboarding/onboarding_screen.dart';
 import '../presentation/splash/splash_screen.dart';
 import '../presentation/students/student_dashboard.dart';
@@ -40,7 +42,11 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const SignUpStudent(),
     ),
     GoRoute(
-      path: '/teacher-dashboard',
+      path: AppRoutes.signupGuest,
+      builder: (context, state) => const SignUpGuest(),
+    ),
+    GoRoute(
+      path: AppRoutes.teacherDashboard,
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>;
         final teacherId = extra['teacherId'] as String;
@@ -48,7 +54,7 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/student-dashboard',
+      path: AppRoutes.studentDashboard,
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>;
         final studentId = extra['studentId'] as String;
@@ -86,5 +92,9 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(path: '/home', builder: (context, state) => const ErrorScreen()),
     GoRoute(path: '/error', builder: (context, state) => const ErrorScreen()),
+    GoRoute(
+      path: AppRoutes.maintenance,
+      builder: (context, state) => const MaintenanceScreen(),
+    ),
   ],
 );

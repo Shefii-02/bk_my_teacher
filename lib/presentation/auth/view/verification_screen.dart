@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:BookMyTeacher/core/enums/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
-import 'package:flutter/services.dart';
 import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
 
@@ -22,7 +22,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
   String otpCode = "";
   bool _isLoading = false;
   Timer? _resendTimer;
-  int _resendCooldown = 120; // 2 minutes in seconds
+  int _resendCooldown = 120; // 2 minutes
   int _resendAttempts = 0;
 
   @override
@@ -34,170 +34,132 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
 
   @override
   void dispose() {
-    cancel(); // stop listening for OTP
+    cancel(); // stop listening OTP
     _resendTimer?.cancel();
     super.dispose();
   }
 
   @override
   void codeUpdated() {
-    setState(() {
-      otpCode = code ?? "";
-    });
-
-    if (otpCode.length == 4) {
-      _verifyOtp();
-    }
+    setState(() => otpCode = code ?? "");
+    if (otpCode.length == 4) _verifyOtp();
   }
 
   void _startResendTimer() {
+    _resendTimer?.cancel();
     _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_resendCooldown > 0) {
-        setState(() {
-          _resendCooldown--;
-        });
+        setState(() => _resendCooldown--);
       } else {
         timer.cancel();
       }
     });
   }
 
-  // Future<void> _verifyOtp() async {
-  //   if (otpCode.length != 4) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text("Please enter a valid 4-digit OTP")),
-  //     );
-  //     return;
-  //   }
-  //
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-  //
-  //   final authController = ref.read(authControllerProvider.notifier);
-  //   authController.clearError();
-  //
-  //   final verified = await authController.verifyOtp(otpCode);
-  //
-  //   setState(() {
-  //     _isLoading = false;
-  //   });
-  //
-  //   if (verified) {
-  //     // Navigate to home screen on successful verification
-  //     context.go('/teacher');
-  //     // await authController.getUserData(phoneNumber);
-  //
-  //   } else {
-  //     // Show error from state
-  //     final error = ref.read(authControllerProvider).error;
-  //     if (error != null) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text(error)),
-  //       );
-  //     }
-  //   }
-  // }
-
   Future<void> _verifyOtp() async {
     if (otpCode.length != 4) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter a valid 4-digit OTP")),
       );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     final authController = ref.read(authControllerProvider.notifier);
     authController.clearError();
 
     final verified = await authController.verifyOtp(otpCode);
+    print("****************************");
+    print("Verification Status");
+    print(verified);
+    print("****************************");
 
-    setState(() {
-      _isLoading = false;
-    });
+    if (!mounted) return;
 
-    if (verified) {
+    setState(() => _isLoading = false);
 
-      // Fetch user data after successful verification
-      final success = await authController.getUserData();
-
-      if (success) {
-        final userData = ref.read(authControllerProvider).userData;
-
-        if (userData == null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("User data not found")));
-          return;
-        }
-        final userDetails = userData['data'];
-
-        final userRole = userDetails['acc_type'] ?? 'guest';
-        final userId   = userDetails['id'] ?? '';
-        await LaunchStatusService.setUserRole(userRole);
-        await LaunchStatusService.setUserId(userId.toString());
-
-        print(userId);
-        // print(LaunchStatusService);
-        // ✅ Redirect based on account type
-
-        if (userDetails['acc_type'] == 'teacher') {
-
-          if (userDetails['profile_fill'] == 1) {
-            context.go(
-              '/teacher-dashboard',
-              extra: {'teacherId': userId.toString()},
-            );
-            // context.go('/teacher-dashboard',extra: userId.toString());
-          } else {
-            context.go('/signup-stepper');
-          }
-        } else if (userDetails['acc_type'] == 'student') {
-          if (userDetails['profile_fill'] == 1) {
-            context.go(
-              '/student-dashboard',
-              extra: {'studentId': userId.toString()},
-            );
-            // context.go('/student-dashboard',extra: userId.toString());
-          } else {
-            context.go('/signup-stepper');
-          }
-          // } else if (userData['acc_type'] == 'parent') {
-          //   context.go('/parent-dashboard');
-        } else {
-          // Default or unknown account type
-          context.go('/error');
-        }
-      }
-    } else {
-      // Show error from state
+    if (!verified) {
       final error = ref.read(authControllerProvider).error;
-      print(error);
-      if (error != null) {
+      if (error != null && mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(error)));
       }
+      return;
     }
-  }
 
-  Future<void> _resendOtp() async {
-    if (_resendAttempts >= 2 && _resendCooldown > 0) {
+    // ✅ Fetch user data
+    final success = await authController.getUserData();
+
+    print("****************************");
+    print("getUserData Result");
+    print(success);
+    print("****************************");
+
+    if (!mounted) return;
+
+    if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Please wait ${_formatCooldownTime(_resendCooldown)} before resending",
-          ),
-        ),
+        const SnackBar(content: Text("Failed to fetch user data")),
       );
       return;
     }
 
+    final userData = ref.read(authControllerProvider).userData;
+    final token = ref.read(authControllerProvider).authToken;
+
+    print("****************************");
+    print("userData Result");
+    print(userData);
+    print("****************************");
+
+    print("****************************");
+    print("token Result");
+    print(token);
+    print("****************************");
+
+    if (userData == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("User data not found")));
+      return;
+    }
+
+    if (token != null) {
+      await LaunchStatusService.saveAuthToken(token);
+      await LaunchStatusService.saveUserData(userData);
+    }
+
+    final userDetails = userData['data'] ?? userData;
+    final accType = userDetails['acc_type'] ?? 'guest';
+    final profileFill = userDetails['profile_fill'] ?? 0;
+    final userId = userDetails['id'] ?? '';
+
+    await LaunchStatusService.setUserRole(accType);
+    await LaunchStatusService.setUserId(userId.toString());
+
+    // ✅ Navigate based on account type
+    if (!mounted) return;
+    if (profileFill == 1) {
+      if (accType == 'teacher') {
+        context.go('/teacher-dashboard');
+      } else if (accType == 'student') {
+        context.go('/student-dashboard');
+      } else if (accType == 'guest') {
+        context.go('/guest-dashboard');
+      } else {
+        context.go('/error');
+      }
+    } else {
+      context.go('/signup-stepper');
+    }
+  }
+
+  Future<void> _resendOtp() async {
     if (_resendAttempts >= 3) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -208,41 +170,43 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (_resendAttempts >= 2 && _resendCooldown > 0) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Please wait ${_formatCooldownTime(_resendCooldown)} before resending",
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
 
     final authController = ref.read(authControllerProvider.notifier);
     authController.clearError();
 
     final success = await authController.resendOtp();
 
+    if (!mounted) return;
+
     setState(() {
       _isLoading = false;
       _resendAttempts++;
-
-      if (_resendAttempts >= 2) {
-        _resendCooldown = 120; // Reset to 2 minutes
-        _startResendTimer();
-      }
-
-      if (_resendAttempts >= 3) {
-        _resendCooldown = 300; // 5 minutes cooldown
-        _startResendTimer();
-      }
+      if (_resendAttempts >= 2) _resendCooldown = 120;
+      if (_resendAttempts >= 3) _resendCooldown = 300;
+      _startResendTimer();
     });
+
+    if (!mounted) return;
 
     if (success) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("OTP sent successfully")));
-
-      // Clear OTP field
-      setState(() {
-        otpCode = "";
-      });
+      setState(() => otpCode = "");
     } else {
-      // Show error from state
       final error = ref.read(authControllerProvider).error;
       if (error != null) {
         ScaffoldMessenger.of(
@@ -254,8 +218,8 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
 
   String _formatCooldownTime(int seconds) {
     final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
-    final remainingSeconds = (seconds % 60).toString().padLeft(2, '0');
-    return '$minutes:$remainingSeconds';
+    final sec = (seconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$sec';
   }
 
   void _showTopPopup(BuildContext context) {
@@ -304,12 +268,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                     ],
                   ),
                   const Divider(),
-                  const Text(
-                    "",
-                    // "This is your offcanvas-top style popup with animation. "
-                    // "You can add any content here.",
-                    style: TextStyle(fontSize: 14),
-                  ),
+                  const Text("", style: TextStyle(fontSize: 14)),
                 ],
               ),
             ),
@@ -320,7 +279,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
         return SlideTransition(
           position: Tween<Offset>(
             begin: const Offset(0, -1),
-            end: const Offset(0, 0),
+            end: Offset.zero,
           ).animate(anim),
           child: child,
         );
@@ -336,27 +295,19 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background Image for AppBar section
           SizedBox(
             height: 200,
             width: double.infinity,
-            child: Image.asset(
-              'assets/images/background/full-bg.jpg',
-              fit: BoxFit.fill,
-            ),
+            child: Image.network(AppConfig.headerTop, fit: BoxFit.fill),
           ),
-
-          // Main Content with Rounded Container
           Column(
             children: [
               const SizedBox(height: 60),
-              // Custom AppBar
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Back button
                     Container(
                       width: 40,
                       height: 40,
@@ -370,13 +321,10 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                         padding: EdgeInsets.zero,
                         onPressed: () {
                           ref.read(authControllerProvider.notifier).reset();
-                          // context.pop();
                           context.go('/auth');
                         },
                       ),
                     ),
-
-                    // Title
                     Column(
                       children: const [
                         Text(
@@ -398,7 +346,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                         ),
                       ],
                     ),
-                    // Help button
                     Container(
                       width: 35,
                       height: 35,
@@ -447,7 +394,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             const SizedBox(height: 13),
                             Image.asset(
@@ -461,7 +407,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                                 fontSize: 25,
                                 fontWeight: FontWeight.bold,
                               ),
-                              textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 20),
                             SizedBox(
@@ -486,7 +431,6 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                                     fontWeight: FontWeight.bold,
                                     fontSize: 20,
                                   ),
-                                  textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(width: 10),
                                 Container(
@@ -514,9 +458,8 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                               ],
                             ),
                             const SizedBox(height: 30),
-                            // OTP Auto Fill
                             SizedBox(
-                              height: 65.0,
+                              height: 65,
                               width: 320,
                               child: PinFieldAutoFill(
                                 currentCode: otpCode,
@@ -537,25 +480,19 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                                 ),
                                 onCodeChanged: (code) {
                                   if (code != null) {
-                                    setState(() {
-                                      otpCode = code;
-                                    });
-
-                                    if (code.length == 4) {
-                                      _verifyOtp();
-                                    }
+                                    setState(() => otpCode = code);
+                                    if (code.length == 4) _verifyOtp();
                                   }
                                 },
                               ),
                             ),
                             const SizedBox(height: 30),
-
                             if (_isLoading)
                               const CircularProgressIndicator()
                             else
                               SizedBox(
-                                width: 150.0,
-                                height: 40.0,
+                                width: 150,
+                                height: 40,
                                 child: ElevatedButton(
                                   onPressed: _verifyOtp,
                                   style: ElevatedButton.styleFrom(
@@ -571,29 +508,18 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                                   ),
                                 ),
                               ),
-
                             const SizedBox(height: 20),
-
-                            // Resend OTP section
-                            Column(
-                              children: [
-                                if (canResend)
-                                  TextButton(
-                                    onPressed: _resendOtp,
-                                    child: const Text("Resend OTP"),
-                                  )
-                                else
-                                  Text(
-                                    "Resend available in ${_formatCooldownTime(_resendCooldown)}",
-                                  ),
-
-                                if (_resendAttempts >= 1)
-                                  Text(
-                                    "${3 - _resendAttempts} attempts remaining",
-                                  ),
-                              ],
-                            ),
-
+                            if (canResend)
+                              TextButton(
+                                onPressed: _resendOtp,
+                                child: const Text("Resend OTP"),
+                              )
+                            else
+                              Text(
+                                "Resend available in ${_formatCooldownTime(_resendCooldown)}",
+                              ),
+                            if (_resendAttempts >= 1)
+                              Text("${3 - _resendAttempts} attempts remaining"),
                             const SizedBox(height: 30),
                           ],
                         ),

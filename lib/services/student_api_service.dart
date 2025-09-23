@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../core/constants/endpoints.dart';
+import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 
 class StudentApiService {
   final Dio _dio = Dio(
@@ -27,7 +30,7 @@ class StudentApiService {
     required List<String> selectedHours,
     required List<String> seekingGrades,
     required List<String> seekingSubjects,
-    File? avatar,
+    PlatformFile? avatar,
   }) async {
     try {
       final formData = FormData.fromMap({
@@ -48,18 +51,51 @@ class StudentApiService {
         "teaching_grades": seekingGrades.join(","),
         "teaching_subjects": seekingSubjects.join(","),
 
-        if (avatar != null)
-          "avatar": await MultipartFile.fromFile(
-            avatar.path,
-            filename: avatar.path.split('/').last,
-          ),
+        // if (avatar != null)
+        //   "avatar": await MultipartFile.fromFile(
+        //     avatar.path,
+        //     filename: avatar.path.split('/').last,
+        //   ),
+
+
       });
 
-      print("➡️ Posting Teacher Signup");
-      print("Data: ${formData.fields}");
+      // Attach avatar
+      // ✅ Attach avatar
+      if (avatar != null) {
+        if (kIsWeb) {
+          formData.files.add(
+            MapEntry(
+              "avatar",
+              MultipartFile.fromBytes(
+                avatar.bytes!,
+                filename: avatar.name,
+              ),
+            ),
+          );
+        } else {
+          formData.files.add(
+            MapEntry(
+              "avatar",
+              await MultipartFile.fromFile(
+                avatar.path!,
+                filename: avatar.name,
+              ),
+            ),
+          );
+        }
+      }
 
-      final response = await _dio.post(Endpoints.studentSignup, data: formData);
-      print("✅ Response: ${response.data}");
+      // Add request source info
+      final headers = {
+        "X-Request-Source": kIsWeb ? "browser" : "app",
+      };
+      // print("➡️ Posting Teacher Signup");
+      // print("Data: ${formData.fields}");
+
+      final response = await _dio.post(Endpoints.studentSignup, data: formData,
+        options: Options(headers: headers),);
+      // print("✅ Response: ${response.data}");
       return response.data;
     } on DioException catch (e) {
       throw Exception(e.response?.data ?? "Signup failed");

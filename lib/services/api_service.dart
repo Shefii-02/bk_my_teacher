@@ -1,7 +1,6 @@
-// lib/data/api/auth_api_service.dart
 import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../core/constants/endpoints.dart';
@@ -15,23 +14,25 @@ class ApiResponse<T> {
 }
 
 class AuthApiService {
-  static const String baseUrl = Endpoints.base; // Replace with your API URL
-
-  final http.Client client;
-
-  AuthApiService({required this.client});
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: Endpoints.base,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: {'Content-Type': 'application/json'},
+    ),
+  );
 
   Future<ApiResponse<Map<String, dynamic>>> sendOtp(String phoneNumber) async {
     try {
-      final response = await client
-          .post(
-            Uri.parse('$baseUrl${Endpoints.sendOtpSignIn}'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({'mobile': phoneNumber, 'type': 'first'}),
-          )
-          .timeout(const Duration(seconds: 30));
+      final type = kIsWeb ? "browser" : "app";
+      final response = await _dio.post(
+        Endpoints.sendOtpSignIn,
+        data: json.encode({'mobile': phoneNumber, 'type': type}),
+      );
 
-      final responseData = json.decode(response.body);
+      final responseData = response.data;
+
       if (response.statusCode == 200) {
         return ApiResponse(
           success: true,
@@ -45,39 +46,25 @@ class AuthApiService {
           data: responseData,
         );
       }
-    } on http.ClientException catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'Network error: ${e.message}',
-      );
-    } on TimeoutException {
-      return ApiResponse(
-        success: false,
-        message: 'Request timeout. Please try again.',
-      );
+    } on DioException catch (e) {
+      return _handleDioError(e);
     } catch (e) {
       return ApiResponse(
         success: false,
-        message: 'An unexpected error occurred: ${e.toString()}',
+        message: 'Unexpected error: ${e.toString()}',
       );
     }
   }
 
   Future<ApiResponse<Map<String, dynamic>>> verifyOtp(
-    String phoneNumber,
-    String otp,
-  ) async {
+      String phoneNumber, String otp) async {
     try {
-      final response = await client
-          .post(
-            Uri.parse('$baseUrl${Endpoints.verifyOtpSignIn}'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({'mobile': phoneNumber, 'otp': otp}),
-          )
-          .timeout(const Duration(seconds: 30));
+      final response = await _dio.post(
+        Endpoints.verifyOtpSignIn,
+        data: json.encode({'mobile': phoneNumber, 'otp': otp}),
+      );
 
-      final responseData = json.decode(response.body);
-
+      final responseData = response.data;
       if (response.statusCode == 200) {
         return ApiResponse(
           success: true,
@@ -91,38 +78,19 @@ class AuthApiService {
           data: responseData,
         );
       }
-    } on http.ClientException catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'Network error: ${e.message}',
-      );
-    } on TimeoutException {
-      return ApiResponse(
-        success: false,
-        message: 'Request timeout. Please try again.',
-      );
-    } catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'An unexpected error occurred: ${e.toString()}',
-      );
+    } on DioException catch (e) {
+      return _handleDioError(e);
     }
   }
 
-  Future<ApiResponse<Map<String, dynamic>>> resendOtp(
-    String phoneNumber,
-  ) async {
+  Future<ApiResponse<Map<String, dynamic>>> resendOtp(String phoneNumber) async {
     try {
-      final response = await client
-          .post(
-            Uri.parse('$baseUrl${Endpoints.sendOtpSignIn}'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({'phone': phoneNumber, 'type': 'resend'}),
-          )
-          .timeout(const Duration(seconds: 30));
+      final response = await _dio.post(
+        Endpoints.reSendOtp,
+        data: json.encode({'mobile': phoneNumber, 'type': 'resend'}),
+      );
 
-      final responseData = json.decode(response.body);
-
+      final responseData = response.data;
       if (response.statusCode == 200) {
         return ApiResponse(
           success: true,
@@ -136,37 +104,22 @@ class AuthApiService {
           data: responseData,
         );
       }
-    } on http.ClientException catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'Network error: ${e.message}',
-      );
-    } on TimeoutException {
-      return ApiResponse(
-        success: false,
-        message: 'Request timeout. Please try again.',
-      );
-    } catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'An unexpected error occurred: ${e.toString()}',
-      );
+    } on DioException catch (e) {
+      return _handleDioError(e);
     }
   }
 
   Future<ApiResponse<Map<String, dynamic>>> signupSendOtp(
-    String phoneNumber,
-  ) async {
+      String phoneNumber) async {
     try {
-      final response = await client
-          .post(
-            Uri.parse('$baseUrl${Endpoints.sendOtpSignUp}'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({'mobile': phoneNumber, 'type': 'first'}),
-          )
-          .timeout(const Duration(seconds: 30));
+      final type = kIsWeb ? "browser" : "app";
+      final response = await _dio.post(
+        Endpoints.sendOtpSignUp,
+        data: json.encode({'mobile': phoneNumber, 'type': type}),
+      );
 
-      final responseData = json.decode(response.body);
+      final responseData = response.data;
+      print(responseData);
       if (response.statusCode == 200) {
         return ApiResponse(
           success: true,
@@ -180,39 +133,20 @@ class AuthApiService {
           data: responseData,
         );
       }
-    } on http.ClientException catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'Network error: ${e.message}',
-      );
-    } on TimeoutException {
-      return ApiResponse(
-        success: false,
-        message: 'Request timeout. Please try again.',
-      );
-    } catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'An unexpected error occurred: ${e.toString()}',
-      );
+    } on DioException catch (e) {
+      return _handleDioError(e);
     }
   }
 
   Future<ApiResponse<Map<String, dynamic>>> signupVerifyOtp(
-    String phoneNumber,
-    String otp,
-  ) async {
+      String phoneNumber, String otp) async {
     try {
-      final response = await client
-          .post(
-            Uri.parse('$baseUrl${Endpoints.verifyOtpSignUp}'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({'mobile': phoneNumber, 'otp': otp}),
-          )
-          .timeout(const Duration(seconds: 30));
+      final response = await _dio.post(
+        Endpoints.verifyOtpSignUp,
+        data: json.encode({'mobile': phoneNumber, 'otp': otp}),
+      );
 
-      final responseData = json.decode(response.body);
-
+      final responseData = response.data;
       if (response.statusCode == 200) {
         return ApiResponse(
           success: true,
@@ -226,87 +160,25 @@ class AuthApiService {
           data: responseData,
         );
       }
-    } on http.ClientException catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'Network error: ${e.message}',
-      );
-    } on TimeoutException {
-      return ApiResponse(
-        success: false,
-        message: 'Request timeout. Please try again.',
-      );
-    } catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'An unexpected error occurred: ${e.toString()}',
-      );
+    } on DioException catch (e) {
+      return _handleDioError(e);
     }
   }
 
-  Future<ApiResponse<Map<String, dynamic>>> getUserData(
-    String phoneNumber,
-  ) async {
-    try {
-      final response = await client
-          .post(
-            Uri.parse('$baseUrl${Endpoints.userDetails}'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({'mobile': phoneNumber}),
-          )
-          .timeout(const Duration(seconds: 30));
-
-      final responseData = json.decode(response.body);
-
-      if (response.statusCode == 200) {
-        return ApiResponse(
-          success: true,
-          message: responseData['message'] ?? 'OTP verified successfully',
-          data: responseData,
-        );
-      } else {
-        return ApiResponse(
-          success: false,
-          message: responseData['message'] ?? 'Invalid OTP',
-          data: responseData,
-        );
-      }
-    } on http.ClientException catch (e) {
+  /// --- Error handler ---
+  ApiResponse<Map<String, dynamic>> _handleDioError(DioException e) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      return ApiResponse(success: false, message: "Request timeout");
+    } else if (e.response != null) {
       return ApiResponse(
         success: false,
-        message: 'Network error: ${e.message}',
+        message: e.response?.data['message'] ?? "Server error",
+        data: e.response?.data,
       );
-    } on TimeoutException {
-      return ApiResponse(
-        success: false,
-        message: 'Request timeout. Please try again.',
-      );
-    } catch (e) {
-      return ApiResponse(
-        success: false,
-        message: 'An unexpected error occurred: ${e.toString()}',
-      );
+    } else {
+      return ApiResponse(success: false, message: "Network error: ${e.message}");
     }
   }
 }
-
-// import 'dart:convert';
-// import 'package:../core/constants/endpoints.dart';
-// import 'package:http/http.dart' as http;
-//
-// class ApiService {
-//   static const String baseUrl = Endpoints.base;
-//
-//   Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> body) async {
-//     final url = Uri.parse("$baseUrl/$endpoint");
-//     final response = await http.post(url,
-//         body: jsonEncode(body),
-//         headers: {"Content-Type": "application/json"});
-//
-//     if (response.statusCode == 200) {
-//       return jsonDecode(response.body);
-//     } else {
-//       throw Exception("Failed request: ${response.body}");
-//     }
-//   }
-// }
