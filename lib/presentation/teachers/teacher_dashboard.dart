@@ -28,7 +28,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
     print(widget.teacherId);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkUser();
+      // _checkUser();
     });
     //
     final teacherId = widget.teacherId;
@@ -53,28 +53,28 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
 
   }
 
-  Future<void> _checkUser() async {
-    final box = Hive.box('app_storage');
-    final userId = box.get('user_id');
-    final userRole = box.get('user_role');
-
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User ID not found. Please login again.")),
-      );
-      return;
-    }
-    final isValid = await UserCheckService().isUserValid(userId,userRole);
-    if (isValid) {
-      return;
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("User ID not found. App Rest..")));
-      await LaunchStatusService.resetApp();
-      return;
-    }
-  }
+  // Future<void> _checkUser() async {
+  //   final box = Hive.box('app_storage');
+  //   final userId = box.get('user_id');
+  //   final userRole = box.get('user_role');
+  //
+  //   if (userId == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text("User ID not found. Please login again.")),
+  //     );
+  //     return;
+  //   }
+  //   final isValid = await UserCheckService().isUserValid(userId,userRole);
+  //   if (isValid) {
+  //     return;
+  //   } else {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text("User ID not found. App Rest..")));
+  //     await LaunchStatusService.resetApp();
+  //     return;
+  //   }
+  // }
 
   // Future<Map<String, dynamic>> _fetchTeacherData() async {
   //   final api = TeacherApiService();

@@ -14,32 +14,33 @@ void main() async {
 
   // Open required Hive boxes
   final settingsBox = await Hive.openBox('settings');
-  final appDataBox = await Hive.openBox('app_data');
+  // final appDataBox = await Hive.openBox('app_data');
   final appStorage = await Hive.openBox('app_storage');
 
   // Check onboarding status
   bool hasSeen = settingsBox.get('hasSeenOnboarding', defaultValue: false);
 
   // Setup secure storage
-  final storage = FlutterSecureStorage();
+  // final storage = FlutterSecureStorage();
 
   // Setup local data source and repository
-  final localDataSource = LocalDataSource(storage, appDataBox);
-  final appRepo = AppRepositoryImpl(localDataSource);
-  final useCase = CheckLaunchStatusUseCase(appRepo);
+  // final localDataSource = LocalDataSource(storage, appDataBox);
+  // final appRepo = AppRepositoryImpl(localDataSource);
+  // final useCase = CheckLaunchStatusUseCase(appRepo);
 
   runApp(
     ProviderScope(
       // ✅ wrap with ProviderScope
-      child: MyApp(useCase: useCase),
+      // child: MyApp(useCase: useCase),
+      child: MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final CheckLaunchStatusUseCase useCase;
-
-  const MyApp({required this.useCase, super.key});
+  // final CheckLaunchStatusUseCase useCase;
+  // required this.useCase,
+  const MyApp({ super.key});
 
   @override
   Widget build(BuildContext context) {

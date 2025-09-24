@@ -1,42 +1,48 @@
-import 'dart:io';
+// import 'dart:io';
+import 'dart:io' show File; // works only on mobile/desktop
+import 'dart:typed_data';
 import 'package:BookMyTeacher/services/api_service.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:file_picker/file_picker.dart';
+
 import 'package:flutter/material.dart';
 import 'package:easy_stepper/easy_stepper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
-import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+// keep your own imports if you use them in _submitForm
 import '../../../core/enums/app_config.dart';
 import '../../../services/launch_status_service.dart';
+import '../../../services/teacher_api_service.dart';
 import '../controller/auth_controller.dart';
-import '../providers/student_provider.dart';
+import '../providers/teacher_provider.dart';
 
-class SignUpStudent extends StatefulWidget {
-  const SignUpStudent({super.key});
+class SignUpTeacher extends StatefulWidget {
+  const SignUpTeacher({super.key});
 
   @override
-  State<SignUpStudent> createState() => _SignUpStudentState();
+  State<SignUpTeacher> createState() => _SignUpTeacherState();
 }
 
-class _SignUpStudentState extends State<SignUpStudent> {
+class _SignUpTeacherState extends State<SignUpTeacher> {
+
   @override
   void initState() {
     super.initState();
     _loadData();
   }
 
-  final ScrollController _scrollController = ScrollController();
 
   int activeStep = 0;
   bool _isLoading = false;
+  final ScrollController _scrollController = ScrollController();
 
-  // ====== STEP 1: Personal Info ======
+  // ====== STEP 1: Personal Info controllers ======
   final _fStep1 = GlobalKey<FormState>();
-  final _studentNameCtrl = TextEditingController();
-  final _parentNameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
   final _cityCtrl = TextEditingController();
   final _postalCtrl = TextEditingController();
@@ -44,49 +50,28 @@ class _SignUpStudentState extends State<SignUpStudent> {
   final _stateCtrl = TextEditingController();
   final _countryCtrl = TextEditingController();
 
-  // ====== STEP 2: Study Details ======
-  final _fStep2 = GlobalKey<FormState>();
-  String _interest = "offline"; // offline | online | both
+  PlatformFile? _avatarFile;
+  PlatformFile? cvFile;
 
   // File? _avatarFile;
-  PlatformFile? _avatarFile;
-  Uint8List? _avatarBytes; // For web
-  String? _avatarName; // Store filename for web
+  Uint8List? _avatarBytes; // for Web
+  String? _avatarName;
 
-  List<Map<String, dynamic>> listingGrades = [];
-  List<Map<String, dynamic>> listingSubjects = [];
+  // CV
+  // File? cvFile;              // for Mobile/Desktop
+  Uint8List? _cvBytes; // for Web
+  String? _cvName;
 
-  Future<void> _loadData() async {
-    final api = ApiService();
-    try {
-      final grades = await api.getListingGrades();
-      final subjects = await api.getListingSubjects();
+  // ====== STEP 2: Teaching Details ======
+  final _fStep2 = GlobalKey<FormState>();
 
-      setState(() {
-        listingGrades = grades;
-        listingSubjects = subjects;
-        listingSubjects = [
-          ...subjects,
-          {"id": "other", "name": "Other", "value" : 'other'},  // 👈 always append
-        ];
-      });
-    } catch (e) {
-      debugPrint("Error fetching data: $e");
-    }
-  }
+  // Mode of Interest (radio)
+  String _interest = "offline"; // offline | online | both
 
-  void _goNextStep() {
-    setState(() {
-      activeStep = 1;
-    });
-
-    // ✅ Scroll to top smoothly
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    );
-  }
+  // Experience (all required numeric)
+  final _offlineExpCtrl = TextEditingController(text: "0");
+  final _onlineExpCtrl = TextEditingController(text: "0");
+  final _homeExpCtrl = TextEditingController(text: "0");
 
   // Teaching Grades (chips)
   bool _lowerPrimary = false;
@@ -104,18 +89,21 @@ class _SignUpStudentState extends State<SignUpStudent> {
   bool _other = false;
   final _otherSubjectCtrl = TextEditingController();
 
-  final List<String> _selectedGrades = [];
-  final List<String> _selectedSubjects = [];
+  // Profession (radio)
+  String _profession = 'Teacher';
+
+  // Ready to work (radio)
+  String _readyToWork = 'Yes';
 
   // Preferable Days & Hours (chips)
   final List<String> _days = const [
-    "Sun",
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-    "Sat",
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
   ];
   final List<String> _selectedDays = [];
   final List<String> _hours = const [
@@ -139,91 +127,147 @@ class _SignUpStudentState extends State<SignUpStudent> {
   ];
   final List<String> _selectedHours = [];
 
-  // ---------- Validators ----------
+  // ====== STEP 3: CV upload ======
+  final _fStep3 = GlobalKey<FormState>();
+
+  final ImagePicker _picker = ImagePicker();
+
+  // Teaching data from API
+  List<Map<String, dynamic>> teachingGrades = [];
+  List<Map<String, dynamic>> teachingSubjects = [];
+  String? selectedGrade;
+  String? selectedSubject;
+  bool isLoadingGrades = true;
+  bool isLoadingSubjects = true;
+
+  final List<String> _selectedGrades = [];
+  final List<String> _selectedSubjects = [];
+
+  List<Map<String, dynamic>> listingGrades = [];
+  List<Map<String, dynamic>> listingSubjects = [];
+
+  Future<void> _loadData() async {
+    final api = ApiService();
+    try {
+      final grades = await api.getListingGrades();
+      final subjects = await api.getListingSubjects();
+
+      setState(() {
+        teachingGrades = grades;
+        teachingSubjects = subjects;
+        isLoadingGrades = false;
+        isLoadingSubjects = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoadingGrades = false;
+        isLoadingSubjects = false;
+      });
+      debugPrint("Error fetching data: $e");
+    }
+  }
+
+  // ---------- Helpers: validators ----------
   String? _req(String? v) =>
       (v == null || v.trim().isEmpty) ? 'Required' : null;
+
   String? _email(String? v) {
     if (v == null || v.trim().isEmpty) return 'Required';
     final re = RegExp(r'^[\w\.\-+]+@[\w\.\-]+\.[A-Za-z]{2,}$');
     return re.hasMatch(v.trim()) ? null : 'Enter a valid email';
   }
 
-  String? _phone(String? v) {
+  String? _nonNegInt(String? v) {
     if (v == null || v.trim().isEmpty) return 'Required';
-    if (v.length < 10) return 'Enter valid phone';
+    final n = int.tryParse(v);
+    if (n == null || n < 0) return 'Enter a non-negative number';
     return null;
   }
 
-  // Future<void> _pickAvatar() async {
-  //   final result = await FilePicker.platform.pickFiles(
-  //     type: FileType.custom,
-  //     allowedExtensions: ['jpg', 'jpeg', 'png'],
-  //   );
-  //
-  //   if (result != null) {
-  //     if (kIsWeb) {
-  //       // On Web
-  //       setState(() {
-  //         _avatarFile = null;
-  //         _avatarBytes = result.files.single.bytes;
-  //         _avatarName = result.files.single.name;
-  //       });
-  //     } else {
-  //       // On Mobile/Desktop
-  //       setState(() {
-  //         _avatarFile = File(result.files.single.path!);
-  //       });
-  //     }
-  //   } else {
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(const SnackBar(content: Text('No image selected')));
-  //   }
-  // }
-
-  // Future<void> _pickAvatar() async {
-  //   final result = await FilePicker.platform.pickFiles(type: FileType.image);
-  //   if (result != null) {
-  //     final file = result.files.first;
-  //     if (file.size > 2 * 1024 * 1024) { // 2 MB limit
-  //       _toast("Profile Pic size must be less than 2 MB");
-  //       return;
-  //     }
-  //     setState(() {
-  //       _avatarFile = result.files.first;
-  //     });
-  //   }
-  // }
-
-  Future<void> _pickAvatar() async {
+  // ---------- Pickers ----------
+  Future<void> pickAvatar() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
-
     if (result != null) {
-      final file = result.files.first;
-      if (file.size > 2 * 1024 * 1024) {
-        // 2 MB limit
-        _toast("Profile Pic size must be less than 2 MB");
-        return;
-      }
       setState(() {
         _avatarFile = result.files.first;
-        _avatarBytes = result.files.first.bytes;
-        _avatarName = result.files.first.name;
       });
     }
   }
 
+  Future<void> pickCV() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx'],
+    );
+    if (result != null) {
+      setState(() {
+        cvFile = result.files.first;
+      });
+    }
+  }
+
+  // Future<void> _pickCV() async {
+  //   final result = await FilePicker.platform.pickFiles(
+  //     type: FileType.custom,
+  //     allowedExtensions: ['pdf', 'doc', 'docx'],
+  //   );
+  //   if (result != null && result.files.single.path != null) {
+  //     setState(() => cvFile = File(result.files.single.path!));
+  //   }
+  // }
+
+  // Future<void> _pickAvatar() async {
+  //   final status = await Permission.photos.request();
+  //   if (status.isGranted) {
+  //     final image = await _picker.pickImage(source: ImageSource.gallery);
+  //     if (image != null) setState(() => _avatarFile = File(image.path));
+  //   } else {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(const SnackBar(content: Text('Photos permission denied')));
+  //   }
+  // }
+
+  // Future<void> _pickAvatar() async {
+  //   // final status = await Permission.photos.request();
+  //   // if (status.isGranted) {
+  //     final result = await FilePicker.platform.pickFiles(
+  //       type: FileType.custom,
+  //       allowedExtensions: ['jpg', 'jpeg', 'png'],
+  //     );
+  //
+  //     if (result != null) {
+  //       if (kIsWeb) {
+  //         // On Web
+  //         setState(() {
+  //           _avatarFile = null;
+  //           _avatarBytes = result.files.single.bytes;
+  //           _avatarName = result.files.single.name;
+  //         });
+  //       } else {
+  //         // On Mobile/Desktop
+  //         setState(() {
+  //           _avatarFile = File(result.files.single.path!);
+  //         });
+  //       }
+  //     } else {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(const SnackBar(content: Text('No image selected')));
+  //     }
+  //   // } else {
+  //   //   ScaffoldMessenger.of(
+  //   //     context,
+  //   //   ).showSnackBar(const SnackBar(content: Text('Photos permission denied')));
+  //   // }
+  // }
+
   // ---------- Step validators ----------
-  // bool _validateStep1() => _fStep1.currentState?.validate() ?? false;
   bool _validateStep1() {
     final ok = _fStep1.currentState?.validate() ?? false;
     if (!ok) return false;
 
     if (_avatarFile != null || _avatarBytes != null) {
-      if (_avatarFile != null && _avatarFile!.size > 2 * 1024 * 1024) {
-        _toast("Avatar size must be less than 2 MB");
-        return false;
-      }
       return true;
     } else {
       _toast('Please select an profile image');
@@ -231,50 +275,116 @@ class _SignUpStudentState extends State<SignUpStudent> {
     }
   }
 
-  bool _validateStep2() => _fStep2.currentState?.validate() ?? false;
+  bool _validateStep2() {
+    final ok = _fStep2.currentState?.validate() ?? false;
+    if (!ok) return false;
+
+    if (!(_lowerPrimary ||
+        _upto10 ||
+        _higherSecondary ||
+        _graduate ||
+        _postGraduate)) {
+      _toast('Please select at least one Teaching Grade');
+      return false;
+    }
+    if (!(_allSubjects ||
+        _maths ||
+        _science ||
+        _malayalam ||
+        _english ||
+        _other)) {
+      _toast('Please select at least one Teaching Subject');
+      return false;
+    }
+    if (_other && _otherSubjectCtrl.text.trim().isEmpty) {
+      _toast('Please enter the Other subject');
+      return false;
+    }
+    if (_selectedDays.isEmpty) {
+      _toast('Please select at least one working day');
+      return false;
+    }
+    if (_selectedHours.isEmpty) {
+      _toast('Please select at least one working hour');
+      return false;
+    }
+    return true;
+  }
+
+  bool _validateStep3() {
+    if (cvFile == null && _cvBytes == null) {
+      _toast('Please upload your CV');
+      return false;
+    }
+    return true;
+  }
+
+  void _goNextStep() {
+    setState(() {
+      activeStep = 1;
+    });
+
+    // ✅ Scroll to top smoothly
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
+  }
 
   void _toast(String m) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
 
   // ---------- Submit ----------
   Future<void> _submitForm() async {
-    if (_isLoading) return;
+    // Collect experience string
+    final experience =
+        "${_offlineExpCtrl.text},${_onlineExpCtrl.text},${_homeExpCtrl.text}";
+
     final container = ProviderScope.containerOf(context, listen: false);
     final authState = container.read(authControllerProvider);
     final userData = authState.userData?['data'];
-    final userId = await LaunchStatusService.getUserId();
+    final userId = userData?['id'];
+    final userMobile = userData?['mobile'];
+
+    debugPrint("User ID: $userId | Mobile: $userMobile");
+
 
     final formData = {
-      "student_id": userId,
-      "student_name": _studentNameCtrl.text.trim(),
-      "parent_name": _parentNameCtrl.text.trim(),
+      "avatar": _avatarFile,
+      "teacher_id": userId?.toString(),
+      "name": _nameCtrl.text.trim(),
       "email": _emailCtrl.text.trim(),
-      // "phone": _phoneCtrl.text.trim(),
       "address": _addressCtrl.text.trim(),
       "city": _cityCtrl.text.trim(),
       "postalCode": _postalCtrl.text.trim(),
       "district": _districtCtrl.text.trim(),
       "state": _stateCtrl.text.trim(),
       "country": _countryCtrl.text.trim(),
-      "avatar": _avatarFile,
       "interest": _interest,
+      "offline_exp": _offlineExpCtrl.text.trim(),
+      "online_exp": _onlineExpCtrl.text.trim(),
+      "home_exp": _homeExpCtrl.text.trim(),
+      "experience": experience,
+      "profession": _profession,
+      "readyToWork": _readyToWork,
       "selectedDays": _selectedDays,
       "selectedHours": _selectedHours,
-      "seekingGrades": _selectedGrades, // ✅ dynamic
-      // "seekingSubjects": _selectedSubjects, // ✅ dynamic
-      "seekingSubjects": [
+      "teachingGrades": _selectedGrades,
+      "teachingSubjects": [
         ..._selectedSubjects,
         if (_other && _otherSubjectCtrl.text.trim().isNotEmpty)
           _otherSubjectCtrl.text.trim(),
       ],
-      // "seekingGrades": [
+
+      // "teachingGrades": [
       //   if (_lowerPrimary) "lowerPrimary",
       //   if (_upto10) "upto10",
       //   if (_higherSecondary) "higherSecondary",
       //   if (_graduate) "graduate",
       //   if (_postGraduate) "postGraduate",
       // ],
-      // "seekingSubjects": [
+      // "teachingSubjects": [
       //   if (_allSubjects) "all",
       //   if (_maths) "maths",
       //   if (_science) "science",
@@ -282,11 +392,12 @@ class _SignUpStudentState extends State<SignUpStudent> {
       //   if (_english) "english",
       //   if (_other) _otherSubjectCtrl.text.trim(),
       // ],
+      "cvFile": cvFile,
     };
 
     try {
       final response = await container.read(
-        studentSignupProvider(formData).future,
+        teacherSignupProvider(formData).future,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -295,8 +406,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
         ),
       );
 
-      final userRole = response['user']?['acc_type'] ?? 'student';
-      // final userId = response['user']['id'];
+      final userRole = response['user']?['acc_type'] ?? 'teacher';
 
       final userData = response['user'];
       // final token = response['token'];
@@ -310,45 +420,30 @@ class _SignUpStudentState extends State<SignUpStudent> {
       }
 
       await LaunchStatusService.setUserRole(userRole);
-      // await LaunchStatusService.setUserId(userId!.toString());
-
-      setState(() => _isLoading = true); // ⏳ Show loader
-
-      // context.go('/student-dashboard');
-      context.go('/student-dashboard', extra: {'studentId': userId});
-      // }
-      // catch (e) {
-      //   print(e);
-      //   _toast("❌ Error: $e");
-      // }
+      await LaunchStatusService.setUserId(userId!.toString());
+      context.go('/teacher-dashboard', extra: {'teacherId': userId.toString()});
+      // context.go('/teacher-dashboard');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: ${e.toString()}"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      print(e);
-    } finally {
-      if (mounted) setState(() => _isLoading = false); // ✅ Hide loader
+      debugPrint("Submit error: $e");
+      _toast("❌ Error: $e");
     }
   }
 
   // ---------- UI ----------
   @override
   void dispose() {
-    _studentNameCtrl.dispose();
-    _parentNameCtrl.dispose();
+    _nameCtrl.dispose();
     _emailCtrl.dispose();
-    // _phoneCtrl.dispose();
     _addressCtrl.dispose();
     _cityCtrl.dispose();
     _postalCtrl.dispose();
     _districtCtrl.dispose();
     _stateCtrl.dispose();
     _countryCtrl.dispose();
+    _offlineExpCtrl.dispose();
+    _onlineExpCtrl.dispose();
+    _homeExpCtrl.dispose();
     _otherSubjectCtrl.dispose();
-
     super.dispose();
   }
 
@@ -397,7 +492,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
                     const Column(
                       children: [
                         Text(
-                          'I\'m a Student',
+                          'I\'m a Teacher',
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
@@ -406,7 +501,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          'Please fill your details',
+                          'Please fill your personal details',
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.w500,
@@ -494,8 +589,19 @@ class _SignUpStudentState extends State<SignUpStudent> {
                               EasyStep(
                                 customTitle: Padding(
                                   padding: EdgeInsets.only(top: 8.0),
+                                  child: Center(child: Text('Personal Info')),
+                                ),
+                                customStep: CircleAvatar(
+                                  radius: 5,
+                                  backgroundColor: Colors.white,
+                                  child: CircleAvatar(radius: 3),
+                                ),
+                              ),
+                              EasyStep(
+                                customTitle: Padding(
+                                  padding: EdgeInsets.only(top: 8.0),
                                   child: Center(
-                                    child: Text('Personal Details'),
+                                    child: Text('Teaching Details'),
                                   ),
                                 ),
                                 customStep: CircleAvatar(
@@ -507,7 +613,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
                               EasyStep(
                                 customTitle: Padding(
                                   padding: EdgeInsets.only(top: 8.0),
-                                  child: Center(child: Text('Study Details')),
+                                  child: Center(child: Text('Upload CV')),
                                 ),
                                 customStep: CircleAvatar(
                                   radius: 5,
@@ -521,8 +627,19 @@ class _SignUpStudentState extends State<SignUpStudent> {
                           ),
                         ),
 
-                        // Step content
-                        _buildStepContent(),
+                        SizedBox(
+                          width: 450,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Step content (keeps your look)
+                                _buildStepContent(),
+                              ],
+                            ),
+                          ),
+                        ),
 
                         const SizedBox(height: 20),
 
@@ -543,30 +660,49 @@ class _SignUpStudentState extends State<SignUpStudent> {
                               const SizedBox(width: 8),
                               ElevatedButton(
                                 onPressed: _isLoading
-                                    ? null
-                                    : () {
-                                        if (activeStep == 0) {
-                                          if (_validateStep1()) {
-                                            setState(() => activeStep = 1);
-                                            _goNextStep(); // ✅ scrolls to top
-                                          }
-                                        } else {
-                                          if (_validateStep2()) {
-                                            _submitForm();
-                                          }
-                                        }
-                                      },
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : Text(activeStep == 1 ? 'Submit' : 'Next'),
+                                       ? null
+                                       : () {
+                                  if (activeStep == 0) {
+                                    if (_validateStep1())
+                                      setState(() => activeStep = 1);
+                                  } else if (activeStep == 1) {
+                                    if (_validateStep2())
+                                      setState(() => activeStep = 2);
+                                  } else {
+                                    if (_validateStep3()) _submitForm();
+                                  }
+                                },
+                                child: Text(
+                                  activeStep == 2 ? 'Submit' : 'Next',
+                                ),
                               ),
+                              // ElevatedButton(
+                              //   onPressed: _isLoading
+                              //       ? null
+                              //       : () {
+                              //     if (activeStep == 0) {
+                              //       if (_validateStep1()) {
+                              //         setState(() => activeStep = 1);
+                              //         _goNextStep(); // ✅ scrolls to top
+                              //       }
+                              //     } else {
+                              //       if (_validateStep2()) {
+                              //         _submitForm();
+                              //       }
+                              //     }
+                              //   },
+                              //   child: _isLoading
+                              //       ? const SizedBox(
+                              //     width: 20,
+                              //     height: 20,
+                              //     child: CircularProgressIndicator(
+                              //       strokeWidth: 2,
+                              //       color: Colors.white,
+                              //     ),
+                              //   )
+                              //       : Text(activeStep == 1 ? 'Submit' : 'Next'),
+                              // ),
+
                             ],
                           ),
                         ),
@@ -587,13 +723,15 @@ class _SignUpStudentState extends State<SignUpStudent> {
       case 0:
         return _step1Personal();
       case 1:
-        return _step2Study();
+        return _step2Teaching();
+      case 2:
+        return _step3CV();
       default:
         return const SizedBox.shrink();
     }
   }
 
-  // -------- STEP 1 UI --------
+  // -------- STEP 1 UI (same style) --------
   Widget _step1Personal() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -604,32 +742,31 @@ class _SignUpStudentState extends State<SignUpStudent> {
             const SizedBox(height: 10),
             Center(
               child: GestureDetector(
-                onTap: _pickAvatar,
+                onTap: pickAvatar,
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey[300],
                   backgroundImage: _avatarFile != null
                       ? (kIsWeb
-                            ? MemoryImage(_avatarFile!.bytes!) // ✅ Web
+                            ? MemoryImage(_avatarFile!.bytes!)
                             : FileImage(
+                                    // ignore: unnecessary_non_null_assertion
                                     File(_avatarFile!.path!),
-                                  ) // ✅ Mobile/Desktop
+                                  )
                                   as ImageProvider)
                       : null,
                   child: _avatarFile == null
-                      ? const Icon(
+                      ? const Icon(Icons.person, size: 50, color: Colors.white)
+                      : const Icon(
                           Icons.camera_alt,
-                          size: 40,
-                          color: Colors.white70,
-                        )
-                      : null,
+                          size: 50,
+                          color: Colors.white,
+                        ),
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            _tf(_studentNameCtrl, 'Student Name', validator: _req),
-            const SizedBox(height: 20),
-            _tf(_parentNameCtrl, 'Parent Name', validator: _req),
+            _tf(_nameCtrl, 'Full Name', validator: _req),
             const SizedBox(height: 20),
             _tf(
               _emailCtrl,
@@ -638,20 +775,13 @@ class _SignUpStudentState extends State<SignUpStudent> {
               validator: _email,
             ),
             const SizedBox(height: 20),
-            // _tf(
-            //   _phoneCtrl,
-            //   'Phone',
-            //   keyboardType: TextInputType.phone,
-            //   validator: _phone,
-            // ),
-            const SizedBox(height: 20),
             _tf(_addressCtrl, 'Address', validator: _req),
             const SizedBox(height: 20),
             _tf(_cityCtrl, 'City', validator: _req),
             const SizedBox(height: 20),
             _tf(
               _postalCtrl,
-              'Postal Code',
+              'Postal code',
               keyboardType: TextInputType.number,
               validator: _req,
             ),
@@ -667,8 +797,8 @@ class _SignUpStudentState extends State<SignUpStudent> {
     );
   }
 
-  // -------- STEP 2 UI --------
-  Widget _step2Study() {
+  // -------- STEP 2 UI (same style) --------
+  Widget _step2Teaching() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Form(
@@ -677,7 +807,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Mode of Learning Interest",
+              "Mode of Interest",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Row(
@@ -714,11 +844,12 @@ class _SignUpStudentState extends State<SignUpStudent> {
                 ),
               ],
             ),
+
             const SizedBox(height: 20),
-            // const Text(
-            //   "Teaching Grade",
-            //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            // ),
+            const Text(
+              "Teaching Grade",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             // Wrap(
             //   spacing: 8,
             //   children: [
@@ -749,12 +880,68 @@ class _SignUpStudentState extends State<SignUpStudent> {
             //     ),
             //   ],
             // ),
-            //
-            // const SizedBox(height: 20),
-            // const Text(
-            //   "Teaching Subjects",
-            //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            // ),
+            Wrap(
+              spacing: 8,
+              children: listingGrades.map((grade) {
+                final id = grade['id'].toString();
+                final name = grade['name'].toString();
+                final selected = _selectedGrades.contains(id);
+                return FilterChip(
+                  label: Text(name),
+                  selected: selected,
+                  onSelected: (v) {
+                    setState(() {
+                      v ? _selectedGrades.add(id) : _selectedGrades.remove(id);
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Teaching Subjects",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            Wrap(
+              spacing: 8.0,
+              children: listingSubjects.map((subject) {
+                final id = subject["id"].toString();
+                final name = subject["name"].toString();
+
+                return FilterChip(
+                  label: Text(name),
+                  selected: id == "other"
+                      ? _other // 👈 special case
+                      : _selectedSubjects.contains(id),
+                  onSelected: (v) {
+                    setState(() {
+                      if (id == "other") {
+                        _other = v;
+                        if (!v) _otherSubjectCtrl.clear();
+                      } else {
+                        v
+                            ? _selectedSubjects.add(id)
+                            : _selectedSubjects.remove(id);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            if (_other) ...[
+              const SizedBox(height: 20),
+              const Text(
+                "Enter except above other subject",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              _tf(
+                _otherSubjectCtrl,
+                "Enter other subject",
+                validator: (v) => _other ? _req(v) : null,
+              ),
+            ],
+
             // Wrap(
             //   spacing: 8,
             //   children: [
@@ -790,64 +977,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
             //     ),
             //   ],
             // ),
-            // / ✅ Dynamic Grades
-            const Text(
-              "Teaching Grade",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Wrap(
-              spacing: 8,
-              children: listingGrades.map((grade) {
-                final id = grade['id'].toString();
-                final name = grade['name'].toString();
-                final value = grade['value'].toString();
-                final selected = _selectedGrades.contains(value);
-                return FilterChip(
-                  label: Text(name),
-                  selected: selected,
-                  onSelected: (v) {
-                    setState(() {
-                      v ? _selectedGrades.add(value) : _selectedGrades.remove(value);
-                    });
-                  },
-                );
-              }).toList(),
-            ),
 
-            const SizedBox(height: 20),
-
-            // ✅ Dynamic Subjects
-            const Text(
-              "Teaching Subjects",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Wrap(
-              spacing: 8.0,
-              children: listingSubjects.map((subject) {
-                final id = subject["id"].toString();
-                final name = subject["name"].toString();
-                final value = subject["value"].toString();
-
-                return FilterChip(
-                  label: Text(name),
-                  selected: id == "other"
-                      ? _other // 👈 special case
-                      : _selectedSubjects.contains(value),
-                  onSelected: (v) {
-                    setState(() {
-                      if (id == "other") {
-                        _other = v;
-                        if (!v) _otherSubjectCtrl.clear();
-                      } else {
-                        v
-                            ? _selectedSubjects.add(value)
-                            : _selectedSubjects.remove(value);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
             if (_other) ...[
               const SizedBox(height: 20),
               const Text(
@@ -861,9 +991,146 @@ class _SignUpStudentState extends State<SignUpStudent> {
                 validator: (v) => _other ? _req(v) : null,
               ),
             ],
+
             const SizedBox(height: 20),
+            // Experience
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const Text(
+                            "Years of experience in offline",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _tf(
+                            _offlineExpCtrl,
+                            "",
+                            keyboardType: TextInputType.number,
+                            validator: _nonNegInt,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const Text(
+                            "Years of experience in online",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _tf(
+                            _onlineExpCtrl,
+                            "",
+                            keyboardType: TextInputType.number,
+                            validator: _nonNegInt,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  "Years of experience in Home tuition",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                _tf(
+                  _homeExpCtrl,
+                  "",
+                  keyboardType: TextInputType.number,
+                  validator: _nonNegInt,
+                ),
+                const SizedBox(height: 14),
+              ],
+            ),
+
+            // Profession
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Current Working Profession",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: RadioListTile<String>(
+                        title: const Text("Teacher"),
+                        value: 'Teacher',
+                        groupValue: _profession,
+                        onChanged: (v) => setState(() => _profession = v!),
+                      ),
+                    ),
+                    Expanded(
+                      child: RadioListTile<String>(
+                        title: const Text("Student"),
+                        value: 'Student',
+                        groupValue: _profession,
+                        onChanged: (v) => setState(() => _profession = v!),
+                      ),
+                    ),
+                  ],
+                ),
+                RadioListTile<String>(
+                  title: const Text("Seeking Job"),
+                  value: 'Seeking Job',
+                  groupValue: _profession,
+                  onChanged: (v) => setState(() => _profession = v!),
+                ),
+              ],
+            ),
+
+            // Ready to work
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Ready To Work with BookMyTeacher as Full-time Faculty with Monthly Salary",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: RadioListTile<String>(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text("Yes"),
+                        value: 'Yes',
+                        groupValue: _readyToWork,
+                        onChanged: (v) => setState(() => _readyToWork = v!),
+                      ),
+                    ),
+                    Expanded(
+                      child: RadioListTile<String>(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text("No"),
+                        value: 'No',
+                        groupValue: _readyToWork,
+                        onChanged: (v) => setState(() => _readyToWork = v!),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
             const Text(
-              "Preferable Learning Days",
+              "Preferable Working Days",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -883,9 +1150,10 @@ class _SignUpStudentState extends State<SignUpStudent> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 20),
+
+            const SizedBox(height: 16),
             const Text(
-              "Preferable Learning Time",
+              "Preferable Working Hours",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -913,7 +1181,62 @@ class _SignUpStudentState extends State<SignUpStudent> {
     );
   }
 
-  // -------- Shared TextField --------
+  // -------- STEP 3 UI (same style) --------
+  Widget _step3CV() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Form(
+        key: _fStep3,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Upload Your CV",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: pickCV,
+              child: Container(
+                width: double.infinity,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  border: Border.all(color: Colors.grey.shade400),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.upload_file,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        cvFile != null
+                            ? "Picked: ${cvFile!.name}"
+                            : 'Click to Upload CV',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: cvFile != null ? Colors.black87 : Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Shared text field builder in your style
   Widget _tf(
     TextEditingController c,
     String label, {

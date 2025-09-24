@@ -49,11 +49,29 @@ class _SignUpGuestState extends State<SignUpGuest> {
     return null;
   }
 
+  // Future<void> _pickAvatar() async {
+  //   final result = await FilePicker.platform.pickFiles(type: FileType.image);
+  //   if (result != null) {
+  //     setState(() {
+  //       _avatarFile = result.files.first;
+  //     });
+  //   }
+  // }
+
   Future<void> _pickAvatar() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.image);
+
     if (result != null) {
+      final file = result.files.first;
+      if (file.size > 2 * 1024 * 1024) {
+        // 2 MB limit
+        _toast("Profile Pic size must be less than 2 MB");
+        return;
+      }
       setState(() {
         _avatarFile = result.files.first;
+        _avatarBytes = result.files.first.bytes;
+        _avatarName = result.files.first.name;
       });
     }
   }
@@ -65,6 +83,10 @@ class _SignUpGuestState extends State<SignUpGuest> {
     if (!ok) return false;
 
     if (_avatarFile != null || _avatarBytes != null) {
+      if (_avatarFile != null && _avatarFile!.size > 2 * 1024 * 1024) {
+        _toast("Avatar size must be less than 2 MB");
+        return false;
+      }
       return true;
     } else {
       _toast('Please select an profile image');
@@ -90,31 +112,21 @@ class _SignUpGuestState extends State<SignUpGuest> {
     // print("➡️ email: $email");
     // print("➡️ avatar: ${avatar?.name ?? 'No avatar selected'}");
 
-    final formData = {
-      "full_name": fullName,
-      "email": email,
-      "avatar": avatar,
-    };
+    final formData = {"full_name": fullName, "email": email, "avatar": avatar};
 
     final container = ProviderScope.containerOf(context, listen: false);
     try {
-
       final response = await container.read(
         guestSignupProvider(formData).future,
       );
 
-
-
-      final userRole = response['user']?['acc_type'] ?? 'student';
-
-
+      final userRole = response['user']?['acc_type'] ?? 'guest';
 
       final authController = container.read(authControllerProvider);
       final userId = response['user']['id'];
 
       final userData = response['user'];
       // final token = response['token'];
-
 
       if (userData != null) {
         // ✅ Save auth token + user data locally
@@ -125,10 +137,8 @@ class _SignUpGuestState extends State<SignUpGuest> {
         // container.read(guestApiProvider).setAuthToken(token);
       }
 
-
-
       await LaunchStatusService.setUserRole(userRole);
-      // await LaunchStatusService.setUserId(userId as String);
+      // await LaunchStatusService.setUserId(userId.toString());
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -138,10 +148,7 @@ class _SignUpGuestState extends State<SignUpGuest> {
 
       setState(() => _isLoading = true);
 
-      context.go(
-        '/guest-dashboard',
-        extra: {'guestId': userId},
-      );
+      context.go('/guest-dashboard', extra: {'guestId': userId});
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(

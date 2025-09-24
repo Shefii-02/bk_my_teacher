@@ -89,15 +89,19 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
       await authController.getUserData();
       final userData = ref.read(authControllerProvider).userData;
       final token = ref.read(authControllerProvider).authToken;
-      print("****************************");
-      print("userData Result");
-      print(userData);
-      print("****************************");
-
-      print("****************************");
-      print("token Result");
-      print(token);
-      print("****************************");
+      final userId = userData?['data']['id'].toString();
+      // print("****************************");
+      // print("userData Result");
+      // print(userData);
+      // print("****************************");
+      //
+      // print("****************************");
+      // print("token Result");
+      // print(token);
+      // print("****************************");
+      // print("user_ID");
+      // print();
+      // print("****************************");
 
       if (userData == null) {
         ScaffoldMessenger.of(
@@ -109,7 +113,9 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
       if (token != null) {
         await LaunchStatusService.saveAuthToken(token);
         await LaunchStatusService.saveUserData(userData);
+        await LaunchStatusService.setUserId(userId!);
       }
+
 
       context.go('/signup-stepper');
     } else {

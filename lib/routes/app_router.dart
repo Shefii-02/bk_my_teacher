@@ -3,6 +3,7 @@ class AppRoutes {
   static const String auth = '/auth';
   static const String studentDashboard = '/student-dashboard';
   static const String teacherDashboard = '/teacher-dashboard';
+  static const String guestDashboard = '/guest-dashboard';
   static const String mobileNumber = '/mobile-number';
   static const String verificationScreen = '/verification-screen';
   static const String signupOtpScreen = '/signup-otp-screen';

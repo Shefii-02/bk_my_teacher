@@ -13,7 +13,7 @@ class ApiResponse<T> {
   ApiResponse({required this.success, required this.message, this.data});
 }
 
-class AuthApiService {
+class ApiService {
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: Endpoints.base,
@@ -22,6 +22,38 @@ class AuthApiService {
       headers: {'Content-Type': 'application/json'},
     ),
   );
+
+  /// ✅ Server health check
+  Future<bool> checkServer() async {
+    try {
+      final response = await _dio.get(Endpoints.checkServer);
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is Map && data['status'] == "development") {
+          // 🚨 Maintenance mode
+          return false;
+        } else {
+          return true;
+        }
+      } else {
+        return false;
+      }
+
+      // if (response.statusCode == 200) {
+      //   // If API returns JSON with success
+      //   if (response.data is Map && response.data['status'] == 'ok') {
+      //     return true;
+      //   }
+      //   return true; // if just 200 OK without body
+      // }
+      // return false;
+    } on DioException catch (_) {
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<ApiResponse<Map<String, dynamic>>> sendOtp(String phoneNumber) async {
     try {
@@ -57,7 +89,9 @@ class AuthApiService {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> verifyOtp(
-      String phoneNumber, String otp) async {
+    String phoneNumber,
+    String otp,
+  ) async {
     try {
       final response = await _dio.post(
         Endpoints.verifyOtpSignIn,
@@ -83,7 +117,9 @@ class AuthApiService {
     }
   }
 
-  Future<ApiResponse<Map<String, dynamic>>> resendOtp(String phoneNumber) async {
+  Future<ApiResponse<Map<String, dynamic>>> resendOtp(
+    String phoneNumber,
+  ) async {
     try {
       final response = await _dio.post(
         Endpoints.reSendOtp,
@@ -110,7 +146,8 @@ class AuthApiService {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> signupSendOtp(
-      String phoneNumber) async {
+    String phoneNumber,
+  ) async {
     try {
       final type = kIsWeb ? "browser" : "app";
       final response = await _dio.post(
@@ -139,7 +176,9 @@ class AuthApiService {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> signupVerifyOtp(
-      String phoneNumber, String otp) async {
+    String phoneNumber,
+    String otp,
+  ) async {
     try {
       final response = await _dio.post(
         Endpoints.verifyOtpSignUp,
@@ -178,7 +217,44 @@ class AuthApiService {
         data: e.response?.data,
       );
     } else {
-      return ApiResponse(success: false, message: "Network error: ${e.message}");
+      return ApiResponse(
+        success: false,
+        message: "Network error: ${e.message}",
+      );
+    }
+  }
+
+  /// Fetch teaching grades
+  Future<List<Map<String, dynamic>>> getListingGrades() async {
+    try {
+      final response = await _dio.get(Endpoints.fetchGrads);
+
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data["data"] is List) {
+        return List<Map<String, dynamic>>.from(response.data["data"]);
+      } else {
+        throw Exception("Failed: ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data ?? "Error fetching grades");
+    }
+  }
+
+  /// Fetch teaching subjects
+  Future<List<Map<String, dynamic>>> getListingSubjects() async {
+    try {
+      final response = await _dio.get(Endpoints.fetchSubjects);
+
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data["data"] is List) {
+        return List<Map<String, dynamic>>.from(response.data["data"]);
+      } else {
+        throw Exception("Failed: ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data ?? "Error fetching subjects");
     }
   }
 }

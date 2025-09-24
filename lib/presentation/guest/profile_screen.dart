@@ -5,14 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../services/launch_status_service.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final Future<Map<String, dynamic>> teacherDataFuture;
+  final Future<Map<String, dynamic>> guestDataFuture;
 
-  final String teacherId;  // Strongly type it
+  final String guestId;  // Strongly type it
 
   const ProfileScreen({
     super.key,
-    required this.teacherDataFuture,
-    required this.teacherId,
+    required this.guestDataFuture,
+    required this.guestId,
   });
 
   @override
@@ -20,12 +20,12 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late Future<Map<String, dynamic>> _teacherDataFuture;
+  late Future<Map<String, dynamic>> _guestDataFuture;
 
   @override
   void initState() {
     super.initState();
-    _teacherDataFuture = widget.teacherDataFuture;
+    _guestDataFuture = widget.guestDataFuture;
   }
 
   @override
@@ -77,7 +77,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return FutureBuilder<Map<String, dynamic>>(
-      future: _teacherDataFuture,
+      future: _guestDataFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -93,15 +93,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         if (!snapshot.hasData || snapshot.data == null) {
           return const Scaffold(
-            body: Center(child: Text("No teacher data found")),
+            body: Center(child: Text("No guest data found")),
           );
         }
 
-        final teacher = snapshot.data!;
-        final avatar = teacher['avatar'] ?? "https://via.placeholder.com/150";
-        final name = teacher['user']['name'] ?? "Unknown Teacher";
-        final accountStatus = teacher['user']['account_status'];
-        final userId = teacher['user']['id'].toString();
+        final guest = snapshot.data!;
+        final avatar = guest['avatar'] ?? "https://via.placeholder.com/150";
+        final name = guest['user']['name'] ?? "Unknown guest";
+        final accountStatus = guest['user']['account_status'];
+        final userId = guest['user']['id'].toString();
         return Scaffold(
           body: Stack(
             children: [
@@ -145,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   iconSize: 20,
                                   padding: EdgeInsets.zero,
                                   onPressed: () {
-                                    context.push('/teacher-dashboard', extra: {'teacherId': userId});
+                                    context.push('/guest-dashboard', extra: {'guestId': userId});
                                   },
                                 ),
                               ),
@@ -199,7 +199,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 style: const TextStyle(
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
-
                                   fontSize: 22.0,
                                 ),
                               ),
@@ -325,7 +324,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(20),
                                 child: Text(
-                                  "Your account is ${teacher['user']['account_status']}",
+                                  "Please stay here. Some features will be active soon.",
                                   style: const TextStyle(fontSize: 16),
                                 ),
                               ),

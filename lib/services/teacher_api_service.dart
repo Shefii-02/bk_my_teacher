@@ -38,6 +38,7 @@ class TeacherApiService {
     PlatformFile? avatar,
   }) async {
     try {
+      print('object');
       final formData = FormData.fromMap({
         "teacher_id": teacherId,
         "name": name,
@@ -141,39 +142,7 @@ class TeacherApiService {
       throw Exception(e.response?.data ?? "Error fetching teacher data");
     }
   }
-  /// Fetch teaching grades
-  Future<List<Map<String, dynamic>>> getTeachingGrades() async {
-    try {
-      final response = await _dio.post(Endpoints.fetchGrads);
 
-      if (response.statusCode == 200 &&
-          response.data != null &&
-          response.data["data"] is List) {
-        return List<Map<String, dynamic>>.from(response.data["data"]);
-      } else {
-        throw Exception("Failed: ${response.statusCode}");
-      }
-    } on DioException catch (e) {
-      throw Exception(e.response?.data ?? "Error fetching grades");
-    }
-  }
-
-  /// Fetch teaching subjects
-  Future<List<Map<String, dynamic>>> getTeachingSubjects() async {
-    try {
-      final response = await _dio.post(Endpoints.fetchSubjects);
-
-      if (response.statusCode == 200 &&
-          response.data != null &&
-          response.data["data"] is List) {
-        return List<Map<String, dynamic>>.from(response.data["data"]);
-      } else {
-        throw Exception("Failed: ${response.statusCode}");
-      }
-    } on DioException catch (e) {
-      throw Exception(e.response?.data ?? "Error fetching subjects");
-    }
-  }
 
 
 }

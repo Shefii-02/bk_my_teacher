@@ -107,6 +107,8 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       return;
     }
 
+
+
     final userData = ref.read(authControllerProvider).userData;
     final token = ref.read(authControllerProvider).authToken;
 
@@ -127,28 +129,55 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       return;
     }
 
-    if (token != null) {
-      await LaunchStatusService.saveAuthToken(token);
-      await LaunchStatusService.saveUserData(userData);
-    }
 
     final userDetails = userData['data'] ?? userData;
+    print("****************************");
+    print("userDetails");
+    print(userDetails);
+    print("****************************");
+    if (token != null) {
+      print("........");
+      await LaunchStatusService.saveAuthToken(token);
+      await LaunchStatusService.saveUserData(userDetails);
+    }
+
     final accType = userDetails['acc_type'] ?? 'guest';
     final profileFill = userDetails['profile_fill'] ?? 0;
-    final userId = userDetails['id'] ?? '';
+    final userId = userDetails['id'].toString() ?? '';
+
+    print("****************************");
+    print("userId");
+    print(userId);
+    print("****************************");
 
     await LaunchStatusService.setUserRole(accType);
-    await LaunchStatusService.setUserId(userId.toString());
+    await LaunchStatusService.setUserId(userId);
+
+    print("****************************");
+    print("accType");
+    print(accType);
+    print("****************************");
 
     // ✅ Navigate based on account type
     if (!mounted) return;
     if (profileFill == 1) {
       if (accType == 'teacher') {
-        context.go('/teacher-dashboard');
+        context.go(
+          '/teacher-dashboard',
+          extra: {'teacherId': userId.toString()},
+        );
       } else if (accType == 'student') {
-        context.go('/student-dashboard');
+        context.go(
+          '/student-dashboard',
+          extra: {'studentId': userId.toString()},
+        );
+        // context.go('/student-dashboard');
       } else if (accType == 'guest') {
-        context.go('/guest-dashboard');
+        context.go(
+          '/guest-dashboard',
+          extra: {'guestId': userId.toString()},
+        );
+        // context.go('/guest-dashboard');
       } else {
         context.go('/error');
       }

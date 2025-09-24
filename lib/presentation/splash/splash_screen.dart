@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import '../../../core/constants/image_paths.dart';
 import '../../core/enums/launch_status.dart';
 import '../../routes/app_router.dart';
+import '../../services/api_service.dart';
 import '../../services/launch_status_service.dart';
 import '../../services/update_service.dart';
 import '../../services/user_check_service.dart';
@@ -22,15 +23,6 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
-
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: Endpoints.base,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      // headers: {'Content-Type': 'application/json'},
-    ),
-  );
 
   @override
   void initState() {
@@ -50,6 +42,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkServer();
+      // LaunchStatusService.resetApp();
       _initAndRedirect();
     });
   }
@@ -61,38 +54,50 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkServer() async {
-    try {
-      final response = await _dio.get(Endpoints.checkServer);
+    final api = ApiService(); // or ref.read in Riverpod
+    final isAlive = await api.checkServer();
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        if (data is Map && data['status'] == "development") {
-          // 🚨 Maintenance mode
-          if (mounted) {
-            context.go(AppRoutes.maintenance);
-          }
-        } else {
-          // ✅ Server OK → Go to Home/Login
-          return;
-        }
-      } else {
-        // 🚨 Bad response → Maintenance
-        if (mounted) {
-          context.go(AppRoutes.maintenance);
-        }
-      }
-    } on DioException catch (_) {
-      // 🚨 API call failed → Maintenance
-      if (mounted) {
-        context.go(AppRoutes.maintenance);
-      }
-    } catch (e) {
-      // 🚨 Any other error
+    if (isAlive) {
+      return;
+    } else {
       if (mounted) {
         context.go(AppRoutes.maintenance);
       }
     }
   }
+  // Future<void> _checkServer() async {
+  //   try {
+  //     final response = await _dio.get(Endpoints.checkServer);
+  //
+  //     if (response.statusCode == 200) {
+  //       final data = response.data;
+  //       if (data is Map && data['status'] == "development") {
+  //         // 🚨 Maintenance mode
+  //         if (mounted) {
+  //           context.go(AppRoutes.maintenance);
+  //         }
+  //       } else {
+  //         // ✅ Server OK → Go to Home/Login
+  //         return;
+  //       }
+  //     } else {
+  //       // 🚨 Bad response → Maintenance
+  //       if (mounted) {
+  //         context.go(AppRoutes.maintenance);
+  //       }
+  //     }
+  //   } on DioException catch (_) {
+  //     // 🚨 API call failed → Maintenance
+  //     if (mounted) {
+  //       context.go(AppRoutes.maintenance);
+  //     }
+  //   } catch (e) {
+  //     // 🚨 Any other error
+  //     if (mounted) {
+  //       context.go(AppRoutes.maintenance);
+  //     }
+  //   }
+  // }
 
   /// Check if stored user is valid
   // Future<void> _checkUser() async {
@@ -122,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (userId == null) return;
 
-      final isValid = await UserCheckService().isUserValid(userId, userRole);
+      final isValid = await UserCheckService().isUserValid(userId.toString(), userRole);
 
       if (!isValid) {
         // ✅ Check if widget is still mounted before using context
@@ -265,84 +270,101 @@ class _SplashScreenState extends State<SplashScreen>
           return;
 
         case LaunchStatus.logged:
-          if (token != null && storedUserData != null) {
-            // print("###***${token}");
-            final fetched = await UserCheckService().fetchUserData(token);
-            if (!mounted) return;
-            print("**************");
-            print("fetched");
-            print(fetched);
-            print("**************");
-            if (fetched != null) {
-              userData = fetched['data'];
-              // await box.put('user_data', userData);
-              // await box.put('auth_token', userData['token']);
-            } else {
-              userData = storedUserData['data'];
-            }
-          } else if (userId != null) {
-            final fetched = await UserCheckService().setUserToken(userId);
-            if (!mounted) return;
-
-            if (fetched != null) {
-              userData = fetched as Map<String, dynamic>?;
-              await box.put('user_data', userData);
-              await box.put('auth_token', userData?['token']);
-            } else {
-              if (!mounted) return;
-              context.go('/auth');
-              return;
-            }
-          } else {
-            if (!mounted) return;
-            context.go('/auth');
-            return;
-          }
-
-          print("######################");
-          print(userData);
-          print("######################");
-          final accType = userData?['acc_type'] ?? 'guest';
-          final profileFill = userData?['profile_fill'] ?? 0;
-
           if (!mounted) return;
+          await _handleLoginFlow(token, userId, storedUserData, box);
+          return;
 
-          if (profileFill == 1) {
-            if (accType == 'teacher') {
-              context.go(
-                '/teacher-dashboard',
-                extra: {'teacherId': userData?['id'].toString()},
-              );
-              return;
-            } else if (accType == 'student') {
-              context.go(
-                '/student-dashboard',
-                extra: {'studentId': userData?['id'].toString()},
-              );
-              return;
-            } else if (accType == 'guest') {
-              context.go(
-                '/guest-dashboard',
-                extra: {'guestId': userData?['id'].toString()},
-              );
-              return;
-            } else {
-              context.go('/error');
-              return;
-            }
-          } else {
-            context.go('/signup-stepper');
-            return;
-          }
+        // call function
         case LaunchStatus.notLoggedIn:
           if (!mounted) return;
-          context.go('/auth');
+          await _handleLoginFlow(token, userId, storedUserData, box);
           return;
+
+        // call function
+        // if (!mounted) return;
+        // context.go('/auth');
+        // return;
       }
     } catch (e) {
       debugPrint("Error in _initAndRedirect: $e");
       if (!mounted) return;
       context.go('/auth'); // fallback
+    }
+  }
+
+  /// 🔹 Handles login/session based redirection
+  Future<void> _handleLoginFlow(
+    String? token,
+    String? userId,
+    Map<String, dynamic>? storedUserData,
+    Box box,
+  ) async {
+    Map<String, dynamic>? userData;
+
+    if (token != null && storedUserData != null) {
+      final fetched = await UserCheckService().fetchUserData(token);
+      if (!mounted) return;
+
+      if (fetched != null) {
+        userData = fetched['data'];
+      } else {
+        userData = storedUserData['data'];
+      }
+    } else if (userId != null) {
+      final fetched = await UserCheckService().setUserToken(userId);
+      if (!mounted) return;
+
+      if (fetched != null) {
+        userData = fetched as Map<String, dynamic>?;
+        await box.put('user_data', userData);
+        await box.put('auth_token', userData?['token']);
+      } else {
+        if (!mounted) return;
+        context.go('/auth');
+        return;
+      }
+    } else {
+      if (!mounted) return;
+      context.go('/auth');
+      return;
+    }
+
+    print("######################");
+    print("userData: $userData");
+    print("######################");
+
+    final accType = userData?['acc_type'] ?? 'guest';
+    final profileFill = userData?['profile_fill'] ?? 0;
+
+    if (!mounted) return;
+
+    if (profileFill == 1) {
+      switch (accType) {
+        case 'teacher':
+          context.go(
+            '/teacher-dashboard',
+            extra: {'teacherId': userData?['id'].toString()},
+          );
+          return;
+        case 'student':
+          context.go(
+            '/student-dashboard',
+            extra: {'studentId': userData?['id'].toString()},
+          );
+          return;
+        case 'guest':
+          context.go(
+            '/guest-dashboard',
+            extra: {'guestId': userData?['id'].toString()},
+          );
+          return;
+        default:
+          context.go('/error');
+          return;
+      }
+    } else {
+      context.go('/signup-stepper');
+      return;
     }
   }
 

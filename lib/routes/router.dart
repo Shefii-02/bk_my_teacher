@@ -1,4 +1,5 @@
 import 'package:BookMyTeacher/presentation/auth/view/sign_up_guest.dart';
+import 'package:BookMyTeacher/presentation/guest/guest_dashboard.dart';
 import 'package:BookMyTeacher/services/upload_sample.dart';
 import 'package:go_router/go_router.dart';
 
@@ -59,6 +60,14 @@ final GoRouter appRouter = GoRouter(
         final extra = state.extra as Map<String, dynamic>;
         final studentId = extra['studentId'] as String;
         return StudentDashboard(studentId: studentId);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.guestDashboard,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        final guestId = extra['guestId'] as String;
+        return GuestDashboard(guestId: guestId);
       },
     ),
     GoRoute(

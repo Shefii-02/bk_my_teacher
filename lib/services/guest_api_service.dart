@@ -28,7 +28,7 @@ class GuestApiService {
 
     try {
       final formDataMap = {
-        "student_name": fullName, // ✅ Laravel expects student_name
+        "full_name": fullName,
         "email": email,
       };
 
@@ -84,7 +84,7 @@ class GuestApiService {
     try {
       final formData = FormData.fromMap({"guest_id": guestId});
 
-      final response = await _dio.post(Endpoints.studentHome, data: formData);
+      final response = await _dio.post(Endpoints.guestHome, data: formData);
 
       if (response.statusCode == 200 && response.data != null) {
         return response.data;

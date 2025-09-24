@@ -39,8 +39,11 @@ class Endpoints {
   static const userDetails = "/user-details";
   static const updateStudentDetails = "/student-details/update";
   static const updateTeacherDetails = "/teacher-details/update";
+
   static const teacherHome = "/teacher-home";
   static const studentHome = "/student-home";
+  static const guestHome = "/guest-home";
+
   static const teacherProfile = "/teacher-profile";
   static const teacherMyCourses = "/teacher-mycourses";
   static const studentProfile = "/student-profile";

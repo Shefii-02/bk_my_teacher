@@ -6,20 +6,20 @@ import '../providers/auth_state.dart';
 import '../../../services/api_service.dart';
 
 // Provider for the API service
-final authApiServiceProvider = Provider<AuthApiService>((ref) {
-  return AuthApiService(); // ✅ Now using Dio-based service (no http.Client)
+final ApiServiceProvider = Provider<ApiService>((ref) {
+  return ApiService(); // ✅ Now using Dio-based service (no http.Client)
 });
 
 // Provider for the auth controller
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
       (ref) {
-    final apiService = ref.watch(authApiServiceProvider);
+    final apiService = ref.watch(ApiServiceProvider);
     return AuthController(apiService: apiService);
   },
 );
 
 class AuthController extends StateNotifier<AuthState> {
-  final AuthApiService apiService;
+  final ApiService apiService;
   Timer? _cooldownTimer;
 
   AuthController({required this.apiService}) : super(const AuthState());

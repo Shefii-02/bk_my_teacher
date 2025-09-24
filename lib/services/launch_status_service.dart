@@ -23,10 +23,10 @@ class LaunchStatusService {
     }
 
     final userRole = box.get(_userRoleKey);
-    // print('***********');
-    // print('Lauch Service');
-    // print(userRole);
-    // print('***********');
+    print('***********');
+    print('Lauch Service');
+    print(userRole);
+    print('***********');
     if (userRole == 'student' || userRole == 'teacher' || userRole == 'guest') {
       return LaunchStatus.logged;
     } else {
@@ -40,7 +40,7 @@ class LaunchStatusService {
     await box.put(_userRoleKey, role);
   }
 
-  static Future<void> getUserRole() async {
+  static Future<String> getUserRole() async {
     final box = await Hive.openBox(_boxName);
     final userRole = box.get(_userRoleKey);
     return userRole;
@@ -52,7 +52,7 @@ class LaunchStatusService {
     await box.put(_userIdKey, userId);
   }
 
-  static Future<void> getUserId() async {
+  static Future<String> getUserId() async {
     final box = await Hive.openBox(_boxName);
     final userId = box.get(_userIdKey);
     return userId;
@@ -63,7 +63,7 @@ class LaunchStatusService {
     await box.put(_lastVersionKey, newUpdate);
   }
 
-  static Future<void> getNewUpdate() async {
+  static Future<String> getNewUpdate() async {
     final box = await Hive.openBox(_boxName);
     final newUpdate = box.get(_lastVersionKey);
     return newUpdate;
@@ -101,5 +101,6 @@ class LaunchStatusService {
   static Future<void> resetApp() async {
     final box = await Hive.openBox(_boxName);
     await box.clear();
+    await box.put(_isFirstLaunchKey, false);
   }
 }
