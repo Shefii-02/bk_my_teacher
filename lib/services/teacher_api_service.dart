@@ -38,7 +38,6 @@ class TeacherApiService {
     PlatformFile? avatar,
   }) async {
     try {
-      print('object');
       final formData = FormData.fromMap({
         "teacher_id": teacherId,
         "name": name,
@@ -115,12 +114,10 @@ class TeacherApiService {
         "X-Request-Source": kIsWeb ? "browser" : "app",
       };
 
-      // print("➡️ Posting Teacher Signup");
-      // print("Fields: ${formData.fields}");
-      // print("Files: ${formData.files}");
+
 
       final response = await _dio.post(Endpoints.teacherSignup, data: formData,options: Options(headers: headers));
-      // print("✅ Response: ${response.data}");
+
       return response.data;
     } on DioException catch (e) {
       throw Exception(e.response?.data ?? "Signup failed");

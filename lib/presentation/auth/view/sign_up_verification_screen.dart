@@ -275,12 +275,9 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
         children: [
           // Background Image for AppBar section
           SizedBox(
-            height: 200,
+            height: 600,
             width: double.infinity,
-            child: Image.asset(
-              'assets/images/background/full-bg.jpg',
-              fit: BoxFit.fill,
-            ),
+            child: Image.network(AppConfig.headerTop, fit: BoxFit.fitWidth),
           ),
 
           // Main Content with Rounded Container

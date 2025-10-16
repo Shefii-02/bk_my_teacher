@@ -1,3 +1,7 @@
+import 'package:BookMyTeacher/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+
 import './routes/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -9,6 +13,9 @@ import 'domain/usecases/check_launch_status_usecase.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   await Hive.initFlutter();
 

@@ -304,12 +304,16 @@ class _SplashScreenState extends State<SplashScreen>
     if (token != null && storedUserData != null) {
       final fetched = await UserCheckService().fetchUserData(token);
       if (!mounted) return;
-
+      print("****************************");
+      print("fetched : ");
+      print(fetched);
+      print("****************************");
       if (fetched != null) {
         userData = fetched['data'];
       } else {
         userData = storedUserData['data'];
       }
+
     } else if (userId != null) {
       final fetched = await UserCheckService().setUserToken(userId);
       if (!mounted) return;
@@ -329,9 +333,12 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
 
-    print("######################");
-    print("userData: $userData");
-    print("######################");
+    //redirect to auth
+    if(userData == null){
+      if (!mounted) return;
+      context.go('/auth');
+      return;
+    }
 
     final accType = userData?['acc_type'] ?? 'guest';
     final profileFill = userData?['profile_fill'] ?? 0;

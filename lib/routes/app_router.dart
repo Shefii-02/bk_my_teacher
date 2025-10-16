@@ -15,4 +15,12 @@ class AppRoutes {
   static const String home = '/home';
   static const String profile = '/profile';
   static const String maintenance = "/maintenance";
+  static const String myClassList = "/myclass-list";
+
+
+  static const String personalInfo   = "/personal-info";
+  static const String teachingDetails  = "/teaching-details";
+  static const String cvUpload  = "/cv-upload";
+  static const String uploadDemo  = "/upload-demo";
+  
 }

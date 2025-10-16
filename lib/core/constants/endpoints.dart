@@ -1,6 +1,8 @@
 class Endpoints {
   //Domain
-  static const domain = "https://bookmyteacher.shefii.com";
+  // static const domain = "https://bookmyteacher.cloud";
+
+  static const domain = "https://stage.bookmyteacher.cloud";
 
   // Base
   // static const base = "https://dashboard.bookmyteacher.co.in/api";
@@ -15,6 +17,8 @@ class Endpoints {
 
   static const setUserToken = "/set-user-token";
   static const getUserDetails = "/get-user-details";
+
+  static const signInWithGoogle = "/user-login-email";
 
   // Fetch Data
   static const fetchGrads = "/fetch-grades";
@@ -70,4 +74,9 @@ class Endpoints {
   // Earnings
   static const earnings = "/earnings";
   static const withdraw = "/earnings/withdraw";
+
+
+  static const getWebinars = "/webinars";
+  static const webinarDetails = "/webinars/details";
+  static const registerWebinar = "/webinars/register";
 }

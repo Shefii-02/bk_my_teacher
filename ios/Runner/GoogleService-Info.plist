@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>276832274178-ibgc9tg4ct3mi03p6ujmhlc389imc45o.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.276832274178-ibgc9tg4ct3mi03p6ujmhlc389imc45o</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAjQEHXvbHotoNLd_WazTMevWdoh1-fzuc</string>
+	<key>GCM_SENDER_ID</key>
+	<string>276832274178</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>coin.bookmyteacher.app</string>
+	<key>PROJECT_ID</key>
+	<string>bktmobileapp-642da</string>
+	<key>STORAGE_BUCKET</key>
+	<string>bktmobileapp-642da.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:276832274178:ios:4faf68c9e2ff77cce4241b</string>
+</dict>
+</plist>

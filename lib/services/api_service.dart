@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 
 import '../core/constants/endpoints.dart';
 
@@ -22,6 +23,11 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
     ),
   );
+
+  // 🔹 Add auth token to header
+  void setAuthToken(String token) {
+    _dio.options.headers['Authorization'] = 'Bearer $token';
+  }
 
   /// ✅ Server health check
   Future<bool> checkServer() async {
@@ -257,4 +263,78 @@ class ApiService {
       throw Exception(e.response?.data ?? "Error fetching subjects");
     }
   }
+
+  Future<List<dynamic>> fetchWebinars() async {
+    final response = await _dio.get("/webinars");
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> fetchWebinar(int id) async {
+    final response = await _dio.get("/webinars/$id");
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> registerUser(int webinarId, int userId) async {
+    final response = await _dio.post(
+      "/webinars/$webinarId/register",
+      data: {"user_id": userId},
+    );
+    return response.data;
+  }
+
+  Future<List<dynamic>> fetchUserWebinars(int userId) async {
+    final response = await _dio.get("/users/$userId/webinars");
+    return response.data;
+  }
+
+  // Future<Map<String, dynamic>> userLoginEmail(String idToken) async {
+  //   final response = await _dio.post(
+  //     "/user-login-email",
+  //     data: {"idToken": idToken},
+  //   );
+  //   return response.data;
+  // }
+
+  Future<ApiResponse<Map<String, dynamic>>> userLoginEmail(String idToken) async {
+    try {
+      final response = await _dio.post(
+        Endpoints.signInWithGoogle,
+        data: json.encode({'idToken': idToken}),
+      );
+
+      final responseData = response.data;
+      if (response.statusCode == 200) {
+        return ApiResponse(
+          success: true,
+          message: responseData['message'] ?? 'OTP verified successfully',
+          data: responseData,
+        );
+      } else {
+        return ApiResponse(
+          success: false,
+          message: responseData['message'] ?? 'Invalid OTP',
+          data: responseData,
+        );
+      }
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+
+
+  Future<Map<String, dynamic>> checkUserEmail(String idToken) async {
+    final box = await Hive.openBox('app_storage');
+    final token = box.get('auth_token') ?? '';
+
+    if (token.isNotEmpty) setAuthToken(token);
+    final response = await _dio.post(
+      "/google-login-check",
+      data: {"idToken": idToken},
+    );
+    return response.data;
+  }
+
+
+
 }

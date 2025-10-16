@@ -1,0 +1,118 @@
+{
+  "project_info": {
+    "project_number": "276832274178",
+    "project_id": "bktmobileapp-642da",
+    "storage_bucket": "bktmobileapp-642da.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276832274178:android:06b4443bd856e48de4241b",
+        "android_client_info": {
+          "package_name": "coin.bookmyteacher"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6S2Z4sgMT2fPt2iaevednUdub2Ph6AXk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "276832274178-dmo9hlavi34jv7ud6iup8vmg9uokcsfj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bookMyTeacherApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276832274178:android:0cb400a31546f977e4241b",
+        "android_client_info": {
+          "package_name": "coin.bookmyteacher.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6S2Z4sgMT2fPt2iaevednUdub2Ph6AXk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "276832274178-dmo9hlavi34jv7ud6iup8vmg9uokcsfj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bookMyTeacherApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276832274178:android:a07b8f2c1bb5393fe4241b",
+        "android_client_info": {
+          "package_name": "com.example.bk_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6S2Z4sgMT2fPt2iaevednUdub2Ph6AXk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "276832274178-dmo9hlavi34jv7ud6iup8vmg9uokcsfj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bookMyTeacherApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -25,8 +25,6 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
   void initState() {
     super.initState();
 
-    print(widget.teacherId);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // _checkUser();
     });
@@ -35,7 +33,6 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
     // _teacherDataFuture = _fetchTeacherData();
     _teacherDataFuture = TeacherApiService().fetchTeacherData(teacherId);
 
-    // print(_teacherDataFuture);
     // ✅ Pass teacherData to DashboardHome and ProfileScreen (example)
     _screens = [
       DashboardHome(

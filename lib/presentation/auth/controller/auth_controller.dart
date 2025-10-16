@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:BookMyTeacher/services/user_check_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../providers/auth_state.dart';
 import '../../../services/api_service.dart';
 
@@ -12,7 +13,7 @@ final ApiServiceProvider = Provider<ApiService>((ref) {
 
 // Provider for the auth controller
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
-      (ref) {
+  (ref) {
     final apiService = ref.watch(ApiServiceProvider);
     return AuthController(apiService: apiService);
   },
@@ -21,8 +22,20 @@ final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
 class AuthController extends StateNotifier<AuthState> {
   final ApiService apiService;
   Timer? _cooldownTimer;
+  bool _isInitialized = false;
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   AuthController({required this.apiService}) : super(const AuthState());
+
+  Future<void> _initialize() async {
+    if (_isInitialized) return;
+    try {
+      await _googleSignIn.initialize();
+      _isInitialized = true;
+    } catch (e) {
+      print("Google Sign-In init failed: $e");
+    }
+  }
 
   // Send OTP
   Future<bool> sendOtp(String phoneNumber) async {
@@ -34,7 +47,11 @@ class AuthController extends StateNotifier<AuthState> {
       return false;
     }
 
-    state = state.copyWith(isLoading: true, error: null, phoneNumber: phoneNumber);
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      phoneNumber: phoneNumber,
+    );
 
     try {
       final response = await apiService.sendOtp(phoneNumber);
@@ -74,8 +91,9 @@ class AuthController extends StateNotifier<AuthState> {
       final response = await apiService.verifyOtp(state.phoneNumber!, otp);
 
       if (response.success) {
-        final token = response.data?['token'] ?? response.data?['data']?['token'];
-        final user  = response.data?['user'] ?? response.data?['data']?['user'];
+        final token =
+            response.data?['token'] ?? response.data?['data']?['token'];
+        final user = response.data?['user'] ?? response.data?['data']?['user'];
 
         state = state.copyWith(
           isLoading: false,
@@ -147,7 +165,11 @@ class AuthController extends StateNotifier<AuthState> {
       return false;
     }
 
-    state = state.copyWith(isLoading: true, error: null, phoneNumber: phoneNumber);
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      phoneNumber: phoneNumber,
+    );
 
     try {
       final response = await apiService.signupSendOtp(phoneNumber);
@@ -184,10 +206,14 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final response = await apiService.signupVerifyOtp(state.phoneNumber!, otp);
+      final response = await apiService.signupVerifyOtp(
+        state.phoneNumber!,
+        otp,
+      );
 
       if (response.success) {
-        final token = response.data?['token'] ?? response.data?['data']?['token'];
+        final token =
+            response.data?['token'] ?? response.data?['data']?['token'];
 
         state = state.copyWith(
           isLoading: false,
@@ -195,6 +221,39 @@ class AuthController extends StateNotifier<AuthState> {
           authToken: token,
         );
         return true;
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+        return false;
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  //signIn googleAccount
+  Future<bool> signInWithGoogleFirebase(String idToken) async {
+    await _initialize();
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+
+      final response = await apiService.userLoginEmail(idToken);
+      print("________________");
+      print(response);
+      print("________________");
+      if (response.success) {
+        final token =
+            response.data?['token'] ?? response.data?['data']?['token'];
+        final user = response.data?['user'] ?? response.data?['data']?['user'];
+
+        state = state.copyWith(
+          isLoading: false,
+          isVerified: true,
+          authToken: token,
+          userData: user,
+        );
+        return true;
+
       } else {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;

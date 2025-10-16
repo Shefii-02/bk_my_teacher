@@ -148,7 +148,7 @@ class _SignUpGuestState extends State<SignUpGuest> {
 
       setState(() => _isLoading = true);
 
-      context.go('/guest-dashboard', extra: {'guestId': userId});
+      context.go('/guest-dashboard', extra: {'guestId': userId.toString()});
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,12 +1,20 @@
+import 'package:BookMyTeacher/presentation/teachers/signIn_with_google.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/enums/app_config.dart';
+import '../../services/auth_service.dart';
 import '../../services/browser_service.dart';
 import '../../services/teacher_api_service.dart';
 
 class DashboardHome extends StatefulWidget {
   final Future<Map<String, dynamic>> teacherDataFuture;
-  const DashboardHome({super.key, required this.teacherDataFuture, required teacherId});
+  const DashboardHome({
+    super.key,
+    required this.teacherDataFuture,
+    required teacherId,
+  });
 
   @override
   State<DashboardHome> createState() => _DashboardHomeState();
@@ -14,13 +22,16 @@ class DashboardHome extends StatefulWidget {
 
 class _DashboardHomeState extends State<DashboardHome> {
   late Future<Map<String, dynamic>> _teacherDataFuture;
+  late Future<Map<String, dynamic>> userCard;
 
   @override
   void initState() {
     super.initState();
     _teacherDataFuture = widget.teacherDataFuture;
+    print("************");
+    print(_teacherDataFuture);
+    print("************");
   }
-
 
   StepStatus _mapStatus(String status) {
     switch (status) {
@@ -32,6 +43,8 @@ class _DashboardHomeState extends State<DashboardHome> {
         return StepStatus.pending;
     }
   }
+
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +74,7 @@ class _DashboardHomeState extends State<DashboardHome> {
 
         final avatar = teacher['avatar'] ?? "https://via.placeholder.com/150";
         final name = teacher['user']['name'] ?? "Unknown Teacher";
+        final accountMsg = teacher['account_msg'] ?? "";
 
         // Convert API steps → StepData
         final steps = stepsData.map((step) {
@@ -76,12 +90,17 @@ class _DashboardHomeState extends State<DashboardHome> {
         return Scaffold(
           body: Stack(
             children: [
+              // SizedBox(
+              //   height: 550,
+              //   width: double.infinity,
+              //   child: Image.network(AppConfig.headerTop, fit: BoxFit.fitWidth),
+              // ),
               Container(
-                height: 200,
+                height: 600,
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('assets/images/background/full-bg.jpg'),
+                    image: NetworkImage(AppConfig.headerTop),
                     fit: BoxFit.fill,
                   ),
                 ),
@@ -125,21 +144,33 @@ class _DashboardHomeState extends State<DashboardHome> {
                           ],
                         ),
                         const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: const [
-                            Icon(Icons.info_outlined, color: Colors.redAccent),
-                            SizedBox(width: 10),
-                            Text(
-                              'Your account waiting for verification',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
+                        if (accountMsg != "")
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.info_outlined,
+                                color: Colors.redAccent,
+                              ),
+                              const SizedBox(width: 10),
+                              SizedBox(
+                                width: 300,
+                                child: Text(
+                                  accountMsg,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 5,
+                                  softWrap: false,
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   Expanded(
                     child: Container(
                       width: double.infinity,
@@ -163,42 +194,21 @@ class _DashboardHomeState extends State<DashboardHome> {
                           children: [
                             CustomVerticalStepper(steps: steps),
                             const SizedBox(height: 20),
-                            // ElevatedButton.icon(
-                            //   onPressed: _openWhatsApp,
-                            //   icon: const Icon(
-                            //     Icons.chat_bubble,
-                            //     color: Colors.white,
-                            //     size: 20,
-                            //   ),
-                            //   label: const Text(
-                            //     "Connect With Our Team",
-                            //     style: TextStyle(
-                            //       fontSize: 15,
-                            //       fontWeight: FontWeight.bold,
-                            //       color: Colors.white,
-                            //     ),
-                            //   ),
-                            //   style: ElevatedButton.styleFrom(
-                            //     backgroundColor: const Color(0xFF25D366),
-                            //     padding: const EdgeInsets.symmetric(
-                            //       horizontal: 24,
-                            //       vertical: 14,
-                            //     ),
-                            //     shape: RoundedRectangleBorder(
-                            //       borderRadius: BorderRadius.circular(30),
-                            //     ),
-                            //     elevation: 6,
-                            //   ),
-                            // ),
+
                             ElevatedButton.icon(
                               onPressed: () {
                                 openWhatsApp(
                                   context,
                                   phone: "917510115544", // no '+'
-                                  message: "Hello, I want to connect with your team.",
+                                  message:
+                                      "Hello, I want to connect with your team.",
                                 );
                               },
-                              icon: const Icon(Icons.chat_bubble, color: Colors.white, size: 20),
+                              icon: const Icon(
+                                Icons.chat_bubble,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                               label: const Text(
                                 "Connect With Our Team",
                                 style: TextStyle(
@@ -209,12 +219,47 @@ class _DashboardHomeState extends State<DashboardHome> {
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF25D366),
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
                                 elevation: 6,
                               ),
                             ),
+                            SizedBox(height: 20),
 
+                            // if (teacher['user']['email_verified_at'] == null)
+                            ElevatedButton(
+                              onPressed: () async {
+                                UserCredential? userCred = await _authService
+                                    .verifyWithGoogleFirebase();
+
+                                if (userCred != null) {
+                                  final user = userCred.user;
+                                  // print(user);
+                                  // print("✅ Signed in: ${user?.email}");
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Account Verified, ${user?.email}!',
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        '❌ Account not found. Please sign up normally.',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: const Text("Sign in with Google"),
+                            ),
                           ],
                         ),
                       ),
@@ -228,8 +273,6 @@ class _DashboardHomeState extends State<DashboardHome> {
       },
     );
   }
-
-
 }
 
 // ===== Custom Stepper Widget =====
@@ -248,8 +291,8 @@ class CustomVerticalStepper extends StatelessWidget {
         return GestureDetector(
           onTap: step.allow
               ? () {
-            context.go(step.route);
-          }
+                  context.go(step.route);
+                }
               : null,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,26 +334,54 @@ class CustomVerticalStepper extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        step.title,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: step.allow ? Colors.black : Colors.grey,
-                        ),
-                      ),
-                      if (step.subtitle != null)
-                        Text(
-                          step.subtitle!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: step.status == StepStatus.completed
-                                ? Colors.green
-                                : step.status == StepStatus.inProgress
-                                ? Colors.blue
-                                : Colors.grey,
+                      Row(
+                        spacing: 4,
+                        children: [
+                          Text(
+                            step.title,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: step.allow ? Colors.black : Colors.grey,
+                            ),
                           ),
-                        ),
+                          if (step.allow == true)
+                            Icon(
+                              // step.status == StepStatus.completed
+                              //     ?
+                              Icons.edit_rounded,
+                                  // : Icons.rotate_right,
+                              color: step.status == StepStatus.completed
+                                  ? Colors.green
+                                  : step.status == StepStatus.inProgress
+                                  ? Colors.blue
+                                  : Colors.grey,
+                              size: 14,
+                            ),
+                        ],
+                      ),
+
+                          if (step.subtitle != null)
+                            SizedBox(
+                              width:300,
+                              child: Text(
+                                step.subtitle!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: step.status == StepStatus.completed
+                                      ? Colors.green
+                                      : step.status == StepStatus.inProgress
+                                      ? Colors.deepPurple
+                                      : Colors.grey,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 5,
+                                softWrap: false,
+                              ),
+                            ),
+
+
+
                     ],
                   ),
                 ),

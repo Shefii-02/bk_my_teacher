@@ -1,9 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import '../../../core/enums/app_config.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
@@ -18,6 +22,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool _isChecked = false;
   String _selectedCode = "+91";
   bool _isLoading = false;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  bool _isInitialized = false;
+
 
   void _showTopPopup(BuildContext context) {
     showGeneralDialog(
@@ -89,80 +97,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     );
   }
 
-  // Future<void> _sendOtp() async {
-  //   if (!_isChecked) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text("Please accept Terms and Conditions"),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //     return;
-  //   }
-  //
-  //   if (_phoneController.text.length != 10) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(
-  //         content: Text("Please enter a valid 10-digit mobile number"),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //     return;
-  //   }
-  //
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-  //
-  //   final fullPhoneNumber = _selectedCode + _phoneController.text;
-  //   final authController = ref.read(authControllerProvider.notifier);
-  //
-  //   try {
-  //     final success = await authController.sendOtp(fullPhoneNumber);
-  //
-  //     if (success) {
-  //       // Navigate to verification screen with phone number
-  //       context.go('/verification-screen', extra: {
-  //         'phoneNumber': fullPhoneNumber,
-  //         'resendAllowed': true,
-  //         'resendCount': 0,
-  //       });
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(
-  //           content: Text("Failed to send OTP. Please try again."),
-  //           backgroundColor: Colors.red,
-  //         ),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text("Error: ${e.toString()}"),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() {
-  //         _isLoading = false;
-  //       });
-  //     }
-  //   }
-  // }
-
   // Update your SignInScreen's send OTP method:
   Future<void> _sendOtp() async {
     if (_isLoading) return;
-    if (!_isChecked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please accept Terms and Conditions"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    // if (!_isChecked) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       content: Text("Please accept Terms and Conditions"),
+    //       backgroundColor: Colors.red,
+    //     ),
+    //   );
+    //   return;
+    // }
 
     if (_phoneController.text.length != 10) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -218,6 +164,117 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     }
   }
 
+  final AuthService _authService = AuthService();
+
+  Future<void> _initialize() async {
+    if (_isInitialized) return;
+    try {
+      await _googleSignIn.initialize();
+      _isInitialized = true;
+    } catch (e) {
+      print("Google Sign-In init failed: $e");
+    }
+  }
+
+  Future<void> _handleGoogleLogin(BuildContext context) async {
+    await _initialize();
+    setState(() => _isLoading = true);
+
+    try {
+      final authController = ref.read(authControllerProvider.notifier);
+      authController.clearError();
+
+      // Start authentication flow
+      final GoogleSignInAccount account = await _googleSignIn.authenticate(
+        scopeHint: ['email'],
+      );
+
+      // Fetch tokens from the account
+      final tokens = account.authentication; // sync in v7
+      print("tokens: $tokens");
+      final idToken = tokens.idToken;
+      print("*******");
+      final verified = await authController.signInWithGoogleFirebase(idToken!);
+
+      print("****************************************");
+      print(verified);
+      // ✅ Fetch user data
+      final success = await authController.getUserData();
+      print("****************************************");
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      if (!verified) {
+        final error = ref.read(authControllerProvider).error;
+        if (error != null && mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(error)));
+        }
+        return;
+      }
+
+      final userData = ref.read(authControllerProvider).userData;
+      final token = ref.read(authControllerProvider).authToken;
+
+      debugPrint("✅ Google Login response received");
+      debugPrint("userData: $userData");
+      debugPrint("token: $token");
+
+      if (userData == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("User data not found")));
+        return;
+      }
+
+      final userDetails = userData['data'] ?? userData;
+      final accType = userDetails['acc_type'] ?? 'guest';
+      final profileFill = userDetails['profile_fill'] ?? 0;
+      final userId = userDetails['id'].toString();
+
+      debugPrint("userId: $userId, accType: $accType");
+
+      // Save token and user details locally
+      if (token != null) {
+        await LaunchStatusService.saveAuthToken(token);
+        await LaunchStatusService.saveUserData(userDetails);
+      }
+
+      await LaunchStatusService.setUserRole(accType);
+      await LaunchStatusService.setUserId(userId);
+
+      if (!mounted) return;
+
+      // ✅ Navigation Logic
+      if (profileFill == 1) {
+        switch (accType) {
+          case 'teacher':
+            context.go('/teacher-dashboard', extra: {'teacherId': userId});
+            break;
+          case 'student':
+            context.go('/student-dashboard', extra: {'studentId': userId});
+            break;
+          case 'guest':
+            context.go('/guest-dashboard', extra: {'guestId': userId});
+            break;
+          default:
+            context.go('/error');
+        }
+      } else {
+        context.go('/signup-stepper');
+      }
+    } catch (e) {
+      debugPrint("Google Login Error: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -225,11 +282,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       body: Stack(
         children: [
           SizedBox(
-            height: 200,
+            height: 600,
             width: double.infinity,
-            child: Image.network(AppConfig.headerTop,
-              fit: BoxFit.fill,
-            ),
+            child: Image.network(AppConfig.headerTop, fit: BoxFit.fitWidth),
           ),
           // Main Content with Rounded Container
           Column(
@@ -248,7 +303,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           'Login',
                           style: TextStyle(
                             color: Colors.black,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w900,
                             fontSize: 18.0,
                           ),
                         ),
@@ -256,9 +311,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         Text(
                           'Let\'s get you started',
                           style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12.0,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14.0,
                           ),
                         ),
                       ],
@@ -287,418 +342,486 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               const SizedBox(height: 20),
               // Scrollable Body with Rounded Top Corners
               Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(18),
-                      topRight: Radius.circular(18),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        offset: Offset(0, -2),
-                      ),
-                    ],
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: MediaQuery.of(context).size.height - 290,
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 350,
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Center(
-                                      child: Column(
-                                        children: [
-                                          const Text(
-                                            'Welcome to',
-                                            style: TextStyle(
-                                              color: Colors.black45,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 22,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 1),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: const [
-                                              Text(
-                                                'Book',
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 25,
-                                                  fontFamily: 'PetrovSans',
-                                                ),
-                                              ),
-                                              Text(
-                                                'My',
-                                                style: TextStyle(
-                                                  color: Colors.green,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'PetrovSans',
-                                                  fontSize: 25,
-                                                ),
-                                              ),
-                                              Text(
-                                                'Teacher',
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'PetrovSans',
-                                                  fontSize: 25,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 40.0),
-                                    const Text(
-                                      "Mobile Number",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10.0),
-                                    Row(
-                                      children: [
-                                        // Country code dropdown
-                                        Container(
-                                          height: 48,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                          ),
-                                          decoration: const BoxDecoration(
-                                            border: Border(
-                                              top: const BorderSide(
-                                                color: Colors.grey,
-                                                width: 1,
-                                              ),
-                                              left: const BorderSide(
-                                                color: Colors.grey,
-                                                width: 1,
-                                              ),
-                                              right: BorderSide.none,
-                                              bottom: const BorderSide(
-                                                color: Colors.grey,
-                                                width: 1,
+                child:
+                    // Container(
+                    //   width: double.infinity,
+                    //   decoration: const BoxDecoration(
+                    //     color: Colors.white,
+                    //     borderRadius: BorderRadius.only(
+                    //       topLeft: Radius.circular(18),
+                    //       topRight: Radius.circular(18),
+                    //     ),
+                    //     boxShadow: [
+                    //       BoxShadow(
+                    //         color: Colors.black12,
+                    //         blurRadius: 10,
+                    //         offset: Offset(0, -2),
+                    //       ),
+                    //     ],
+                    //   ),
+                    //   child:
+
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: MediaQuery.of(context).size.height - 190,
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 350,
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Center(
+                                        child: Column(
+                                          children: [
+                                            const Text(
+                                              'Welcome to',
+                                              style: TextStyle(
+                                                color: Colors.black45,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 22,
                                               ),
                                             ),
-                                            borderRadius:
-                                                const BorderRadius.only(
-                                                  topLeft: Radius.circular(
-                                                    20.0,
-                                                  ),
-                                                  bottomLeft: Radius.circular(
-                                                    20.0,
+                                            const SizedBox(height: 1),
+                                            const Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: const [
+                                                Text(
+                                                  'Book',
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 25,
+                                                    fontFamily: 'PetrovSans',
                                                   ),
                                                 ),
-                                          ),
-                                          child: DropdownButtonHideUnderline(
-                                            child: DropdownButton<String>(
-                                              value: _selectedCode,
-                                              icon: const Icon(
-                                                Icons.arrow_drop_down,
-                                              ),
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black,
-                                              ),
-                                              items: const [
-                                                DropdownMenuItem(
-                                                  value: "+91",
-                                                  child: Text("🇮🇳 +91"),
+                                                Text(
+                                                  'My',
+                                                  style: TextStyle(
+                                                    color: Colors.green,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'PetrovSans',
+                                                    fontSize: 25,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'Teacher',
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: 'PetrovSans',
+                                                    fontSize: 25,
+                                                  ),
                                                 ),
                                               ],
-                                              onChanged: (value) {
-                                                if (value != null) {
-                                                  setState(
-                                                    () => _selectedCode = value,
-                                                  );
-                                                }
-                                              },
+                                            ),
+                                            SizedBox(
+                                              width: 180,
+                                              height: 3,
+                                              child: DecoratedBox(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.orangeAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      SizedBox(height: 65),
+                                      Center(
+                                        child: SizedBox(
+                                          width: 400.0,
+                                          height: 50.0,
+                                          child: ElevatedButton(
+                                            onPressed: () =>
+                                                _handleGoogleLogin(context),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.white,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Image.asset(
+                                                  'assets/images/icons/icon-google.png',
+                                                ),
+                                                const SizedBox(
+                                                  width: 15,
+                                                  height: 30,
+                                                ),
+                                                const Text(
+                                                  "    Sign in with Google",
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 16,
+                                                    letterSpacing: 1.1,
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),
-                                        // Phone number input
-                                        Expanded(
-                                          child: SizedBox(
-                                            height: 48,
-                                            child: TextField(
-                                              controller: _phoneController,
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              inputFormatters: [
-                                                FilteringTextInputFormatter
-                                                    .digitsOnly,
-                                                LengthLimitingTextInputFormatter(
-                                                  10,
-                                                ),
-                                              ],
-                                              decoration: const InputDecoration(
-                                                hintText: "Enter Mobile Number",
-                                                contentPadding:
-                                                    EdgeInsets.symmetric(
-                                                      horizontal: 15,
+                                      ),
+
+                                      const SizedBox(height: 30.0),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Expanded(
+                                            child: Divider(
+                                              thickness: 0.7,
+                                              color: Colors.grey.withOpacity(
+                                                0.5,
+                                              ),
+                                            ),
+                                          ),
+                                          const Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                            ),
+                                            child: Text(
+                                              'Or',
+                                              style: TextStyle(
+                                                color: Colors.black45,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Divider(
+                                              thickness: 0.7,
+                                              color: Colors.grey.withOpacity(
+                                                0.5,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 30.0),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(
+                                                0.1,
+                                              ),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors
+                                                .white, // Background color of the container
+                                            borderRadius: BorderRadius.circular(
+                                              25,
+                                            ), // Optional: rounded corners
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors
+                                                    .black12, // Shadow color
+                                                spreadRadius:
+                                                    0.5, // Extent of the shadow spread
+                                                blurRadius:
+                                                    0.5, // Blurriness of the shadow
+                                                offset: Offset(
+                                                  0,
+                                                  2,
+                                                ), // Offset of the shadow (x, y)
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              // Country code dropdown
+                                              Container(
+                                                height: 48,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8,
                                                     ),
-                                                border: OutlineInputBorder(
+                                                decoration: const BoxDecoration(
+                                                  // border: Border(
+                                                  //   top: const BorderSide(
+                                                  //     color: Colors.grey,
+                                                  //     width: 0,
+                                                  //   ),
+                                                  //   left: const BorderSide(
+                                                  //     color: Colors.grey,
+                                                  //     width: 0,
+                                                  //   ),
+                                                  //   right: const BorderSide(
+                                                  //     color: Colors.orangeAccent,
+                                                  //     width: 1,
+                                                  //   ),
+                                                  //   bottom: const BorderSide(
+                                                  //     color: Colors.grey,
+                                                  //     width: 0,
+                                                  //   ),
+                                                  // ),
                                                   borderRadius:
-                                                      BorderRadius.only(
-                                                        topRight:
+                                                      const BorderRadius.only(
+                                                        topLeft:
                                                             Radius.circular(
                                                               20.0,
                                                             ),
-                                                        bottomRight:
+                                                        bottomLeft:
                                                             Radius.circular(
                                                               20.0,
                                                             ),
                                                       ),
                                                 ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Row(
-                                      children: [
-                                        Checkbox(
-                                          value: _isChecked,
-                                          onChanged: (bool? newValue) {
-                                            setState(() {
-                                              _isChecked = newValue ?? false;
-                                            });
-                                          },
-                                        ),
-                                        Expanded(
-                                          child: GestureDetector(
-                                            onTap: _launchTerms,
-                                            child: const Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: 'I agree to ',
-                                                    style: TextStyle(
-                                                      color: Colors.black87,
+                                                child: DropdownButtonHideUnderline(
+                                                  child: DropdownButton<String>(
+                                                    value: _selectedCode,
+                                                    icon: const Icon(
+                                                      Icons.arrow_drop_down,
                                                     ),
-                                                  ),
-                                                  TextSpan(
-                                                    text:
-                                                        'Terms and Conditions',
-                                                    style: TextStyle(
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
                                                       color: Colors.black,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      decoration:
-                                                          TextDecoration.none,
+                                                    ),
+                                                    items: const [
+                                                      DropdownMenuItem(
+                                                        value: "+91",
+                                                        child: Text(
+                                                          " 🇮🇳 +91",
+                                                        ),
+                                                      ),
+                                                    ],
+                                                    onChanged: (value) {
+                                                      if (value != null) {
+                                                        setState(
+                                                          () => _selectedCode =
+                                                              value,
+                                                        );
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                              // Phone number input
+                                              Expanded(
+                                                child: SizedBox(
+                                                  height: 55,
+                                                  child: TextField(
+                                                    controller:
+                                                        _phoneController,
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                    inputFormatters: [
+                                                      FilteringTextInputFormatter
+                                                          .digitsOnly,
+                                                      LengthLimitingTextInputFormatter(
+                                                        10,
+                                                      ),
+                                                    ],
+                                                    decoration: const InputDecoration(
+                                                      hintText:
+                                                          "Enter Mobile Number",
+                                                      contentPadding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal: 7,
+                                                          ),
+                                                      // border: ,
+                                                      enabledBorder: OutlineInputBorder(
+                                                        borderSide:
+                                                            BorderSide.none,
+                                                        borderRadius:
+                                                            BorderRadius.only(
+                                                              topRight:
+                                                                  Radius.circular(
+                                                                    20.0,
+                                                                  ),
+                                                              bottomRight:
+                                                                  Radius.circular(
+                                                                    20.0,
+                                                                  ),
+                                                            ),
+                                                      ),
                                                     ),
                                                   ),
-                                                ],
+                                                ),
                                               ),
-                                            ),
+                                            ],
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 20),
-                                    Center(
-                                      child:
-                                          // SizedBox(
-                                          //   width: 150.0,
-                                          //   height: 40.0,
-                                          //   child: ElevatedButton(
-                                          //     onPressed: _isLoading
-                                          //         ? null
-                                          //         : _sendOtp,
-                                          //     style: ElevatedButton.styleFrom(
-                                          //       backgroundColor: Colors.green,
-                                          //       foregroundColor: Colors.white,
-                                          //       disabledBackgroundColor:
-                                          //           Colors.grey,
-                                          //     ),
-                                          //     child: _isLoading
-                                          //         ? const SizedBox(
-                                          //             width: 20,
-                                          //             height: 20,
-                                          //             child:
-                                          //                 CircularProgressIndicator(
-                                          //                   color: Colors.white,
-                                          //                   strokeWidth: 2,
-                                          //                 ),
-                                          //           )
-                                          //         : const Row(
-                                          //             mainAxisAlignment:
-                                          //                 MainAxisAlignment.center,
-                                          //             children: [
-                                          //               Text("Send OTP"),
-                                          //               Icon(
-                                          //                 Icons.play_arrow_sharp,
-                                          //               ),
-                                          //             ],
-                                          //           ),
-                                          //   ),
-                                          // ),
-                                          SizedBox(
-                                            width: 150.0,
-                                            height: 40.0,
-                                            child: ElevatedButton(
-                                              onPressed: _isLoading
-                                                  ? null
-                                                  : _sendOtp, // 🔒 Disabled when loading
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.green,
-                                                foregroundColor: Colors.white,
-                                                disabledBackgroundColor:
-                                                    Colors.grey,
-                                              ),
-                                              child: _isLoading
-                                                  ? const SizedBox(
-                                                      width: 20,
-                                                      height: 20,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                            color: Colors.white,
-                                                            strokeWidth: 2,
-                                                          ),
-                                                    )
-                                                  : const Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Text("Send OTP"),
-                                                        Icon(
-                                                          Icons
-                                                              .play_arrow_sharp,
-                                                        ),
-                                                      ],
-                                                    ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      // Row(
+                                      //   children: [
+                                      // Checkbox(
+                                      //   value: _isChecked,
+                                      //   onChanged: (bool? newValue) {
+                                      //     setState(() {
+                                      //       _isChecked = newValue ?? false;
+                                      //     });
+                                      //   },
+                                      // ),
+                                      // Expanded(
+                                      //   child: Row(
+                                      //     children: [
+                                      //       Text('I agree to ',
+                                      //         style: TextStyle(
+                                      //           color: Colors.green,
+                                      //         ),
+                                      //       ),
+                                      //       GestureDetector(
+                                      //         onTap: _launchTerms,
+                                      //         child: const Text.rich(
+                                      //           TextSpan(
+                                      //             children: [
+                                      //               TextSpan(
+                                      //                 text:
+                                      //                     'Terms and Conditions',
+                                      //                 style: TextStyle(
+                                      //                   color: Colors.black,
+                                      //                   fontWeight:
+                                      //                       FontWeight.bold,
+                                      //                   decoration:
+                                      //                       TextDecoration.none,
+                                      //                 ),
+                                      //               ),
+                                      //             ],
+                                      //           ),
+                                      //         ),
+                                      //       ),
+                                      //     ],
+                                      //   ),
+                                      // ),
+                                      // ],
+                                      // ),
+                                      const SizedBox(height: 20),
+                                      Center(
+                                        child: SizedBox(
+                                          width: 150.0,
+                                          height: 40.0,
+                                          child: ElevatedButton(
+                                            onPressed: _isLoading
+                                                ? null
+                                                : _sendOtp, // 🔒 Disabled when loading
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.green,
+                                              foregroundColor: Colors.white,
+                                              disabledBackgroundColor:
+                                                  Colors.grey,
                                             ),
+                                            child: _isLoading
+                                                ? const SizedBox(
+                                                    width: 20,
+                                                    height: 20,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          color: Colors.white,
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  )
+                                                : const Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Text("Send OTP"),
+                                                      Icon(
+                                                        Icons.play_arrow_sharp,
+                                                      ),
+                                                    ],
+                                                  ),
                                           ),
-                                    ),
-                                    const SizedBox(height: 40.0),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            // Row(
-                            //   mainAxisAlignment: MainAxisAlignment.center,
-                            //   children: [
-                            //     Expanded(
-                            //       child: Divider(
-                            //         thickness: 0.7,
-                            //         color: Colors.grey.withOpacity(0.5),
-                            //       ),
-                            //     ),
-                            //     const Padding(
-                            //       padding: EdgeInsets.symmetric(horizontal: 10),
-                            //       child: Text(
-                            //         'Sign in with single click',
-                            //         style: TextStyle(color: Colors.black45),
-                            //       ),
-                            //     ),
-                            //     Expanded(
-                            //       child: Divider(
-                            //         thickness: 0.7,
-                            //         color: Colors.grey.withOpacity(0.5),
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
-                            // const SizedBox(height: 20),
-                            // Center(
-                            //   child: SizedBox(
-                            //     width: 400.0,
-                            //     height: 60.0,
-                            //     child: ElevatedButton(
-                            //       onPressed: () {
-                            //         // Google sign-in implementation
-                            //       },
-                            //       style: ElevatedButton.styleFrom(
-                            //         backgroundColor: Colors.green[50],
-                            //         foregroundColor: Colors.white,
-                            //       ),
-                            //       child: Row(
-                            //         mainAxisAlignment: MainAxisAlignment.center,
-                            //         children: [
-                            //           Image.asset('assets/images/icons/icon-google.png'),
-                            //           const SizedBox(width: 15, height: 30),
-                            //           const Text(
-                            //             "Sign in using your Google",
-                            //             style: TextStyle(color: Colors.black),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
-                            // const SizedBox(height: 40.0),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  'Don\'t have an account? ',
-                                  style: TextStyle(color: Colors.black45),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    context.go('/signup-otp-screen');
-                                    // context.go('/signup-stepper');
-                                  },
-                                  child: const Text(
-                                    'Sign up',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 30),
-                          ],
+                              ),
+                              SizedBox(height: 30),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: Divider(
+                                      thickness: 0.7,
+                                      color: Colors.grey.withOpacity(0.5),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
+                                    child: Text(
+                                      'Sign up with single click',
+                                      style: TextStyle(
+                                        color: Colors.yellow[700],
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Divider(
+                                      thickness: 0.7,
+                                      color: Colors.grey.withOpacity(0.5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              ///////
+                              const SizedBox(height: 20.0),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    'Don\'t have an account? ',
+                                    style: TextStyle(color: Colors.black45),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      context.go('/signup-otp-screen');
+                                      // context.go('/signup-stepper');
+                                    },
+                                    child: const Text(
+                                      'Sign up',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 30),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
+                //   ),
               ),
             ],
           ),
         ],
       ),
     );
-  }
-
-  Future<void> _launchTerms() async {
-    final Uri url = Uri.parse(
-      'https://www.bookmyteachar.co.in/terms-and-conditions',
-    );
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      throw Exception('Could not launch $url');
-    }
   }
 
   @override

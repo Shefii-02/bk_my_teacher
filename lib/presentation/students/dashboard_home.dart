@@ -3,10 +3,15 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/browser_service.dart';
 import '../../services/student_api_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DashboardHome extends StatefulWidget {
   final Future<Map<String, dynamic>> studentDataFuture;
-  const DashboardHome({super.key, required this.studentDataFuture, required studentId});
+  const DashboardHome({
+    super.key,
+    required this.studentDataFuture,
+    required studentId,
+  });
 
   @override
   State<DashboardHome> createState() => _DashboardHomeState();
@@ -18,6 +23,7 @@ class _DashboardHomeState extends State<DashboardHome> {
   @override
   void initState() {
     super.initState();
+    requestPermissions();
     _studentDataFuture = widget.studentDataFuture;
   }
 
@@ -32,6 +38,10 @@ class _DashboardHomeState extends State<DashboardHome> {
       default:
         return StepStatus.pending;
     }
+  }
+
+  Future<void> requestPermissions() async {
+    await [Permission.camera, Permission.microphone].request();
   }
 
   @override
@@ -169,10 +179,15 @@ class _DashboardHomeState extends State<DashboardHome> {
                                 openWhatsApp(
                                   context,
                                   phone: "917510115544", // no '+'
-                                  message: "Hello, I want to connect with your team.",
+                                  message:
+                                      "Hello, I want to connect with your team.",
                                 );
                               },
-                              icon: const Icon(Icons.chat_bubble, color: Colors.white, size: 20),
+                              icon: const Icon(
+                                Icons.chat_bubble,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                               label: const Text(
                                 "Connect With Our Team",
                                 style: TextStyle(
@@ -183,12 +198,108 @@ class _DashboardHomeState extends State<DashboardHome> {
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF25D366),
-                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
                                 elevation: 6,
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            // const SizedBox(height: 20),
+                            // ElevatedButton(
+                            //   onPressed: () async {
+                            //     // await requestPermissions();
+                            //     context.go(
+                            //       '/audience',
+                            //       // Pass the data as a Map in the 'extra' parameter
+                            //       extra: {
+                            //         'appID': 1367678059, // Pass as int directly
+                            //         'appSign': '0969ef1b75b7dac8b7d0d7a563a42419b377dc74cef7ba9625785b577da66edd',
+                            //         'userID': 'user_001',
+                            //         'userName': 'John Doe',
+                            //         'liveID': 'room_786',
+                            //         'isHost': false, // Pass as bool directly
+                            //       },
+                            //     );
+                            //   },
+                            //   child: const Text("Join Live"),
+                            // ),
+                            // const SizedBox(height: 20),
+                            // ElevatedButton(
+                            //   onPressed: () {
+                            //     context.go(
+                            //       '/live',
+                            //       extra: {
+                            //         'appID': 1367678059, // Pass as int directly
+                            //         'appSign':
+                            //             '0969ef1b75b7dac8b7d0d7a563a42419b377dc74cef7ba9625785b577da66edd',
+                            //         'userID': 'aud001',
+                            //         'userName': 'Alice',
+                            //         'liveID': 'room_786',
+                            //         'isHost': false,
+                            //       },
+                            //     );
+                            //   },
+                            //   child: const Text("Join Live Stream"),
+                            // ),
+                            // const SizedBox(height: 20),
+                            // ElevatedButton(
+                            //   onPressed: () {
+                            //     context.go(
+                            //       '/oneonone',
+                            //       extra: {
+                            //         'appID': 1367678059, // Pass as int directly
+                            //         'appSign':
+                            //             '0969ef1b75b7dac8b7d0d7a563a42419b377dc74cef7ba9625785b577da66edd',
+                            //         'userID': 'user001',
+                            //         'userName': 'Bob',
+                            //         'callID': 'room_786',
+                            //         'isHost': false,
+                            //       },
+                            //     );
+                            //   },
+                            //   child: const Text("Start One-on-One Call"),
+                            // ),
+                            // const SizedBox(height: 20),
+                            // ElevatedButton(
+                            //   onPressed: () {
+                            //     context.go(
+                            //       '/conference',
+                            //       extra: {
+                            //         'appID': 1367678059, // Pass as int directly
+                            //         'appSign':
+                            //             '0969ef1b75b7dac8b7d0d7a563a42419b377dc74cef7ba9625785b577da66edd',
+                            //         'userID': 'stud123',
+                            //         'userName': 'Charlie',
+                            //         'conferenceID': 'room_786',
+                            //         'isHost': false,
+                            //       },
+                            //     );
+                            //   },
+                            //   child: const Text("Join Conference"),
+                            // ),
+                            // const SizedBox(height: 20),
+                            // ElevatedButton(
+                            //   onPressed: () {
+                            //     context.go(
+                            //       '/audioroom',
+                            //       extra: {
+                            //         'appID': 1367678059, // Pass as int directly
+                            //         'appSign':
+                            //             '0969ef1b75b7dac8b7d0d7a563a42419b377dc74cef7ba9625785b577da66edd',
+                            //         'userID': 'voice123',
+                            //         'userName': 'David',
+                            //         'roomID': 'room_786',
+                            //         'isHost': false,
+                            //       },
+                            //     );
+                            //   },
+                            //   child: const Text("Join Audio Room"),
+                            // ),
+                            // const SizedBox(height: 20),
                             // ElevatedButton.icon(
                             //   onPressed: () {
                             //     // context.go('/signup-teacher');
@@ -210,7 +321,6 @@ class _DashboardHomeState extends State<DashboardHome> {
                             //     elevation: 6,
                             //   ),
                             // ),
-
                           ],
                         ),
                       ),
@@ -224,8 +334,6 @@ class _DashboardHomeState extends State<DashboardHome> {
       },
     );
   }
-
-
 }
 
 // ===== Custom Stepper Widget =====
@@ -244,8 +352,8 @@ class CustomVerticalStepper extends StatelessWidget {
         return GestureDetector(
           onTap: step.allow
               ? () {
-            context.go(step.route);
-          }
+                  context.go(step.route);
+                }
               : null,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../services/student_api_service.dart';
+import '../webinars/webinar_listing.dart';
 
 class MyClassList extends StatefulWidget {
   final String studentId;
@@ -46,7 +45,7 @@ class _MyClassListState extends State<MyClassList> {
         }
 
         final student = snapshot.data!;
-        final userId = student['user']['id'].toString();
+        final userId = student['user']?['id']?.toString() ?? '';
 
         return Scaffold(
           body: Stack(
@@ -62,6 +61,7 @@ class _MyClassListState extends State<MyClassList> {
                   ),
                 ),
               ),
+
               Column(
                 children: [
                   // Top Section
@@ -98,15 +98,22 @@ class _MyClassListState extends State<MyClassList> {
                                   },
                                 ),
                               ),
-                              const Text(
-                                "My Class List",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22.0,
+
+                              // Title
+                              const Expanded(
+                                child: Center(
+                                  child: Text(
+                                    "My Class List",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 22.0,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 50),
+
+                              const SizedBox(width: 40),
                             ],
                           ),
                         ],
@@ -133,25 +140,14 @@ class _MyClassListState extends State<MyClassList> {
                         ],
                       ),
                       child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
                         child: Column(
                           children: [
                             const SizedBox(height: 20),
-                            // Placeholder for future courses
-                            Card(
-                              elevation: 5,
-                              shadowColor: Colors.grey.withOpacity(0.3),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Text(
-                                  "Your Account is under review",
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                              ),
+                            Text(
+                              "Free Webinars",
+                              style: TextStyle(fontSize: 16),
                             ),
+                            WebinarListPage(),
                           ],
                         ),
                       ),
