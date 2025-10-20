@@ -28,9 +28,6 @@ class _DashboardHomeState extends State<DashboardHome> {
   void initState() {
     super.initState();
     _teacherDataFuture = widget.teacherDataFuture;
-    print("************");
-    print(_teacherDataFuture);
-    print("************");
   }
 
   StepStatus _mapStatus(String status) {

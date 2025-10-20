@@ -67,7 +67,11 @@ class _SignUpStudentState extends State<SignUpStudent> {
         listingSubjects = subjects;
         listingSubjects = [
           ...subjects,
-          {"id": "other", "name": "Other", "value" : 'other'},  // 👈 always append
+          {
+            "id": "other",
+            "name": "Other",
+            "value": 'other',
+          }, // 👈 always append
         ];
       });
     } catch (e) {
@@ -352,232 +356,509 @@ class _SignUpStudentState extends State<SignUpStudent> {
     super.dispose();
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     backgroundColor: Colors.white,
+  //     body: Stack(
+  //       children: [
+  //         // Background Image
+  //         Container(
+  //           height: 200,
+  //           width: double.infinity,
+  //           decoration: const BoxDecoration(
+  //             image: DecorationImage(
+  //               image: NetworkImage(AppConfig.headerTop),
+  //               fit: BoxFit.fill,
+  //             ),
+  //           ),
+  //         ),
+  //         Column(
+  //           children: [
+  //             const SizedBox(height: 60),
+  //             // Custom AppBar
+  //             Padding(
+  //               padding: const EdgeInsets.symmetric(horizontal: 16),
+  //               child: Row(
+  //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                 children: [
+  //                   // Back button
+  //                   Container(
+  //                     width: 40,
+  //                     height: 40,
+  //                     decoration: BoxDecoration(
+  //                       shape: BoxShape.circle,
+  //                       color: Colors.white.withOpacity(0.8),
+  //                     ),
+  //                     child: IconButton(
+  //                       icon: const Icon(Icons.arrow_back, color: Colors.black),
+  //                       iconSize: 20,
+  //                       padding: EdgeInsets.zero,
+  //                       onPressed: () => context.go('/signup-stepper'),
+  //                     ),
+  //                   ),
+  //                   // Title
+  //                   const Column(
+  //                     children: [
+  //                       Text(
+  //                         'I\'m a Student',
+  //                         style: TextStyle(
+  //                           color: Colors.black,
+  //                           fontWeight: FontWeight.bold,
+  //                           fontSize: 18.0,
+  //                         ),
+  //                       ),
+  //                       SizedBox(height: 4),
+  //                       Text(
+  //                         'Please fill your details',
+  //                         style: TextStyle(
+  //                           color: Colors.black,
+  //                           fontWeight: FontWeight.w500,
+  //                           fontSize: 12.0,
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                   // Help
+  //                   Container(
+  //                     width: 35,
+  //                     height: 35,
+  //                     decoration: BoxDecoration(
+  //                       shape: BoxShape.circle,
+  //                       border: Border.all(color: Colors.grey, width: 0.8),
+  //                       color: Colors.transparent,
+  //                     ),
+  //                     child: IconButton(
+  //                       icon: const Icon(
+  //                         Icons.question_mark_sharp,
+  //                         color: Colors.black,
+  //                       ),
+  //                       iconSize: 18,
+  //                       padding: EdgeInsets.zero,
+  //                       onPressed: () {},
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //
+  //             const SizedBox(height: 20),
+  //
+  //             // Main body
+  //             Expanded(
+  //               child: Container(
+  //                 width: double.infinity,
+  //                 decoration: const BoxDecoration(
+  //                   color: Colors.white,
+  //                   borderRadius: BorderRadius.only(
+  //                     topLeft: Radius.circular(30),
+  //                     topRight: Radius.circular(30),
+  //                   ),
+  //                   boxShadow: [
+  //                     BoxShadow(
+  //                       color: Colors.black12,
+  //                       blurRadius: 10,
+  //                       offset: Offset(0, -2),
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 child: SingleChildScrollView(
+  //                   controller: _scrollController,
+  //                   child: Column(
+  //                     children: [
+  //                       // Stepper
+  //                       Container(
+  //                         margin: const EdgeInsets.symmetric(
+  //                           vertical: 10.0,
+  //                           horizontal: 10.0,
+  //                         ),
+  //                         child: EasyStepper(
+  //                           steppingEnabled: false,
+  //                           internalPadding: 60,
+  //                           activeStep: activeStep,
+  //                           fitWidth: true,
+  //                           stepShape: StepShape.circle,
+  //                           stepBorderRadius: 10,
+  //                           borderThickness: 2,
+  //                           stepRadius: 10,
+  //                           lineStyle: const LineStyle(
+  //                             lineSpace: 4,
+  //                             lineType: LineType.normal,
+  //                           ),
+  //                           finishedStepBorderColor: Colors.green,
+  //                           finishedStepTextColor: Colors.green,
+  //                           finishedStepBackgroundColor: Colors.green,
+  //                           activeStepBorderColor: Colors.green,
+  //                           activeStepBackgroundColor: Colors.green,
+  //                           unreachedStepBorderColor: Colors.grey,
+  //                           unreachedStepBackgroundColor: Colors.grey,
+  //                           showLoadingAnimation: true,
+  //                           showStepBorder: true,
+  //                           steps: const [
+  //                             EasyStep(
+  //                               customTitle: Padding(
+  //                                 padding: EdgeInsets.only(top: 8.0),
+  //                                 child: Center(
+  //                                   child: Text('Personal Details'),
+  //                                 ),
+  //                               ),
+  //                               customStep: CircleAvatar(
+  //                                 radius: 5,
+  //                                 backgroundColor: Colors.white,
+  //                                 child: CircleAvatar(radius: 3),
+  //                               ),
+  //                             ),
+  //                             EasyStep(
+  //                               customTitle: Padding(
+  //                                 padding: EdgeInsets.only(top: 8.0),
+  //                                 child: Center(child: Text('Study Details')),
+  //                               ),
+  //                               customStep: CircleAvatar(
+  //                                 radius: 5,
+  //                                 backgroundColor: Colors.white,
+  //                                 child: CircleAvatar(radius: 3),
+  //                               ),
+  //                             ),
+  //                           ],
+  //                           onStepReached: (index) =>
+  //                               setState(() => activeStep = index),
+  //                         ),
+  //                       ),
+  //
+  //                       // Step content
+  //                       _buildStepContent(),
+  //
+  //                       const SizedBox(height: 20),
+  //
+  //                       // Nav buttons
+  //                       Padding(
+  //                         padding: const EdgeInsets.only(
+  //                           right: 40.0,
+  //                           bottom: 30,
+  //                         ),
+  //                         child: Row(
+  //                           mainAxisAlignment: MainAxisAlignment.end,
+  //                           children: [
+  //                             if (activeStep > 0)
+  //                               OutlinedButton(
+  //                                 onPressed: () => setState(() => activeStep--),
+  //                                 child: const Text('Back'),
+  //                               ),
+  //                             const SizedBox(width: 8),
+  //                             ElevatedButton(
+  //                               onPressed: _isLoading
+  //                                   ? null
+  //                                   : () {
+  //                                       if (activeStep == 0) {
+  //                                         if (_validateStep1()) {
+  //                                           setState(() => activeStep = 1);
+  //                                           _goNextStep(); // ✅ scrolls to top
+  //                                         }
+  //                                       } else {
+  //                                         if (_validateStep2()) {
+  //                                           _submitForm();
+  //                                         }
+  //                                       }
+  //                                     },
+  //                               child: _isLoading
+  //                                   ? const SizedBox(
+  //                                       width: 20,
+  //                                       height: 20,
+  //                                       child: CircularProgressIndicator(
+  //                                         strokeWidth: 2,
+  //                                         color: Colors.white,
+  //                                       ),
+  //                                     )
+  //                                   : Text(activeStep == 1 ? 'Submit' : 'Next'),
+  //                             ),
+  //                           ],
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFFFFFF), // Light green/teal background
       body: Stack(
         children: [
-          // Background Image
           Container(
-            height: 200,
             width: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(AppConfig.headerTop),
-                fit: BoxFit.fill,
+            height: 300,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            // decoration: const BoxDecoration(
+            //   gradient: LinearGradient(
+            //     begin: Alignment.topLeft,
+            //     end: Alignment.bottomRight,
+            //     colors: [
+            //       // Color(0xFF6CC57D),
+            //       Color(0xFF388E3C),
+            //       // Color(0xFF2E7D32),
+            //       // Color(0xFF1B5E20),
+            //       // Color(0xFF6CCFBA),
+            //       // Color(0xFF1D6FA3), // soft blue
+            //       Color(0xFF48C6EF), // light blue-green
+            //     ],
+            //     // stops: [0.0, 0.3, 0.7,0.9],
+            //   ),
+            // ),
+            // decoration: BoxDecoration(
+            //   borderRadius: BorderRadius.circular(15),
+            //   boxShadow: [
+            //     BoxShadow(
+            //       color: Colors.black.withOpacity(0.1),
+            //       blurRadius: 10,
+            //       offset: Offset(0, 5),
+            //     ),
+            //   ],
+            //   gradient: LinearGradient( // THIS IS THE GRADIENT FOR THE ICON BACKGROUND
+            //     begin: Alignment.topLeft,
+            //     end: Alignment.bottomRight,
+            //     colors: [
+            //       Color(0xFF6CC57D),
+            //       Color(0xFF48C6EF),
+            //       Color(0xFF48C6EF),
+            //       Color(0xFF1B5E20),
+            //     ],
+            //     stops: [0.0, 0.3, 0.7, 1.0],
+            //   ),
+            // ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  Color(0xFF114887), // A vibrant blue
+                  Color(0xFF6DE899), // A soft green
+                ],
+                stops: [
+                  0.0,
+                  1.0,
+                ], // Blue at the bottom-left (0%), Green at the top-right (100%)
               ),
             ),
           ),
-          Column(
-            children: [
-              const SizedBox(height: 60),
-              // Custom AppBar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Back button
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.8),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.black),
-                        iconSize: 20,
-                        padding: EdgeInsets.zero,
-                        onPressed: () => context.go('/signup-stepper'),
-                      ),
-                    ),
-                    // Title
-                    const Column(
-                      children: [
-                        Text(
-                          'I\'m a Student',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Please fill your details',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12.0,
-                          ),
+          // Background "blur" effect if you want to mimic the image exactly
+          // You might need a more complex setup for a true blur or use an asset image
+          Positioned.fill(
+            child: Container(
+              color: Colors.white.withOpacity(0.0), // Start with transparent
+            ),
+          ),
+          // Main content
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: _buildHeader(),
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: Container(
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(25),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                    // Help
-                    Container(
-                      width: 35,
-                      height: 35,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey, width: 0.8),
-                        color: Colors.transparent,
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 15.0,
+                        vertical: 30.0,
                       ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.question_mark_sharp,
-                          color: Colors.black,
-                        ),
-                        iconSize: 18,
-                        padding: EdgeInsets.zero,
-                        onPressed: () {},
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // _buildStepperIndicators(),
+                          // const SizedBox(height: 30),
+                          _buildStepContent(),
+                          const SizedBox(height: 30),
+                          _buildNavigationButtons(),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Main body
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        offset: Offset(0, -2),
-                      ),
-                    ],
-                  ),
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    child: Column(
-                      children: [
-                        // Stepper
-                        Container(
-                          margin: const EdgeInsets.symmetric(
-                            vertical: 10.0,
-                            horizontal: 10.0,
-                          ),
-                          child: EasyStepper(
-                            steppingEnabled: false,
-                            internalPadding: 60,
-                            activeStep: activeStep,
-                            fitWidth: true,
-                            stepShape: StepShape.circle,
-                            stepBorderRadius: 10,
-                            borderThickness: 2,
-                            stepRadius: 10,
-                            lineStyle: const LineStyle(
-                              lineSpace: 4,
-                              lineType: LineType.normal,
-                            ),
-                            finishedStepBorderColor: Colors.green,
-                            finishedStepTextColor: Colors.green,
-                            finishedStepBackgroundColor: Colors.green,
-                            activeStepBorderColor: Colors.green,
-                            activeStepBackgroundColor: Colors.green,
-                            unreachedStepBorderColor: Colors.grey,
-                            unreachedStepBackgroundColor: Colors.grey,
-                            showLoadingAnimation: true,
-                            showStepBorder: true,
-                            steps: const [
-                              EasyStep(
-                                customTitle: Padding(
-                                  padding: EdgeInsets.only(top: 8.0),
-                                  child: Center(
-                                    child: Text('Personal Details'),
-                                  ),
-                                ),
-                                customStep: CircleAvatar(
-                                  radius: 5,
-                                  backgroundColor: Colors.white,
-                                  child: CircleAvatar(radius: 3),
-                                ),
-                              ),
-                              EasyStep(
-                                customTitle: Padding(
-                                  padding: EdgeInsets.only(top: 8.0),
-                                  child: Center(child: Text('Study Details')),
-                                ),
-                                customStep: CircleAvatar(
-                                  radius: 5,
-                                  backgroundColor: Colors.white,
-                                  child: CircleAvatar(radius: 3),
-                                ),
-                              ),
-                            ],
-                            onStepReached: (index) =>
-                                setState(() => activeStep = index),
-                          ),
-                        ),
-
-                        // Step content
-                        _buildStepContent(),
-
-                        const SizedBox(height: 20),
-
-                        // Nav buttons
-                        Padding(
-                          padding: const EdgeInsets.only(
-                            right: 40.0,
-                            bottom: 30,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              if (activeStep > 0)
-                                OutlinedButton(
-                                  onPressed: () => setState(() => activeStep--),
-                                  child: const Text('Back'),
-                                ),
-                              const SizedBox(width: 8),
-                              ElevatedButton(
-                                onPressed: _isLoading
-                                    ? null
-                                    : () {
-                                        if (activeStep == 0) {
-                                          if (_validateStep1()) {
-                                            setState(() => activeStep = 1);
-                                            _goNextStep(); // ✅ scrolls to top
-                                          }
-                                        } else {
-                                          if (_validateStep2()) {
-                                            _submitForm();
-                                          }
-                                        }
-                                      },
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : Text(activeStep == 1 ? 'Submit' : 'Next'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Navigation Buttons
+  Widget _buildNavigationButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (activeStep > 0)
+          OutlinedButton(
+            onPressed: _isLoading ? null : () => setState(() => activeStep--),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+              side: const BorderSide(color: Colors.grey),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              textStyle: const TextStyle(fontSize: 16),
+            ),
+            child: const Text('Back', style: TextStyle(color: Colors.black87)),
+          ),
+        const SizedBox(width: 10),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _nextOrSubmit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          child: _isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text(
+            //2
+                  activeStep < 0 ? 'Next' : 'Submit',
+                  style: const TextStyle(color: Colors.white),
+                ),
+        ),
+      ],
+    );
+  }
+
+  // Placeholder for submission logic
+  void _nextOrSubmit() {
+    if (activeStep == 0 && _validateStep1()) {
+      _submitForm();
+      // setState(() => activeStep = 1);
+      // _scrollController.animateTo(
+      //   0,
+      //   duration: const Duration(milliseconds: 400),
+      //   curve: Curves.easeInOut,
+      // );
+    } else if (activeStep == 1 && _validateStep2()) {
+      _submitForm();
+    }
+  }
+
+  // Stepper Indicators
+  Widget _buildStepperIndicators() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildStepIndicator(0, 'Personal Info'),
+        _buildStepIndicator(1, 'Teaching Details'),
+        _buildStepIndicator(2, 'Upload CV'),
+      ],
+    );
+  }
+
+  Widget _buildStepIndicator(int stepIndex, String title) {
+    final bool isActive = activeStep == stepIndex;
+    final bool isCompleted = activeStep > stepIndex;
+
+    Color indicatorColor;
+    Color textColor;
+    if (isCompleted) {
+      indicatorColor = Colors.green;
+      textColor = Colors.green;
+    } else if (isActive) {
+      indicatorColor = Colors.green;
+      textColor = Colors.green;
+    } else {
+      indicatorColor = Colors.grey.shade400;
+      textColor = Colors.grey.shade600;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        // Only allow tapping to previous steps for review, or the current step
+        if (stepIndex <= activeStep) {
+          setState(() => activeStep = stepIndex);
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+          );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.grey, // <-- Border color
+            width: 1, // <-- Border width
+          ),
+          borderRadius: BorderRadius.circular(
+            25,
+          ), // <-- Optional rounded corners
+        ),
+        child: Row(
+          spacing: 2,
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: indicatorColor, width: 2),
+                color: isCompleted ? indicatorColor : Colors.white,
+              ),
+              child: isCompleted
+                  ? Icon(Icons.check, color: Colors.white, size: 12)
+                  : isActive
+                  ? Center(
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: indicatorColor,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 2),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -591,6 +872,73 @@ class _SignUpStudentState extends State<SignUpStudent> {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  // Header Widget
+  Widget _buildHeader() {
+    return Column(
+      children: [
+        SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _circularButton(
+              Icons.arrow_back,
+              () => context.go('/signup-stepper'),
+            ),
+            // SizedBox(width: 100),
+            _circularButton(Icons.question_mark_sharp, () {}),
+          ],
+        ),
+        const SizedBox(height: 30),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "I'm a Student",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                "Please fill your personal details",
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _circularButton(IconData icon, VoidCallback onPressed) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white60,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.black87, fontWeight: FontWeight.bold),
+        iconSize: 20,
+        padding: EdgeInsets.zero,
+        onPressed: onPressed,
+      ),
+    );
   }
 
   // -------- STEP 1 UI --------
@@ -627,15 +975,19 @@ class _SignUpStudentState extends State<SignUpStudent> {
               ),
             ),
             const SizedBox(height: 20),
+
             _tf(_studentNameCtrl, 'Student Name', validator: _req),
+
             const SizedBox(height: 20),
-            _tf(_parentNameCtrl, 'Parent Name', validator: _req),
-            const SizedBox(height: 20),
-            _tf(
-              _emailCtrl,
-              'Email Id',
-              keyboardType: TextInputType.emailAddress,
-              validator: _email,
+            _buildTwoColumnTextFields(
+              _tf(
+                _emailCtrl,
+                'Email Id',
+                keyboardType: TextInputType.emailAddress,
+                validator: _email,
+              ),
+              // const SizedBox(height: 20),
+              _tf(_parentNameCtrl, 'Parent Name', validator: _req),
             ),
             const SizedBox(height: 20),
             // _tf(
@@ -644,21 +996,22 @@ class _SignUpStudentState extends State<SignUpStudent> {
             //   keyboardType: TextInputType.phone,
             //   validator: _phone,
             // ),
-            const SizedBox(height: 20),
             _tf(_addressCtrl, 'Address', validator: _req),
             const SizedBox(height: 20),
-            _tf(_cityCtrl, 'City', validator: _req),
-            const SizedBox(height: 20),
-            _tf(
-              _postalCtrl,
-              'Postal Code',
-              keyboardType: TextInputType.number,
-              validator: _req,
+            _buildTwoColumnTextFields(
+              _tf(_cityCtrl, 'City', validator: _req),
+              _tf(
+                _postalCtrl,
+                'Postal Code',
+                keyboardType: TextInputType.number,
+                validator: _req,
+              ),
             ),
             const SizedBox(height: 20),
-            _tf(_districtCtrl, 'District', validator: _req),
-            const SizedBox(height: 20),
-            _tf(_stateCtrl, 'State', validator: _req),
+            _buildTwoColumnTextFields(
+              _tf(_districtCtrl, 'District', validator: _req),
+              _tf(_stateCtrl, 'State', validator: _req),
+            ),
             const SizedBox(height: 20),
             _tf(_countryCtrl, 'Country', validator: _req),
           ],
@@ -732,7 +1085,9 @@ class _SignUpStudentState extends State<SignUpStudent> {
                   selected: selected,
                   onSelected: (v) {
                     setState(() {
-                      v ? _selectedGrades.add(value) : _selectedGrades.remove(value);
+                      v
+                          ? _selectedGrades.add(value)
+                          : _selectedGrades.remove(value);
                     });
                   },
                 );
@@ -839,6 +1194,36 @@ class _SignUpStudentState extends State<SignUpStudent> {
   }
 
   // -------- Shared TextField --------
+  // Widget _tf(
+  //   TextEditingController c,
+  //   String label, {
+  //   TextInputType? keyboardType,
+  //   String? Function(String?)? validator,
+  // }) {
+  //   return TextFormField(
+  //     controller: c,
+  //     validator: validator,
+  //     keyboardType: keyboardType,
+  //     decoration: InputDecoration(
+  //       labelText: label,
+  //       floatingLabelBehavior: FloatingLabelBehavior.always,
+  //       border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+  //     ),
+  //   );
+  // }
+
+  // Helper for two text fields in a row
+  Widget _buildTwoColumnTextFields(Widget tf1, Widget tf2) {
+    return Row(
+      children: [
+        Expanded(child: tf1),
+        const SizedBox(width: 15),
+        Expanded(child: tf2),
+      ],
+    );
+  }
+
+  // Shared text field builder with updated styling
   Widget _tf(
     TextEditingController c,
     String label, {
@@ -851,8 +1236,39 @@ class _SignUpStudentState extends State<SignUpStudent> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        floatingLabelBehavior: FloatingLabelBehavior.always,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
+        hintText: label, // Use hintText for a cleaner look when not focused
+        alignLabelWithHint: true,
+        floatingLabelBehavior:
+            FloatingLabelBehavior.never, // Label stays as hint
+        filled: true,
+        fillColor: Colors.grey.shade100, // Light background for text fields
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: BorderSide.none, // No border by default
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: const BorderSide(
+            color: Colors.green,
+            width: 1.5,
+          ), // Green border on focus
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: const BorderSide(color: Colors.red, width: 1.5),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: const BorderSide(color: Colors.red, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
     );
   }

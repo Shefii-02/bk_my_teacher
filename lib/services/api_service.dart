@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 import '../core/constants/endpoints.dart';
+import '../model/top_banner.dart';
 
 class ApiResponse<T> {
   final bool success;
@@ -295,7 +296,9 @@ class ApiService {
   //   return response.data;
   // }
 
-  Future<ApiResponse<Map<String, dynamic>>> userLoginEmail(String idToken) async {
+  Future<ApiResponse<Map<String, dynamic>>> userLoginEmail(
+    String idToken,
+  ) async {
     try {
       final response = await _dio.post(
         Endpoints.signInWithGoogle,
@@ -321,8 +324,6 @@ class ApiService {
     }
   }
 
-
-
   Future<Map<String, dynamic>> checkUserEmail(String idToken) async {
     final box = await Hive.openBox('app_storage');
     final token = box.get('auth_token') ?? '';
@@ -335,6 +336,169 @@ class ApiService {
     return response.data;
   }
 
+  // Fetch top banners
+  Future<List<TopBanner>> fetchTopBanners() async {
+    final res = await _dio.get('/top-banners');
+    if (res.statusCode == 200) {
+      final data = res.data['data'] as List;
+      print(data);
+      return data.map((e) => TopBanner.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to fetch banners');
+    }
+  }
 
+  /// Fetch all teachers, subjects, grades, boards
+  // Future<Map<String, dynamic>> fetchAllSearchData() async {
+  //   try {
+  //     final res = await _dio.get('/search-data');
+  //     if (res.statusCode == 200) {
+  //       // Returns: {teachers: [...], subjects: [...], grades: [...], boards: [...]}
+  //       return res.data;
+  //     } else {
+  //       throw Exception('Failed to fetch search data');
+  //     }
+  //   } catch (e) {
+  //     throw Exception('Error fetching search data: $e');
+  //   }
+  // }
 
+  /// Fetch filtered search results
+  /// filters = { 'teachers': [1,2], 'subjects':[1], 'grades':[2], 'boards':[1] }
+  // Future<Map<String, dynamic>> searchResult(
+  //   Map<String, List<int>> filters,
+  // ) async {
+  //   try {
+  //     final res = await _dio.post('/search-result', data: filters);
+  //     if (res.statusCode == 200) {
+  //       return res.data; // e.g., {teachers:[...], subjects:[...], ...}
+  //     } else {
+  //       throw Exception('Failed to fetch filtered results');
+  //     }
+  //   } catch (e) {
+  //     throw Exception('Error fetching filtered results: $e');
+  //   }
+  // }
+
+  /// Optional: Send follow-up info to CRM (user clicked an item)
+  Future<void> followUp(int id, String type) async {
+    try {
+      await _dio.post('/crm-followup', data: {'id': id, 'type': type});
+    } catch (e) {
+      print('CRM follow-up failed: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchAllSearchData() async {
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    return {
+      'teachers': List.generate(
+        10,
+        (i) => {
+          'id': i + 1,
+          'name': 'Teacher ${i + 1}',
+          'qualification': 'Qualification ${i + 1}',
+          'image': 'https://via.placeholder.com/150',
+        },
+      ),
+      'subjects': List.generate(
+        10,
+        (i) => {'id': i + 1, 'name': 'Subject ${i + 1}', 'icon': 'book'},
+      ),
+      'grades': List.generate(
+        10,
+        (i) => {'id': i + 1, 'name': 'Grade ${i + 1}'},
+      ),
+      'boards': List.generate(
+        5,
+        (i) => {'id': i + 1, 'name': 'Board ${i + 1}'},
+      ),
+    };
+  }
+
+  Future<Map<String, dynamic>> searchResult(
+    Map<String, List<int>> filters,
+  ) async {
+    // Return fake filtered data based on selected IDs
+    final allData = await fetchAllSearchData();
+
+    Map<String, dynamic> filterList(String key) {
+      final ids = filters[key] ?? [];
+      if (ids.isEmpty) return allData[key];
+      return allData[key].where((item) => ids.contains(item['id'])).toList();
+    }
+
+    return {
+      'teachers': filterList('teachers'),
+      'subjects': filterList('subjects'),
+      'grades': filterList('grades'),
+      'boards': filterList('boards'),
+    };
+  }
+
+  Future<List<DropdownItem>> fetchDropdownData(String type) async {
+    // Temporary dummy API simulation
+    await Future.delayed(const Duration(milliseconds: 500));
+    switch (type) {
+      case 'grades':
+        return [
+          DropdownItem(id: 1, name: 'Grade 1'),
+          DropdownItem(id: 2, name: 'Grade 2'),
+          DropdownItem(id: 3, name: 'Grade 3'),
+        ];
+      case 'boards':
+        return [
+          DropdownItem(id: 1, name: 'CBSE'),
+          DropdownItem(id: 2, name: 'ICSE'),
+          DropdownItem(id: 3, name: 'State Board'),
+        ];
+      case 'subjects':
+        return [
+          DropdownItem(id: 1, name: 'Math'),
+          DropdownItem(id: 2, name: 'Science'),
+          DropdownItem(id: 3, name: 'English'),
+        ];
+      default:
+        return [];
+    }
+  }
+
+  // temporary: requested classes list
+  Future<List<Map<String, dynamic>>> fetchRequestedClasses() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    return [
+      {
+        "id": 1,
+        "requested_date": "2025-10-18",
+        "to": "Grade 2 - Math",
+        "status": "Pending",
+        "notes": "Admin will call soon",
+        "demo_class": "Scheduled for 2025-10-21",
+      },
+      {
+        "id": 2,
+        "requested_date": "2025-10-17",
+        "to": "Grade 3 - Science",
+        "status": "Approved",
+        "notes": "Follow-up done",
+        "demo_class": "Completed",
+      },
+    ];
+  }
+}
+
+class DropdownItem {
+  final int id;
+  final String name;
+
+  DropdownItem({required this.id, required this.name});
+
+  factory DropdownItem.fromJson(Map<String, dynamic> json) {
+    return DropdownItem(
+      id: json['id'],
+      name: json['name'],
+    );
+  }
 }

@@ -179,7 +179,7 @@ class _SignUpGuestState extends State<SignUpGuest> {
         children: [
           // Background Image
           Container(
-            height: 200,
+            height: 600,
             width: double.infinity,
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -357,9 +357,14 @@ class _SignUpGuestState extends State<SignUpGuest> {
                                         }
                                       },
                                 style: ElevatedButton.styleFrom(
-                                  minimumSize: const Size(120, 45),
+                                  backgroundColor: Colors.green,
+                                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 child: _isLoading
@@ -371,7 +376,8 @@ class _SignUpGuestState extends State<SignUpGuest> {
                                           color: Colors.white,
                                         ),
                                       )
-                                    : const Text('Submit'),
+                                    : const Text('Submit',
+                                  style: const TextStyle(color: Colors.white),),
                               ),
                             ],
                           ),
