@@ -24,9 +24,12 @@ class TopBannerSlider extends ConsumerWidget {
           items: banners.map((banner) {
             return InkWell(
               onTap: () {
-                if (banner.ctaAction.isNotEmpty) {
-                  GoRouter.of(context).go(banner.ctaAction);
-                }
+                // if (banner.ctaAction.isNotEmpty) {
+                //   GoRouter.of(context).go(banner.ctaAction);
+                // }
+                // else{
+                  GoRouter.of(context).go('/top-banner/${banner.id}');
+                // }
               },
               child: Stack(
                 alignment: Alignment.bottomLeft,

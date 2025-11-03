@@ -19,6 +19,7 @@ import '../presentation/onboarding/onboarding_screen.dart';
 import '../presentation/one_on_one/one_on_one_call_page.dart';
 import '../presentation/splash/splash_screen.dart';
 import '../presentation/students/student_dashboard.dart';
+import '../presentation/widgets/top_banner_detail_page.dart';
 import '../presentation/teachers/account/cv_upload.dart';
 import '../presentation/teachers/account/personal_info.dart';
 import '../presentation/teachers/account/teaching_details.dart';
@@ -75,6 +76,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.uploadDemo,
       builder: (context, state) => const UploadDemo(),
+    ),
+    GoRoute(
+      path: '/top-banner/:id',
+      builder: (context, state) {
+        final bannerId = state.pathParameters['id']!;
+        return TopBannerDetailPage(bannerId: bannerId);
+      },
     ),
     GoRoute(
       path: AppRoutes.teacherDashboard,

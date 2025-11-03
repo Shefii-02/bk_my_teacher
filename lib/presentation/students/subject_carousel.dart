@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_options.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
@@ -116,11 +115,11 @@ class SubjectCard extends StatelessWidget {
             left: 45,
             top: 20,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  name.length > 5 ? "${name.substring(0, 5)}.." : name,
+                  name.length > 8 ? "${name.substring(0, 8)}.." : name,
                   style: const TextStyle(
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w700,

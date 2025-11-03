@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 import '../core/constants/endpoints.dart';
+import '../model/grade_board_subject_model.dart';
 import '../model/top_banner.dart';
 
 class ApiResponse<T> {
@@ -487,6 +488,332 @@ class ApiService {
       },
     ];
   }
+
+  Future<List<dynamic>> fetchSocialLinks() async {
+    try {
+      final response = await _dio.get('/social-links'); // ✅ correct endpoint
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data['status'] == true && data['data'] != null) {
+          return data['data'];
+        }
+      }
+    } catch (e) {
+      print('⚠️ fetchSocialLinks failed: $e');
+    }
+    return []; // ✅ Always return a list, even if empty
+  }
+
+  // ------------------------------
+  // 🔹 Common request handler
+  // ------------------------------
+  Future<Map<String, dynamic>?> _handleRequest(Future<Response> Function() request) async {
+    try {
+      final response = await request();
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.data is Map<String, dynamic>) {
+          return response.data;
+        } else {
+          return jsonDecode(response.data);
+        }
+      } else {
+        return {'status': false, 'message': 'Unexpected server response'};
+      }
+    } on DioException catch (e) {
+      return {
+        'status': false,
+        'message': e.response?.data?['message'] ?? 'Network error occurred',
+      };
+    } catch (e) {
+      return {'status': false, 'message': 'Something went wrong: $e'};
+    }
+  }
+
+  // ------------------------------
+  // 🔹 Fetch Dropdown Data
+  // ------------------------------
+
+  Future<List<String>> fetchGrades() async {
+    final res = await _handleRequest(() => _dio.get('/grades'));
+    if (res?['status'] == true && res?['data'] != null) {
+      final List<dynamic> data = res!['data'];
+      return data.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
+
+  Future<List<String>> fetchBoards() async {
+    final res = await _handleRequest(() => _dio.get('/boards'));
+    if (res?['status'] == true && res?['data'] != null) {
+      final List<dynamic> data = res!['data'];
+      return data.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
+
+  Future<List<String>> fetchSubjects() async {
+    final res = await _handleRequest(() => _dio.get('/subjects'));
+    if (res?['status'] == true && res?['data'] != null) {
+      final List<dynamic> data = res!['data'];
+      return data.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
+
+  Future<List<String>> fetchCategories() async {
+    final res = await _handleRequest(() => _dio.get('/categories'));
+    if (res?['status'] == true && res?['data'] != null) {
+      final List<dynamic> data = res!['data'];
+      return data.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
+
+  Future<List<String>> fetchSkills() async {
+    final res = await _handleRequest(() => _dio.get('/skills'));
+    if (res?['status'] == true && res?['data'] != null) {
+      final List<dynamic> data = res!['data'];
+      return data.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
+
+
+  // Future<Map<String, dynamic>?> requestTopBannerSection(String bannerId) async {
+  //   try {
+  //     final response = await _dio.post(
+  //       'api/top-banner/submit',
+  //       data: {'banner_id': bannerId},
+  //     );
+  //     if (response.statusCode == 200) {
+  //       return response.data; // directly return the parsed response
+  //     } else {
+  //       return {'status': false, 'message': 'Unexpected status: ${response.statusCode}'};
+  //     }
+  //   } catch (e) {
+  //     print('⚠️ requestTopBannerSection failed: $e');
+  //     return {'status': false, 'message': 'Error occurred: $e'};
+  //   }
+  // }
+
+  // Future<Map<String, dynamic>?> requestTeacherClass(String bannerId) async {
+  //   try {
+  //     final response = await _dio.post(
+  //       'api/request-teacher-class/submit',
+  //       data: {'banner_id': bannerId},
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       return response.data; // directly return the parsed response
+  //     } else {
+  //       return {'status': false, 'message': 'Unexpected status: ${response.statusCode}'};
+  //     }
+  //   } catch (e) {
+  //     print('⚠️ requesting failed: $e');
+  //     return {'status': false, 'message': 'Error occurred: $e'};
+  //   }
+  // }
+  //
+  // Future<Map<String, dynamic>?> requestForm(String bannerId) async {
+  //   try {
+  //     final response = await _dio.post(
+  //       'api/request-form/submit',
+  //       data: {'banner_id': bannerId},
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       return response.data; // directly return the parsed response
+  //     } else {
+  //       return {'status': false, 'message': 'Unexpected status: ${response.statusCode}'};
+  //     }
+  //   } catch (e) {
+  //     print('⚠️ requesting failed: $e');
+  //     return {'status': false, 'message': 'Error occurred: $e'};
+  //   }
+  // }
+  //
+  //
+  // Future<Map<String, dynamic>?> requestCourse(String courseId) async {
+  //   try {
+  //     final response = await _dio.post(
+  //       'api/request-teacher-class/submit',
+  //       data: {'banner_id': courseId},
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       return response.data; // directly return the parsed response
+  //     } else {
+  //       return {'status': false, 'message': 'Unexpected status: ${response.statusCode}'};
+  //     }
+  //   } catch (e) {
+  //     print('⚠️ requesting failed: $e');
+  //     return {'status': false, 'message': 'Error occurred: $e'};
+  //   }
+  // }
+
+  // 🔹 Top Banner Submit
+  Future<Map<String, dynamic>?> requestTopBannerSection(String bannerId) async {
+    return _submitRequest('/top-banner/submit', {'banner_id': bannerId});
+  }
+
+  // 🔹 Request Teacher Class (Form data)
+  Future<Map<String, dynamic>?> requestTeacherClass(
+    Map<String, dynamic> formData,
+  ) async {
+    // formData can include: name, email, subject_id, etc.
+    return _submitFormRequest('/request-teacher-class/submit', formData);
+  }
+
+  // 🔹 General Request Form (Form data)
+  Future<Map<String, dynamic>?> submitRequestForm(
+    Map<String, dynamic> formData,
+  ) async {
+    return _submitFormRequest('/request-form/submit', formData);
+  }
+
+  Future<List<Grade>> fetchGradesWithBoardsAndSubjects() async {
+    try {
+      final response = await _dio.get('/grades');
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data['status'] == true) {
+        final data = response.data['grades'] as List;
+        return data
+            .map((e) => Grade.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching grades: $e');
+      return [];
+    }
+  }
+
+  // 🔹 Course Request (normal JSON body)
+  Future<Map<String, dynamic>?> requestCourse(String courseId) async {
+    return _submitRequest('/request-course/submit', {'course_id': courseId});
+  }
+
+  // Future<List<String>> fetchGrades() async {
+  //   final response = await _dio.get('/grades');
+  //   if (response.statusCode == 200 && response.data['status'] == true) {
+  //     return List<String>.from(response.data['data']);
+  //   }
+  //   return [];
+  // }
+  //
+  // Future<List<String>> fetchBoards() async {
+  //   final response = await _dio.get('/boards');
+  //   if (response.statusCode == 200 && response.data['status'] == true) {
+  //     return List<String>.from(response.data['data']);
+  //   }
+  //   return [];
+  // }
+
+  // Future<List<String>> fetchSubjects() async {
+  //   final response = await _dio.get('/subjects');
+  //   if (response.statusCode == 200 && response.data['status'] == true) {
+  //     return List<String>.from(response.data['data']);
+  //   }
+  //   return [];
+  // }
+
+  // Future<List<Map<String, dynamic>>> fetchGrades() async {
+  //   final res = await _dio.get('/grades');
+  //   return List<Map<String, dynamic>>.from(res.data['data']);
+  // }
+
+  Future<Map<String, dynamic>> fetchOptionsByGrade(String gradeCode) async {
+    final res = await _dio.get('/options/$gradeCode');
+    return res.data['data'];
+  }
+
+  Future<List<String>> fetchSubjectsByBoard(int id) async {
+    final res = await _dio.get('/subjects/$id');
+    return List<String>.from(res.data['data']);
+  }
+
+  Future<List<String>> fetchSkillsByCategory(int id) async {
+    final res = await _dio.get('/skills/$id');
+    return List<String>.from(res.data['data']);
+  }
+
+
+  // ------------------------------------------
+  // ✅ Common helper for normal JSON request
+  // ------------------------------------------
+  Future<Map<String, dynamic>?> _submitRequest(
+    String endpoint,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final box = await Hive.openBox('app_storage');
+      final token = box.get('auth_token') ?? '';
+
+      if (token.isNotEmpty) {
+        setAuthToken(token);
+      }
+      else {
+        return {
+          'status': false,
+          'message': 'Token not Matched',
+        };
+      }
+
+      final response = await _dio.post(endpoint, data: data);
+
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      return {
+        'status': false,
+        'message': 'Unexpected status: ${response.statusCode}',
+      };
+    } catch (e) {
+      print('⚠️ Request failed [$endpoint]: $e');
+      return {'status': false, 'message': 'Error occurred: $e'};
+    }
+  }
+
+  // ------------------------------------------
+  // ✅ Common helper for multipart/form-data
+  // ------------------------------------------
+  Future<Map<String, dynamic>?> _submitFormRequest(
+    String endpoint,
+    Map<String, dynamic> formData,
+  ) async {
+
+    try {
+      FormData data = FormData.fromMap(formData);
+      final box = await Hive.openBox('app_storage');
+      final token = box.get('auth_token') ?? '';
+
+      if (token.isNotEmpty) {
+        setAuthToken(token);
+      }
+      else {
+        return {
+          'status': false,
+          'message': 'Token not Matched',
+        };
+      }
+
+      final response = await _dio.post(endpoint, data: data);
+
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      return {
+        'status': false,
+        'message': 'Unexpected status: ${response.statusCode}',
+      };
+    } catch (e) {
+      print('⚠️ Form request failed [$endpoint]: $e');
+      return {'status': false, 'message': 'Error occurred: $e'};
+    }
+  }
 }
 
 class DropdownItem {
@@ -496,9 +823,6 @@ class DropdownItem {
   DropdownItem({required this.id, required this.name});
 
   factory DropdownItem.fromJson(Map<String, dynamic> json) {
-    return DropdownItem(
-      id: json['id'],
-      name: json['name'],
-    );
+    return DropdownItem(id: json['id'], name: json['name']);
   }
 }

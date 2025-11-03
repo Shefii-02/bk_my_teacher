@@ -6,9 +6,9 @@ class CouseSections extends StatelessWidget {
   const CouseSections({super.key});
 
   final List<String> images = const [
-    "${Endpoints.domain}/assets/test/course-banner-1.png",
-    "${Endpoints.domain}/assets/test/course-banner-2.png",
-    "${Endpoints.domain}/assets/test/course-banner-3.png",
+    "${Endpoints.domain}/assets/mobile-app/banners/course-banner-1.png",
+    "${Endpoints.domain}/assets/mobile-app/banners/course-banner-2.png",
+    "${Endpoints.domain}/assets/mobile-app/banners/course-banner-3.png",
   ];
 
   @override

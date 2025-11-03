@@ -205,7 +205,7 @@ class _TeacherProfileCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                name,
+                name.length > 5 ? "${name.substring(0, 5)}.." : name,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,

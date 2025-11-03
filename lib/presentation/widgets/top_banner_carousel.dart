@@ -22,9 +22,10 @@ class TopBannerCarousel extends ConsumerWidget {
             final banner = banners[index];
             return GestureDetector(
               onTap: () {
-                if (banner.ctaAction.isNotEmpty) {
-                  context.push(banner.ctaAction); // e.g., /register
-                }
+                // if (banner.ctaAction.isNotEmpty) {
+                //   context.push(banner.ctaAction); // e.g., /register
+                // }
+                GoRouter.of(context).go('/top-banner/${banner.id}');
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2.0),

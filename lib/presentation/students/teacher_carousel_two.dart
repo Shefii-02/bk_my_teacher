@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+
 // 2 rows x 2 columns carousel (keep original style)
 class TeacherCarouselTwoRows extends StatelessWidget {
   final List<Map<String, dynamic>> teachers;
@@ -10,8 +11,9 @@ class TeacherCarouselTwoRows extends StatelessWidget {
     // split into chunks of 4 teachers per slide
     List<List<Map<String, dynamic>>> chunks = [];
     for (var i = 0; i < teachers.length; i += 4) {
-      chunks.add(teachers.sublist(
-          i, i + 4 > teachers.length ? teachers.length : i + 4));
+      chunks.add(
+        teachers.sublist(i, i + 4 > teachers.length ? teachers.length : i + 4),
+      );
     }
 
     return CarouselSlider.builder(
@@ -20,7 +22,7 @@ class TeacherCarouselTwoRows extends StatelessWidget {
         autoPlay: true,
         enlargeCenterPage: true,
         viewportFraction: 0.95,
-        height: 390, // enough for 2 stacked cards
+        height: 380, // enough for 2 stacked cards
       ),
       itemBuilder: (context, index, realIndex) {
         final chunk = chunks[index];
@@ -29,18 +31,18 @@ class TeacherCarouselTwoRows extends StatelessWidget {
             Row(
               children: List.generate(
                 2,
-                    (i) => Expanded(
+                (i) => Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(6.0),
                     child: i < chunk.length
                         ? TeacherProfileCard(
-                      name: chunk[i]['name'],
-                      qualification: chunk[i]['qualification'],
-                      subjects: chunk[i]['subjects'],
-                      ranking: chunk[i]['ranking'],
-                      rating: chunk[i]['rating'],
-                      imageUrl: chunk[i]['imageUrl'],
-                    )
+                            name: chunk[i]['name'].length > 13 ? "${chunk[i]['name'].substring(0, 13)}.." : chunk[i]['name'],
+                            qualification: chunk[i]['qualification'],
+                            subjects: chunk[i]['subjects'],
+                            ranking: chunk[i]['ranking'],
+                            rating: chunk[i]['rating'],
+                            imageUrl: chunk[i]['imageUrl'],
+                          )
                         : const SizedBox(),
                   ),
                 ),
@@ -49,18 +51,18 @@ class TeacherCarouselTwoRows extends StatelessWidget {
             Row(
               children: List.generate(
                 2,
-                    (i) => Expanded(
+                (i) => Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(6.0),
                     child: (i + 2) < chunk.length
                         ? TeacherProfileCard(
-                      name: chunk[i + 2]['name'],
-                      qualification: chunk[i + 2]['qualification'],
-                      subjects: chunk[i + 2]['subjects'],
-                      ranking: chunk[i + 2]['ranking'],
-                      rating: chunk[i + 2]['rating'],
-                      imageUrl: chunk[i + 2]['imageUrl'],
-                    )
+                            name: chunk[i + 2]['name'].length > 13 ? "${chunk[i + 2]['name'].substring(0, 13)}.." : chunk[i + 2]['name'],
+                            qualification: chunk[i + 2]['qualification'],
+                            subjects: chunk[i + 2]['subjects'],
+                            ranking: chunk[i + 2]['ranking'],
+                            rating: chunk[i + 2]['rating'],
+                            imageUrl: chunk[i + 2]['imageUrl'],
+                          )
                         : const SizedBox(),
                   ),
                 ),
@@ -95,7 +97,7 @@ class TeacherProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 160,
+      height: 150,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -110,95 +112,99 @@ class TeacherProfileCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(9),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.25),
-                      blurRadius: 4,
-                      offset: const Offset(0, 4)),
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
             ),
           ),
           Positioned(
-            right: -2,
-            top: 0,
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    imageUrl,
-                    width: 80,
-                    height: 120,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                SizedBox(height: 5,),
-                Text(
-                  "Rank: $ranking",
-                  style: const TextStyle(
-                      fontFamily: 'Arial',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 10,
-                      color: Color(0xFFEABD6C)),
-                ),
-              ],
+            right: -10,
+            top: 5,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                imageUrl,
+                width: 100,
+                height: 150,
+                fit: BoxFit.fitHeight,
+              ),
             ),
           ),
           Positioned(
             left: 10,
-            top: 50,
+            top: 30,
             child: Text(
               name,
               style: const TextStyle(
-                  fontFamily: 'Arial',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                  color: Colors.black),
+                fontFamily: 'Arial',
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 10,
+            top: 55,
+            child: Text(
+              qualification,
+              style: const TextStyle(
+                fontFamily: 'Arial',
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                color: Color(0xFF3AB769),
+              ),
             ),
           ),
           Positioned(
             left: 10,
             top: 70,
             child: Text(
-              qualification,
+              subjects,
               style: const TextStyle(
-                  fontFamily: 'Arial',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10,
-                  color: Color(0xFF3AB769)),
+                fontFamily: 'Arial',
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                color: Colors.black,
+              ),
             ),
           ),
           Positioned(
             left: 10,
-            top: 85,
+            top: 90,
             child: Text(
-              subjects,
+              "Rank: $ranking",
               style: const TextStyle(
-                  fontFamily: 'Arial',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10,
-                  color: Colors.black),
+                fontFamily: 'Arial',
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                color: Color(0xFFEABD6C),
+              ),
             ),
           ),
-
           const Positioned(
             left: 10,
-            top: 105,
+            top: 110,
             child: Text(
               "Student Rating:",
               style: TextStyle(
-                  fontFamily: 'Arial',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 10,
-                  color: Color(0xFF979797)),
+                fontFamily: 'Arial',
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                color: Color(0xFF979797),
+              ),
             ),
           ),
           Positioned(
             left: 10,
-            top: 122,
+            top: 125,
             child: Row(
               children: List.generate(
                 5,
-                    (index) => Icon(
+                (index) => Icon(
                   index < rating.round() ? Icons.star : Icons.star_border,
                   color: Colors.amber,
                   size: 12,
@@ -211,4 +217,3 @@ class TeacherProfileCard extends StatelessWidget {
     );
   }
 }
-
