@@ -15,6 +15,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String profile = '/profile';
   static const String maintenance = "/maintenance";
+  static const String noNetwork = "/no-network";
   static const String myClassList = "/myclass-list";
 
 

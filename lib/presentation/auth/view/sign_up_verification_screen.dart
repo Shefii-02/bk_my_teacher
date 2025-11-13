@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BookMyTeacher/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -89,6 +90,7 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
       await authController.getUserData();
       final userData = ref.read(authControllerProvider).userData;
       final token = ref.read(authControllerProvider).authToken;
+      await ref.read(userProvider.notifier).loadUser();
       final userId = userData?['data']['id'].toString();
       // print("****************************");
       // print("userData Result");

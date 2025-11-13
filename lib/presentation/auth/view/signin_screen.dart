@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import '../../../core/enums/app_config.dart';
+import '../../../providers/user_provider.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
@@ -194,6 +195,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       print("tokens: $tokens");
       final idToken = tokens.idToken;
       print("*******");
+
       final verified = await authController.signInWithGoogleFirebase(idToken!);
 
       print("****************************************");
@@ -217,6 +219,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
       final userData = ref.read(authControllerProvider).userData;
       final token = ref.read(authControllerProvider).authToken;
+      await ref.read(userProvider.notifier).loadUser();
 
       debugPrint("✅ Google Login response received");
       debugPrint("userData: $userData");
@@ -244,7 +247,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
       await LaunchStatusService.setUserRole(accType);
       await LaunchStatusService.setUserId(userId);
-
+      await ref.read(userProvider.notifier).loadUser();
       if (!mounted) return;
 
       // ✅ Navigation Logic

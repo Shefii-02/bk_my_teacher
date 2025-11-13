@@ -12,9 +12,8 @@ import '../students/profile_screen.dart';
 import '../students/teachers_list.dart';
 
 class StudentDashboard extends StatefulWidget {
-  final String studentId;
 
-  const StudentDashboard({super.key, required this.studentId});
+  const StudentDashboard({super.key});
 
   @override
   State<StudentDashboard> createState() => _StudentDashboardState();
@@ -28,32 +27,20 @@ class _StudentDashboardState extends State<StudentDashboard> {
   @override
   void initState() {
     super.initState();
-    print("***");
-    print(widget.studentId);
-    print("***");
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkUser();
-    });
-    //
-    final studentId = widget.studentId.toString();
     // _studentDataFuture = _fetchstudentData();
-    _studentDataFuture = StudentApiService().fetchStudentData(studentId);
+    _studentDataFuture = StudentApiService().fetchStudentData();
 
     // print(_studentDataFuture);
     // ✅ Pass studentData to DashboardHome and ProfileScreen (example)
     _screens = [
       DashboardHome(
-        studentDataFuture: _studentDataFuture,
-        studentId: studentId,
+        studentDataFuture: _studentDataFuture
       ),
-      TeachersList(studentId: studentId),
-      CoursesScreen(studentId: studentId),
-      MyClassList(studentId: studentId),
-      ProfileScreen(
-        studentDataFuture: _studentDataFuture,
-        studentId: studentId,
-      ),
+      TeachersList(),
+      CoursesScreen(),
+      MyClassList(),
+      ProfileScreen(studentDataFuture: _studentDataFuture,),
     ];
 
   }
@@ -65,31 +52,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
   //   ); // must return {teacher, steps}
   // }
 
-  Future<void> _checkUser() async {
-    final box = Hive.box('app_storage');
-    final userId = box.get('user_id');
-    final userRole = box.get('user_role');
-
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User ID not found. Please login again.")),
-      );
-      return;
-    }
-
-    final isValid = await UserCheckService().isUserValid(userId,userRole);
-    print(")))))))");
-    print(isValid);
-    if (isValid) {
-      return;
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("User ID not found. App Rest..")));
-      await LaunchStatusService.resetApp();
-      return;
-    }
-  }
 
 
   @override
@@ -137,7 +99,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.group),
-                label: "Students",
+                label: "Teachers",
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.menu_book),

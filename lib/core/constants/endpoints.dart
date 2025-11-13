@@ -19,6 +19,7 @@ class Endpoints {
   static const getUserDetails = "/get-user-details";
 
   static const signInWithGoogle = "/user-login-email";
+  static const verifyWithGoogle = "/user-verify-email";
 
   // Fetch Data
   static const fetchGrads = "/fetch-grades";
@@ -75,8 +76,12 @@ class Endpoints {
   static const earnings = "/earnings";
   static const withdraw = "/earnings/withdraw";
 
-
   static const getWebinars = "/webinars";
   static const webinarDetails = "/webinars/details";
   static const registerWebinar = "/webinars/register";
+
+  //Account Manage
+  static const teacherUpdatePersonal = "/teacher-update-personal";
+  static const teacherUpdateTeachingDetails = "/teacher-update-teaching-detail";
+  static const teacherUpdateCv = "/teacher-update-cv";
 }

@@ -1,42 +1,72 @@
+import 'package:BookMyTeacher/presentation/students/subject_detail_page.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-
 import '../../core/constants/endpoints.dart';
-// -------------------- Subject Carousel 3x3 --------------------
-class SubjectCarousel extends StatelessWidget {
-  const SubjectCarousel({super.key});
+import '../../services/api_service.dart';
 
-  final List<Map<String, String>> subjects = const [
-    {'name': 'English', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Math', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Science', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'History', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Geography', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Art', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Physics', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Chemistry', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Biology', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'English-9', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Math-8', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Science-7', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'History-6', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Geography-5', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Art-4', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Physics-3', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Chemistry-2', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-    {'name': 'Biology-1', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  ];
+// -------------------- Subject Carousel 3x3 --------------------
+class SubjectCarousel extends StatefulWidget {
+  SubjectCarousel({super.key});
 
   @override
+  State<SubjectCarousel> createState() => _SubjectCarouselState();
+}
+
+class _SubjectCarouselState extends State<SubjectCarousel> {
+  List<Map<String, dynamic>> subjects = [];
+
+  // final List<Map<String, String>> subjects = const [
+  //   {'name': 'English', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Math', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Science', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'History', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Geography', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Art', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Physics', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Chemistry', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Biology', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'English-9', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Math-8', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Science-7', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'History-6', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Geography-5', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Art-4', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Physics-3', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Chemistry-2', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  //   {'name': 'Biology-1', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
+  // ];
+
+  bool isLoading = true;
+  @override
+  void initState() {
+    super.initState();
+    _fetchSubjects();
+  }
+
+  Future<void> _fetchSubjects() async {
+    try {
+      final result = await ApiService().fetchSubjects();
+      print(result);
+      if (mounted) {
+        setState(() {
+          subjects = List<Map<String, dynamic>>.from(result['data']);
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error loading teachers: $e");
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
+
   Widget build(BuildContext context) {
     // Split subjects into chunks of 9 (3x3 per slide)
-    List<List<Map<String, String>>> slides = [];
+    List<List<Map<String, dynamic>>> slides = [];
     for (var i = 0; i < subjects.length; i += 9) {
       slides.add(
-        subjects.sublist(
-          i,
-          i + 9 > subjects.length ? subjects.length : i + 9,
-        ),
+        subjects.sublist(i, i + 9 > subjects.length ? subjects.length : i + 9),
       );
     }
 
@@ -56,6 +86,7 @@ class SubjectCarousel extends StatelessWidget {
                         SubjectCard(
                           name: slide[row * 3 + col]['name']!,
                           image: slide[row * 3 + col]['image']!,
+                          subject: slide[row * 3 + col],
                         )
                       else
                         const SizedBox(width: 103, height: 34),
@@ -79,8 +110,14 @@ class SubjectCarousel extends StatelessWidget {
 class SubjectCard extends StatelessWidget {
   final String name;
   final String image;
+  final Map<String, dynamic>? subject;
 
-  const SubjectCard({super.key, required this.name, required this.image});
+  const SubjectCard({
+    super.key,
+    required this.name,
+    required this.image,
+    this.subject,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -91,17 +128,28 @@ class SubjectCard extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.25),
-                  blurRadius: 4,
-                  offset: const Offset(0, 4),
+          GestureDetector(
+            onTap: () {
+              // Navigate to subject detail page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SubjectDetailPage(subject: subject ?? {}),
                 ),
-              ],
-              borderRadius: BorderRadius.circular(9),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(9),
+              ),
             ),
           ),
           Positioned(
@@ -133,7 +181,7 @@ class SubjectCard extends StatelessWidget {
                   Icons.chevron_right,
                   size: 16,
                   color: Colors.black.withOpacity(0.46),
-                )
+                ),
               ],
             ),
           ),
@@ -156,4 +204,3 @@ class SubjectCard extends StatelessWidget {
     );
   }
 }
-

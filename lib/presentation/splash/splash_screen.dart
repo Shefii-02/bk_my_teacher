@@ -1,5 +1,5 @@
-import 'package:BookMyTeacher/core/constants/endpoints.dart';
-import 'package:dio/dio.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
@@ -11,18 +11,29 @@ import '../../services/launch_status_service.dart';
 import '../../services/update_service.dart';
 import '../../services/user_check_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/user_provider.dart';
 
-class SplashScreen extends StatefulWidget {
+// class SplashScreen extends StatefulWidget {
+//   const SplashScreen({super.key});
+//
+//   @override
+//   State<SplashScreen> createState() => _SplashScreenState();
+// }
+
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
+
+  // class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
@@ -54,80 +65,50 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkServer() async {
-    final api = ApiService(); // or ref.read in Riverpod
+    final api = ApiService();
     final isAlive = await api.checkServer();
 
     if (isAlive) {
+      await _checkUser();
       return;
     } else {
-      if (mounted) {
-        context.go(AppRoutes.maintenance);
+      // 🔹 First check internet connection
+      final hasConnection = await _hasInternetConnection();
+
+      if (!hasConnection) {
+        if (mounted) {
+          context.go(AppRoutes.noNetwork);
+        }
+      } else {
+        if (mounted) {
+          context.go(AppRoutes.maintenance);
+        }
       }
     }
   }
-  // Future<void> _checkServer() async {
-  //   try {
-  //     final response = await _dio.get(Endpoints.checkServer);
-  //
-  //     if (response.statusCode == 200) {
-  //       final data = response.data;
-  //       if (data is Map && data['status'] == "development") {
-  //         // 🚨 Maintenance mode
-  //         if (mounted) {
-  //           context.go(AppRoutes.maintenance);
-  //         }
-  //       } else {
-  //         // ✅ Server OK → Go to Home/Login
-  //         return;
-  //       }
-  //     } else {
-  //       // 🚨 Bad response → Maintenance
-  //       if (mounted) {
-  //         context.go(AppRoutes.maintenance);
-  //       }
-  //     }
-  //   } on DioException catch (_) {
-  //     // 🚨 API call failed → Maintenance
-  //     if (mounted) {
-  //       context.go(AppRoutes.maintenance);
-  //     }
-  //   } catch (e) {
-  //     // 🚨 Any other error
-  //     if (mounted) {
-  //       context.go(AppRoutes.maintenance);
-  //     }
-  //   }
-  // }
 
-  /// Check if stored user is valid
-  // Future<void> _checkUser() async {
-  //   try {
-  //     final box = Hive.box('app_storage');
-  //     final userId = box.get('user_id');
-  //     final userRole = box.get('user_role');
-  //
-  //     if (userId == null) return;
-  //
-  //     final isValid = await UserCheckService().isUserValid(userId, userRole);
-  //     if (!isValid) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text("User not found. Resetting app...")),
-  //       );
-  //       await LaunchStatusService.resetApp();
-  //     }
-  //   } catch (e) {
-  //     debugPrint("Error in _checkUser: $e");
-  //   }
-  // }
   Future<void> _checkUser() async {
     try {
       final box = Hive.box('app_storage');
       final userId = box.get('user_id');
       final userRole = box.get('user_role');
+      // final referralCode = box.get('referral_code');
 
       if (userId == null) return;
 
-      final isValid = await UserCheckService().isUserValid(userId.toString(), userRole);
+      final isValid = await UserCheckService().isUserValid(
+        userId.toString(),
+        userRole,
+      );
+
+      // if (referralCode == null) {
+      //   final usrData = await ApiService().userDataStore();
+      //   print("0*******0");
+      //   print(usrData);
+      //   print("0*******0");
+      //   final refCode = usrData['referral_code'];
+      //   LaunchStatusService.saveReferralCode(refCode);
+      // }
 
       if (!isValid) {
         // ✅ Check if widget is still mounted before using context
@@ -137,103 +118,57 @@ class _SplashScreenState extends State<SplashScreen>
           const SnackBar(content: Text("User not found. Resetting app...")),
         );
 
-        await LaunchStatusService.resetApp();
+        // 🔹 First check internet connection
+        // final hasConnection = await _hasInternetConnection();
+        //
+        // if (!hasConnection) {
+        //   ScaffoldMessenger.of(context).showSnackBar(
+        //     SnackBar(
+        //       content: Text('⚠️ No internet connection.'),
+        //       backgroundColor: Colors.red,
+        //     ),
+        //   );
+        //   debugPrint("⚠️ No internet connection. Skipping user validation.");
+        //   return; // Don’t reset if offline
+        // } else {
+        // await LaunchStatusService.resetApp();
+        // }
       }
     } catch (e) {
       debugPrint("Error in _checkUser: $e");
     }
   }
 
-  /// Main initialization and redirection
-  // Future<void> _initAndRedirect() async {
-  //   try {
-  //     await _checkUser();
-  //
-  //     final box = await Hive.openBox('app_storage');
-  //     final String? token = box.get('auth_token');
-  //     final Map<String, dynamic>? storedUserData = box.get('user_data');
-  //
-  //     // Check for app update
-  //     if (!kIsWeb) {
-  //       final updateAvailable = await UpdateService.checkForUpdate(context);
-  //       if (updateAvailable) return; // Stop navigation if update needed
-  //     }
-  //
-  //     await Future.delayed(const Duration(seconds: 1));
-  //
-  //     final status = await LaunchStatusService.getLaunchStatus();
-  //
-  //     switch (status) {
-  //       case LaunchStatus.firstTime:
-  //         context.go('/onboarding');
-  //         return;
-  //
-  //       case LaunchStatus.logged:
-  //         Map<String, dynamic>? userData;
-  //
-  //         if (token != null && storedUserData != null) {
-  //           // Optional: refresh from backend
-  //           final fetched = await UserCheckService().fetchUserData(token);
-  //           if (fetched != null) {
-  //             userData = fetched;
-  //             await box.put('user_data', userData);
-  //             await box.put('auth_token', userData['token']);
-  //           } else {
-  //             userData = storedUserData;
-  //           }
-  //         } else {
-  //           context.go('/auth');
-  //           return;
-  //         }
-  //
-  //         final accType = userData['acc_type'] ?? 'guest';
-  //         final profileFill = userData['profile_fill'] ?? 0;
-  //
-  //         // Redirect based on account type and profile fill
-  //         if (profileFill == 1) {
-  //           if (accType == 'teacher') {
-  //             context.go('/teacher-dashboard',
-  //                 extra: {'teacherId': userData['id'].toString()});
-  //             return;
-  //           } else if (accType == 'student') {
-  //             context.go('/student-dashboard',
-  //                 extra: {'studentId': userData['id'].toString()});
-  //             return;
-  //           } else if (accType == 'guest') {
-  //             context.go('/guest-dashboard',
-  //                 extra: {'guestId': userData['id'].toString()});
-  //             return;
-  //           } else {
-  //             context.go('/error');
-  //             return;
-  //           }
-  //         } else {
-  //           // Profile not filled → go to stepper page
-  //           context.go('/signup-stepper');
-  //           return;
-  //         }
-  //
-  //       case LaunchStatus.notLoggedIn:
-  //         context.go('/auth');
-  //         return;
-  //     }
-  //   } catch (e) {
-  //     debugPrint("Error in _initAndRedirect: $e");
-  //     context.go('/auth'); // fallback to login
-  //   }
-  // }
-
   Future<void> _initAndRedirect() async {
+    // await _checkUser();
+    final box = await Hive.openBox('app_storage');
+    final String? token = await LaunchStatusService.getAuthToken();
+    if(token == null){
+      context.go('/auth');
+      return ;
+    }
+    await ref.read(userProvider.notifier).loadUser();
+    final userState = ref.read(userProvider);
+    final user2 = userState.value;
+
     try {
-      await _checkUser();
-      final box = await Hive.openBox('app_storage');
-      final String? token = await LaunchStatusService.getAuthToken();
+      // Read current state
+      final userState = ref.read(userProvider);
+      final user2 = userState.value;
       final String? userId = box.get('user_id');
+
+      final data = user2?.toJson();
+
+      if (data != null) {
+        LaunchStatusService.saveUserData(data);
+      }
+
       // final Map<String, dynamic>? storedUserData = await LaunchStatusService.getUserData();
 
       final storedUserData = await LaunchStatusService.getUserData();
 
       Map<String, dynamic>? userData;
+
       if (storedUserData != null && storedUserData['success'] == true) {
         userData = Map<String, dynamic>.from(storedUserData['data']);
       }
@@ -241,9 +176,6 @@ class _SplashScreenState extends State<SplashScreen>
       print("****************************");
       print("auth Token : ");
       print(token);
-      print("****************************");
-      print("user Id : ");
-      print(userId);
       print("****************************");
       print("storedUserData : ");
       print(storedUserData);
@@ -313,7 +245,6 @@ class _SplashScreenState extends State<SplashScreen>
       } else {
         userData = storedUserData['data'];
       }
-
     } else if (userId != null) {
       final fetched = await UserCheckService().setUserToken(userId);
       if (!mounted) return;
@@ -334,30 +265,24 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     //redirect to auth
-    if(userData == null){
+    if (userData == null) {
       if (!mounted) return;
       context.go('/auth');
       return;
     }
 
-    final accType = userData?['acc_type'] ?? 'guest';
-    final profileFill = userData?['profile_fill'] ?? 0;
+    final accType = userData['acc_type'] ?? 'guest';
+    final profileFill = userData['profile_fill'] ?? 0;
 
     if (!mounted) return;
 
     if (profileFill == 1) {
       switch (accType) {
         case 'teacher':
-          context.go(
-            '/teacher-dashboard',
-            extra: {'teacherId': userData?['id'].toString()},
-          );
+          context.go('/teacher-dashboard');
           return;
         case 'student':
-          context.go(
-            '/student-dashboard',
-            extra: {'studentId': userData?['id'].toString()},
-          );
+          context.go('/student-dashboard');
           return;
         case 'guest':
           context.go(
@@ -393,5 +318,18 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       ),
     );
+  }
+
+  Future<bool> _hasInternetConnection() async {
+    try {
+      // Simple test: ping Google DNS
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 }

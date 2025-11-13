@@ -6,8 +6,7 @@ import '../../services/launch_status_service.dart';
 import '../../services/teacher_api_service.dart';
 
 class StudentsList extends StatefulWidget {
-  final String teacherId;
-  const StudentsList({super.key, required this.teacherId});
+  const StudentsList({super.key});
 
   @override
   State<StudentsList> createState() => _StudentsListState();
@@ -21,7 +20,7 @@ class _StudentsListState extends State<StudentsList> {
     super.initState();
     // Fetch teacher + students info from API
     _teacherDataFuture =
-        TeacherApiService().fetchTeacherData(widget.teacherId);
+        TeacherApiService().fetchTeacherData();
   }
 
   @override

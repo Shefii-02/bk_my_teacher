@@ -59,7 +59,7 @@ class _ShowSuccessAlertState extends State<ShowSuccessAlert>
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+      // padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -71,12 +71,12 @@ class _ShowSuccessAlertState extends State<ShowSuccessAlert>
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           /// ✖️ Close Icon (Top Right)
-          Positioned(
-            top: 0,
-            right: 0,
+          Align(
+            alignment: Alignment.topRight,
             child: IconButton(
               icon: const Icon(Icons.close, color: Colors.black54, size: 24),
               onPressed: () {
@@ -87,53 +87,48 @@ class _ShowSuccessAlertState extends State<ShowSuccessAlert>
             ),
           ),
 
-          /// 🌟 Main Content
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 10),
-              // ✅ Animated Tick Icon
-              ScaleTransition(
-                scale: _scaleAnimation,
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: widget.color,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.check, color: Colors.white, size: 38),
-                ),
-              ),
-              const SizedBox(height: 18),
+          const SizedBox(height: 8),
 
-              // 🎉 Title
-              Text(
-                widget.title,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: widget.color,
-                ),
+          // ✅ Animated Tick Icon
+          ScaleTransition(
+            scale: _scaleAnimation,
+            child: Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: widget.color,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: 8),
-
-              // 📄 Subtitle
-              Text(
-                widget.subtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Colors.black54,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // 🔘 Optional Button
-              if (widget.showButton)
-                SizedBox(width: double.infinity, child: ConnectWithTeam()),
-            ],
+              child: const Icon(Icons.check, color: Colors.white, size: 38),
+            ),
           ),
+          const SizedBox(height: 18),
+
+          // 🎉 Title
+          Text(
+            widget.title,
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: widget.color,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // 📄 Subtitle
+          Text(
+            widget.subtitle,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 15,
+              color: Colors.black54,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // 🔘 Optional Button
+          if (widget.showButton)
+            SizedBox(width: double.infinity, child: ConnectWithTeam()),
         ],
       ),
     );

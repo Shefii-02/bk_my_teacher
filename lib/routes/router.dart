@@ -15,10 +15,13 @@ import '../presentation/auth/view/signup_stepper.dart';
 import '../presentation/auth/view/verification_screen.dart';
 import '../presentation/errror/error_screen.dart';
 import '../presentation/errror/maintenance_screen.dart';
+import '../presentation/errror/no_network_screen.dart';
 import '../presentation/onboarding/onboarding_screen.dart';
 import '../presentation/one_on_one/one_on_one_call_page.dart';
 import '../presentation/splash/splash_screen.dart';
+import '../presentation/students/class_detail_screen.dart';
 import '../presentation/students/student_dashboard.dart';
+import '../presentation/widgets/pdf_view_page.dart';
 import '../presentation/widgets/top_banner_detail_page.dart';
 import '../presentation/teachers/account/cv_upload.dart';
 import '../presentation/teachers/account/personal_info.dart';
@@ -62,8 +65,11 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const SignUpGuest(),
     ),
     GoRoute(
-      path: AppRoutes.personalInfo,
-      builder: (context, state) => const PersonalInfo(),
+      path: '/personal-info',
+      builder: (context, state) {
+        final teacherData = state.extra as Map<String, dynamic>?;
+        return PersonalInfo(); // ✅ correct syntax
+      },
     ),
     GoRoute(
       path: AppRoutes.teachingDetails,
@@ -72,6 +78,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.cvUpload,
       builder: (context, state) => const CvUpload(),
+    ),
+    GoRoute(
+      path: '/pdf-view',
+      builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>?;
+        final url = args?['url'] ?? '';
+        return PdfViewPage(url: url);
+      },
     ),
     GoRoute(
       path: AppRoutes.uploadDemo,
@@ -87,17 +101,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.teacherDashboard,
       builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>;
-        final teacherId = extra['teacherId'] as String;
-        return TeacherDashboard(teacherId: teacherId);
+        return TeacherDashboard();
       },
     ),
     GoRoute(
       path: AppRoutes.studentDashboard,
       builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>;
-        final studentId = extra['studentId'] as String;
-        return StudentDashboard(studentId: studentId);
+        return StudentDashboard();
       },
     ),
     GoRoute(
@@ -156,6 +166,14 @@ final GoRouter appRouter = GoRouter(
           title: data['title'] as String,
           hostName: data['hostName'] as String,
         );
+      },
+    ),
+
+    GoRoute(
+      path: '/class-detail',
+      builder: (context, state) {
+        final classId = state.extra as String; // ✅ String ID
+        return ClassDetailScreen(classId: classId);
       },
     ),
 
@@ -254,9 +272,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.myClassList,
       builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>;
-        final studentId = extra['studentId'] as String;
-        return MyClassList(studentId: studentId,);
+        return MyClassList();
       },
     ),
     GoRoute(
@@ -305,5 +321,10 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.maintenance,
       builder: (context, state) => const MaintenanceScreen(),
     ),
+    GoRoute(
+      path: AppRoutes.noNetwork,
+      builder: (context, state) => const NoNetworkScreen(),
+    ),
+
   ],
 );

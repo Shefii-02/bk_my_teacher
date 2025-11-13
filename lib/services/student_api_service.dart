@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive/hive.dart';
 import '../core/constants/endpoints.dart';
 import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
@@ -9,10 +10,15 @@ class StudentApiService {
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl: Endpoints.base,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
     ),
   );
+
+  // 🔹 Add auth token to header
+  void setAuthToken(String token) {
+    _dio.options.headers['Authorization'] = 'Bearer $token';
+  }
 
   Future<Map<String, dynamic>> registerStudent({
     required String studentId,
@@ -102,15 +108,20 @@ class StudentApiService {
     }
   }
 
-  Future<Map<String, dynamic>> fetchStudentData(String studentId) async {
+  Future<Map<String, dynamic>> fetchStudentData() async {
     try {
-      final formData = FormData.fromMap({
-        "student_id": studentId,
-      });
+
+      // final formData = FormData.fromMap({
+      //   "student_id": studentId,
+      // });
+
+      final box = await Hive.openBox('app_storage');
+      final token = box.get('auth_token') ?? '';
+
+      if (token.isNotEmpty) setAuthToken(token);
 
       final response = await _dio.post(
         Endpoints.studentHome,
-        data: formData, // send as a form data body
       );
 
       if (response.statusCode == 200 && response.data != null) {

@@ -1,36 +1,45 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/user_provider.dart';
 import '../../services/launch_status_service.dart';
 
-class ProfileScreen extends StatefulWidget {
-  final Future<Map<String, dynamic>> teacherDataFuture;
-
-  final String teacherId;  // Strongly type it
-
-  const ProfileScreen({
-    super.key,
-    required this.teacherDataFuture,
-    required this.teacherId,
-  });
+class ProfileScreen extends ConsumerStatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late Future<Map<String, dynamic>> _teacherDataFuture;
 
   @override
   void initState() {
     super.initState();
-    _teacherDataFuture = widget.teacherDataFuture;
+
+    // ✅ Load teacher data from userProvider safely
+    _teacherDataFuture = _loadTeacherData();
+  }
+
+  Future<Map<String, dynamic>> _loadTeacherData() async {
+    final userAsync = ref.read(userProvider);
+    final user = userAsync.value;
+
+    if (user == null) {
+      // If user data not loaded yet, fetch it silently
+      await ref.read(userProvider.notifier).loadUser(silent: true);
+      final refreshed = ref.read(userProvider).value;
+      if (refreshed == null) throw Exception("Failed to load user data");
+      return refreshed.toJson();
+    }
+
+    return user.toJson();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Example local JSON for stats
     const String jsonData = '''
     [
       { "icon": "book_outlined", "count": "12", "title": "Reviews" },
@@ -72,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (confirm == true) {
         await LaunchStatusService.resetApp();
-        context.go('/auth');
+        if (context.mounted) context.go('/auth');
       }
     }
 
@@ -91,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         }
 
-        if (!snapshot.hasData || snapshot.data == null) {
+        if (!snapshot.hasData) {
           return const Scaffold(
             body: Center(child: Text("No teacher data found")),
           );
@@ -99,16 +108,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         final teacher = snapshot.data!;
         final avatar = teacher['avatar'] ?? "https://via.placeholder.com/150";
-        final name = teacher['user']['name'] ?? "Unknown Teacher";
-        final accountStatus = teacher['user']['account_status'];
-        final userId = teacher['user']['id'].toString();
+        final user = teacher['user'] ?? {};
+        final name = user['name'] ?? "Unknown Teacher";
+        final accountStatus = user['account_status'] ?? "Pending";
+        final userId = user['id']?.toString() ?? "0";
+
         return Scaffold(
           body: Stack(
             children: [
-              // Background Image
+              // Background
               Container(
                 height: 300,
-                width: double.infinity,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage('assets/images/background/full-bg.jpg'),
@@ -118,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               Column(
                 children: [
-                  // Top Section
+                  // Header
                   SizedBox(
                     height: 250,
                     child: Padding(
@@ -138,23 +148,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   color: Colors.white.withOpacity(0.8),
                                 ),
                                 child: IconButton(
-                                  icon: const Icon(
-                                    Icons.keyboard_arrow_left_sharp,
-                                    color: Colors.black,
-                                  ),
-                                  iconSize: 20,
-                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(Icons.keyboard_arrow_left_sharp,
+                                      color: Colors.black),
                                   onPressed: () {
-                                    context.push('/teacher-dashboard', extra: {'teacherId': userId});
+                                    context.go('/teacher-dashboard');
                                   },
                                 ),
                               ),
-                              // Settings button
+                              // Settings
                               IconButton(
-                                icon: const Icon(
-                                  Icons.settings_outlined,
-                                  color: Colors.black87,
-                                ),
+                                icon: const Icon(Icons.settings_outlined,
+                                    color: Colors.black87),
                                 onPressed: () async {
                                   final selected = await showMenu<String>(
                                     context: context,
@@ -169,10 +173,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         value: "logout",
                                         child: Row(
                                           children: [
-                                            Icon(
-                                              Icons.logout,
-                                              color: Colors.red,
-                                            ),
+                                            Icon(Icons.logout, color: Colors.red),
                                             SizedBox(width: 10),
                                             Text("Logout"),
                                           ],
@@ -199,20 +200,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 style: const TextStyle(
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
-
-                                  fontSize: 22.0,
+                                  fontSize: 22,
                                 ),
                               ),
-                              const SizedBox(height: 10),
-                              // Text(
-                              //   "Account Status: $accountStatus",
-                              // style: TextStyle(
-                              //   color: accountStatus == "Verified"
-                              //       ? Colors.green
-                              //       : Colors.orange,
-                              //   fontWeight: FontWeight.w600,
-                              // ),
-                              // ),
                             ],
                           ),
                         ],
@@ -226,10 +216,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: double.infinity,
                       decoration: const BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
-                        ),
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black12,
@@ -242,80 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: const EdgeInsets.all(20),
                         child: Column(
                           children: [
-                            // Dynamic grid of cards
-                            // GridView.builder(
-                            //   shrinkWrap: true,
-                            //   physics: const NeverScrollableScrollPhysics(),
-                            //   itemCount: gridItems.length,
-                            //   gridDelegate:
-                            //   const SliverGridDelegateWithFixedCrossAxisCount(
-                            //     crossAxisCount: 2,
-                            //     crossAxisSpacing: 16,
-                            //     mainAxisSpacing: 16,
-                            //     childAspectRatio: 1.5,
-                            //   ),
-                            //   itemBuilder: (context, index) {
-                            //     final item = gridItems[index];
-                            //     final iconKey = item['icon'];
-                            //     final icon = iconMap[iconKey] ?? Icons.help_outline;
-                            //     final count = item['count'] ?? "-";
-                            //     final title = item['title'] ?? "";
-                            //
-                            //     return Card(
-                            //       elevation: 10,
-                            //       shadowColor: Colors.blueAccent.withOpacity(0.3),
-                            //       shape: RoundedRectangleBorder(
-                            //         borderRadius: BorderRadius.circular(20),
-                            //       ),
-                            //       child: Container(
-                            //         padding: const EdgeInsets.all(16),
-                            //         decoration: BoxDecoration(
-                            //           borderRadius: BorderRadius.circular(20),
-                            //           color: Colors.white,
-                            //         ),
-                            //         child: Row(
-                            //           crossAxisAlignment:
-                            //           CrossAxisAlignment.center,
-                            //           children: [
-                            //             CircleAvatar(
-                            //               radius: 25,
-                            //               backgroundColor:
-                            //               Colors.blueAccent.withOpacity(0.1),
-                            //               child: Icon(icon, color: Colors.black),
-                            //             ),
-                            //             const SizedBox(width: 16),
-                            //             Column(
-                            //               mainAxisAlignment:
-                            //               MainAxisAlignment.center,
-                            //               crossAxisAlignment:
-                            //               CrossAxisAlignment.start,
-                            //               children: [
-                            //                 Text(
-                            //                   count,
-                            //                   style: const TextStyle(
-                            //                     fontSize: 22,
-                            //                     fontWeight: FontWeight.bold,
-                            //                     color: Colors.black,
-                            //                   ),
-                            //                 ),
-                            //                 Text(
-                            //                   title,
-                            //                   style: const TextStyle(
-                            //                     fontSize: 14,
-                            //                     fontWeight: FontWeight.w500,
-                            //                     color: Colors.black87,
-                            //                   ),
-                            //                 ),
-                            //               ],
-                            //             ),
-                            //           ],
-                            //         ),
-                            //       ),
-                            //     );
-                            //   },
-                            // ),
                             const SizedBox(height: 20),
-                            // Placeholder for future content
                             Card(
                               elevation: 5,
                               shadowColor: Colors.grey.withOpacity(0.3),
@@ -325,7 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(20),
                                 child: Text(
-                                  "Your account is ${teacher['user']['account_status']}",
+                                  "Your account is $accountStatus",
                                   style: const TextStyle(fontSize: 16),
                                 ),
                               ),

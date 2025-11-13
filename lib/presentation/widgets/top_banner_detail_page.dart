@@ -120,15 +120,7 @@ class _TopBannerDetailPageState extends ConsumerState<TopBannerDetailPage> {
                                     color: Colors.black87,
                                   ),
                                   onPressed: () async {
-                                    final box =
-                                    await Hive.openBox('app_storage');
-                                    final userId = box.get('user_id') ?? '';
-                                    if (context.mounted) {
-                                      context.go(
-                                        AppRoutes.studentDashboard,
-                                        extra: {'studentId': userId},
-                                      );
-                                    }
+                                    Navigator.pop(context);
                                   },
                                 ),
                               ),

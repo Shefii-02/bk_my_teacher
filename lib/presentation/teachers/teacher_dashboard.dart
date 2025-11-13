@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import '../../providers/user_provider.dart';
 import '../../services/launch_status_service.dart';
 import '../../services/teacher_api_service.dart';
 import '../../services/user_check_service.dart';
@@ -8,103 +9,45 @@ import 'courses_screen.dart';
 import 'dashboard_home.dart';
 import 'my_class_list.dart';
 import 'profile_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TeacherDashboard extends StatefulWidget {
-  final String teacherId;
-  const TeacherDashboard({super.key, required this.teacherId});
+class TeacherDashboard extends ConsumerStatefulWidget {
+  const TeacherDashboard({super.key});
+
   @override
-  State<TeacherDashboard> createState() => _TeacherDashboardState();
+  ConsumerState<TeacherDashboard> createState() => _TeacherDashboardState();
 }
 
-class _TeacherDashboardState extends State<TeacherDashboard> {
+class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
   int _currentIndex = 0;
-  late Future<Map<String, dynamic>> _teacherDataFuture;
+
   late final List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // _checkUser();
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   // _checkUser();
+    // });
+
     //
-    final teacherId = widget.teacherId;
+    // final teacherId = widget.teacherId;
     // _teacherDataFuture = _fetchTeacherData();
-    _teacherDataFuture = TeacherApiService().fetchTeacherData(teacherId);
+    // _teacherDataFuture = TeacherApiService().fetchTeacherData();
 
-    // ✅ Pass teacherData to DashboardHome and ProfileScreen (example)
     _screens = [
-      DashboardHome(
-        teacherDataFuture: _teacherDataFuture,
-        teacherId: teacherId,
-      ),
-      StudentsList(teacherId: teacherId),
-      CoursesScreen(teacherId: teacherId),
-      MyClassList(teacherId: teacherId),
-      ProfileScreen(
-        teacherDataFuture: _teacherDataFuture,
-        teacherId: teacherId,
-      ),
+      DashboardHome(),
+      StudentsList(),
+      CoursesScreen(),
+      MyClassList(),
+      ProfileScreen(),
     ];
-
   }
-
-  // Future<void> _checkUser() async {
-  //   final box = Hive.box('app_storage');
-  //   final userId = box.get('user_id');
-  //   final userRole = box.get('user_role');
-  //
-  //   if (userId == null) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text("User ID not found. Please login again.")),
-  //     );
-  //     return;
-  //   }
-  //   final isValid = await UserCheckService().isUserValid(userId,userRole);
-  //   if (isValid) {
-  //     return;
-  //   } else {
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text("User ID not found. App Rest..")));
-  //     await LaunchStatusService.resetApp();
-  //     return;
-  //   }
-  // }
-
-  // Future<Map<String, dynamic>> _fetchTeacherData() async {
-  //   final api = TeacherApiService();
-  //   return await api.fetchTeacherData(
-  //     widget.teacherData['teacherId'],
-  //   ); // must return {teacher, steps}
-  // }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _teacherDataFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
 
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: Center(child: Text("Error: ${snapshot.error}")),
-          );
-        }
-
-        if (!snapshot.hasData || snapshot.data == null) {
-          return const Scaffold(
-            body: Center(child: Text("No teacher data found")),
-          );
-        }
-
-        final teacher = snapshot.data!;
-        final stepsData = teacher['steps'] as List<dynamic>;
         return Scaffold(
           body: _screens[_currentIndex],
           bottomNavigationBar: BottomNavigationBar(
@@ -139,7 +82,6 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
             ],
           ),
         );
-      },
-    );
+
   }
 }

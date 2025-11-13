@@ -1,6 +1,6 @@
 import 'package:BookMyTeacher/core/constants/endpoints.dart';
 import 'package:BookMyTeacher/core/enums/app_config.dart';
-import 'package:BookMyTeacher/presentation/students/couse_sections.dart';
+import 'package:BookMyTeacher/presentation/students/course_sections.dart';
 import 'package:BookMyTeacher/presentation/students/request_form.dart';
 import 'package:BookMyTeacher/presentation/students/subject_carousel.dart';
 import 'package:BookMyTeacher/presentation/students/teacher_carousel.dart';
@@ -9,6 +9,7 @@ import 'package:BookMyTeacher/presentation/students/teacher_carousel_two.dart';
 import 'package:BookMyTeacher/presentation/students/teacher_profile_card.dart';
 import 'package:BookMyTeacher/presentation/widgets/connect_with_team.dart';
 import 'package:BookMyTeacher/presentation/widgets/social_media_icons.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,14 +19,14 @@ import 'package:permission_handler/permission_handler.dart';
 import '../widgets/top_banner_carousel.dart';
 import 'package:animate_do/animate_do.dart';
 
+import '../widgets/wallet_section.dart';
 import 'invite_friends_card.dart';
 
 class DashboardHome extends StatefulWidget {
   final Future<Map<String, dynamic>> studentDataFuture;
   const DashboardHome({
     super.key,
-    required this.studentDataFuture,
-    required studentId,
+    required this.studentDataFuture
   });
 
   @override
@@ -35,49 +36,6 @@ class DashboardHome extends StatefulWidget {
 class _DashboardHomeState extends State<DashboardHome> {
   late Future<Map<String, dynamic>> _studentDataFuture;
 
-  List<Map<String, dynamic>> get teachers => [
-    {
-      'name': 'Dr. Aisha Khan',
-      'qualification': 'PhD in Physics',
-      'subjects': 'Physics, Chemistry',
-      'ranking': 1,
-      'rating': 4.8,
-      'imageUrl': "${Endpoints.domain}/assets/mobile-app/asit-t.png",
-    },
-    {
-      'name': 'Mr. John Mathew',
-      'qualification': 'MSc Mathematics',
-      'subjects': 'Maths, Statistics',
-      'ranking': 2,
-      'rating': 4.5,
-      'imageUrl': "${Endpoints.domain}/assets/mobile-app/asit-t.png",
-    },
-    {
-      'name': 'Ms. Priya Sharma',
-      'qualification': 'B.Ed English',
-      'subjects': 'English, Literature',
-      'ranking': 3,
-      'rating': 4.7,
-      'imageUrl': "${Endpoints.domain}/assets/mobile-app/asit-t.png",
-    },
-    {
-      'name': 'Mr. Rahul Menon',
-      'qualification': 'MSc Biology',
-      'subjects': 'Biology, Botany',
-      'ranking': 4,
-      'rating': 4.4,
-      'imageUrl': "${Endpoints.domain}/assets/mobile-app/asit-t.png",
-    },
-    {
-      'name': 'Mrs. Neha Varma',
-      'qualification': 'M.Ed Science',
-      'subjects': 'Science, Physics',
-      'ranking': 5,
-      'rating': 4.9,
-      'imageUrl': "${Endpoints.domain}/assets/mobile-app/asit-t.png",
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -86,7 +44,7 @@ class _DashboardHomeState extends State<DashboardHome> {
   }
 
   Future<void> requestPermissions() async {
-    await [Permission.camera, Permission.microphone].request();
+    await [Permission.camera, Permission.microphone, Permission.contacts].request();
   }
 
 
@@ -126,7 +84,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: NetworkImage(AppConfig.bodyBg),
+                    image: CachedNetworkImageProvider(AppConfig.bodyBg),
                     fit: BoxFit.fill,
                   ),
                 ),
@@ -221,7 +179,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 25,
                                 ),
-                                child: buildWalletSection(),
+                                child: WalletSection(),
                               ),
                             ),
 
@@ -235,7 +193,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            TeacherCarouselTwoRows(teachers: teachers),
+                            TeacherCarouselTwoRows(),
                             const Text(
                               'We’re Providing Subjects',
                               style: TextStyle(
@@ -256,7 +214,7 @@ class _DashboardHomeState extends State<DashboardHome> {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            CouseSections(),
+                            CourseSections(),
                             const SizedBox(height: 40),
                             SocialMediaIcons(),
                             const SizedBox(height: 40),
@@ -276,228 +234,7 @@ class _DashboardHomeState extends State<DashboardHome> {
     );
   }
 
-  // ---------- Wallet Section ----------
-  Widget buildWalletSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: SizedBox(
-        width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Wallet",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
-                  ),
-                ),
-                Container(
-                  child: Row(
-                    children: [
-                      Text(
-                        "My Wallet",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Icon(
-                        Icons.keyboard_arrow_right,
-                        size: 20,
-                        color: Colors.black87,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Cards Row
-            Row(
-              children: [
-                // Green Coin Card
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(right: 8),
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Image
-                        Container(
-                          height: 40,
-                          width: 40,
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                "${Endpoints.domain}/assets/mobile-app/icons/green-coin.png",
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Text Column
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              "1200", // replace with dynamic value
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(
-                                  "Green Coin",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.keyboard_arrow_right,
-                                  size: 20,
-                                  color: Colors.black87,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        // Arrow button
-                        // Container(
-                        //   decoration: BoxDecoration(
-                        //     color: Colors.green.shade200,
-                        //     shape: BoxShape.circle,
-                        //   ),
-                        //   child: const Icon(
-                        //     Icons.arrow_forward,
-                        //     color: Colors.white,
-                        //     size: 20,
-                        //   ),
-                        //   padding: const EdgeInsets.all(8),
-                        // )
-                      ],
-                    ),
-                  ),
-                ),
 
-                // Rupees Card
-                Expanded(
-                  child: Container(
-                    height: 100,
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(left: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Image
-                        Container(
-                          height: 40,
-                          width: 40,
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                "${Endpoints.domain}/assets/mobile-app/icons/rupee-coin.png",
-                              ),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Text Column
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              "₹ 5,600", // replace with dynamic value
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(
-                                  "Rupees",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.keyboard_arrow_right,
-                                  size: 20,
-                                  color: Colors.black87,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        // Arrow button
-                        // Container(
-                        //   decoration: BoxDecoration(
-                        //     color: Colors.green.shade200,
-                        //     shape: BoxShape.circle,
-                        //   ),
-                        //   child: const Icon(
-                        //     Icons.arrow_forward,
-                        //     color: Colors.white,
-                        //     size: 20,
-                        //   ),
-                        //   padding: const EdgeInsets.all(8),
-                        // )
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildProvidingSubjectsSection() =>
       _buildChipSection('Providing Subjects');

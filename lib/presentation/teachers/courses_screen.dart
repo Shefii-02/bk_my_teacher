@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../services/teacher_api_service.dart';
 
 class CoursesScreen extends StatefulWidget {
-  final String teacherId;
-  const CoursesScreen({super.key, required this.teacherId});
+
+  const CoursesScreen({super.key});
 
   @override
   State<CoursesScreen> createState() => _CoursesScreenState();
@@ -19,7 +19,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
   void initState() {
     super.initState();
     final api = TeacherApiService();
-    _teacherDataFuture = api.fetchTeacherData(widget.teacherId);
+    _teacherDataFuture = api.fetchTeacherData();
   }
 
   @override

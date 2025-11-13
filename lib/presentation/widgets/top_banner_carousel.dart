@@ -1,3 +1,4 @@
+import 'package:BookMyTeacher/presentation/widgets/top_banner_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,7 +26,12 @@ class TopBannerCarousel extends ConsumerWidget {
                 // if (banner.ctaAction.isNotEmpty) {
                 //   context.push(banner.ctaAction); // e.g., /register
                 // }
-                GoRouter.of(context).go('/top-banner/${banner.id}');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TopBannerDetailPage(bannerId: banner.id.toString()),
+                  ),
+                );
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 2.0),

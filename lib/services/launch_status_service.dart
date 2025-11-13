@@ -9,6 +9,7 @@ class LaunchStatusService {
   static const String _lastVersionKey = 'last_version';
   static const String _authTokenKey = 'auth_token';
   static const String _userDataKey = 'user_data';
+  static const String _referralCode = 'referral_code';
 
   /// Gets the current launch status of the app.
   static Future<LaunchStatus> getLaunchStatus() async {
@@ -75,6 +76,19 @@ class LaunchStatusService {
     // await box.put('auth_token', token);
   }
 
+  static Future<String> getReferralCode() async {
+    final box = await Hive.openBox(_boxName);
+    final code = box.get(_referralCode);
+    return code;
+  }
+
+  static Future<void> saveReferralCode(String code) async {
+    final box = await Hive.openBox(_boxName);
+    await box.put(_referralCode, code);
+  }
+
+
+
   static Future<void> saveUserData(Map<String, dynamic> data) async {
     final box = await Hive.openBox(_boxName);
     // Store as Map<String, dynamic>
@@ -97,10 +111,13 @@ class LaunchStatusService {
     return null;
   }
 
+
+
   /// Optional: Use to reset app (e.g. during logout or testing)
   static Future<void> resetApp() async {
     final box = await Hive.openBox(_boxName);
     await box.clear();
     await box.put(_isFirstLaunchKey, false);
   }
+
 }

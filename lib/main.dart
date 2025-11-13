@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BookMyTeacher/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -10,9 +12,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ import
 import 'data/datasources/local_data_source.dart';
 import 'data/repositories/app_repository_impl.dart';
 import 'domain/usecases/check_launch_status_usecase.dart';
-
+import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // Import this
 void main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isAndroid || Platform.isIOS) {
+    // Setting web contents debugging for InAppWebView (used by the YouTube player)
+    await InAppWebViewController.setWebContentsDebuggingEnabled(true);
+  }
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

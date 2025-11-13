@@ -1,33 +1,60 @@
+import 'dart:ui';
+import 'package:BookMyTeacher/presentation/teachers/account_message_card.dart';
+import 'package:BookMyTeacher/presentation/teachers/spend_time_card.dart';
+import 'package:BookMyTeacher/presentation/teachers/student_reviews_scroll_section.dart';
+import 'package:BookMyTeacher/presentation/teachers/teacher_quick_actions.dart';
+import 'package:BookMyTeacher/presentation/teachers/watch_time_card.dart';
+import 'package:BookMyTeacher/presentation/widgets/social_media_icons.dart';
+import 'package:dio/dio.dart';
+
+import '../../presentation/students/invite_friends_card.dart';
 import 'package:BookMyTeacher/presentation/teachers/signIn_with_google.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/enums/app_config.dart';
+import '../../providers/user_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/browser_service.dart';
 import '../../services/teacher_api_service.dart';
+import '../widgets/verify_account_popup.dart';
+import '../widgets/wallet_section.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DashboardHome extends StatefulWidget {
-  final Future<Map<String, dynamic>> teacherDataFuture;
-  const DashboardHome({
-    super.key,
-    required this.teacherDataFuture,
-    required teacherId,
-  });
+class DashboardHome extends ConsumerStatefulWidget {
+  const DashboardHome({super.key});
 
   @override
-  State<DashboardHome> createState() => _DashboardHomeState();
+  ConsumerState<DashboardHome> createState() => _DashboardHomeState();
 }
 
-class _DashboardHomeState extends State<DashboardHome> {
-  late Future<Map<String, dynamic>> _teacherDataFuture;
+class _DashboardHomeState extends ConsumerState<DashboardHome> {
   late Future<Map<String, dynamic>> userCard;
+  final List<Map<String, dynamic>> studentReviews = [
+    {
+      "name": "Aisha Patel",
+      "review": "Great teacher! Explained concepts very clearly.",
+      "image": "https://i.pravatar.cc/150?img=5",
+      "rating": 4.5,
+    },
+    {
+      "name": "Rahul Sharma",
+      "review": "Helpful and patient during sessions.",
+      "image": "https://i.pravatar.cc/150?img=12",
+      "rating": 5.0,
+    },
+    {
+      "name": "Sneha R.",
+      "review": "Good teaching but classes sometimes run late.",
+      "image": "https://i.pravatar.cc/150?img=8",
+      "rating": 3.5,
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
-    _teacherDataFuture = widget.teacherDataFuture;
   }
 
   StepStatus _mapStatus(String status) {
@@ -45,349 +72,372 @@ class _DashboardHomeState extends State<DashboardHome> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _teacherDataFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: Center(child: Text("Error: ${snapshot.error}")),
-          );
-        }
-
-        if (!snapshot.hasData || snapshot.data == null) {
+    final teacherAsync = ref.watch(userProvider);
+    return teacherAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stack) =>
+          Scaffold(body: Center(child: Text("Error: $error"))),
+      data: (teacher) {
+        if (teacher == null) {
           return const Scaffold(
             body: Center(child: Text("No teacher data found")),
           );
         }
 
-        final teacher = snapshot.data!;
-        final stepsData = teacher['steps'] as List<dynamic>;
+        // Convert teacher model to JSON map for easy use
+        final teacherData = teacher.toJson();
 
-        final avatar = teacher['avatar'] ?? "https://via.placeholder.com/150";
-        final name = teacher['user']['name'] ?? "Unknown Teacher";
-        final accountMsg = teacher['account_msg'] ?? "";
+        // ✅ Safely extract values
+        final name = teacherData['name'] ?? 'Unknown';
+        final stepsData = teacherData['steps'] as List<dynamic>? ?? [];
+        final avatar = teacherData['avatar_url'] ?? "";
+        final currentAccountStage =
+            teacherData['current_account_stage'] ?? "verification process";
+        print(currentAccountStage);
+        final accountMsg = teacherData['account_msg'] ?? "";
 
-        // Convert API steps → StepData
         final steps = stepsData.map((step) {
           return StepData(
-            title: step['title'],
+            title: step['title'] ?? '',
             subtitle: step['subtitle'],
-            status: _mapStatus(step['status']),
-            route: step['route'],
+            status: _mapStatus(step['status'] ?? 'pending'),
+            route: step['route'] ?? '',
             allow: step['allow'] ?? false,
           );
         }).toList();
 
-        return Scaffold(
-          body: Stack(
-            children: [
-              // SizedBox(
-              //   height: 550,
-              //   width: double.infinity,
-              //   child: Image.network(AppConfig.headerTop, fit: BoxFit.fitWidth),
-              // ),
-              Container(
-                height: 600,
-                width: double.infinity,
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage(AppConfig.headerTop),
-                    fit: BoxFit.fill,
-                  ),
+        // If email not verified → show popup
+        if (teacherData['email_verified_at'] == null ||
+            teacherData['email_verified_at'] == '') {
+          return VerifyAccountPopup(
+            onVerified: () async {
+              await ref.read(userProvider.notifier).loadUser();
+            },
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            // 👇 Re-fetch teacher data or refresh provider
+            ref.refresh(userProvider.notifier).loadUser(silent: true);
+            await Future.delayed(const Duration(seconds: 1)); // optional delay
+          },
+          color: Colors.green, // optional
+          backgroundColor: Colors.transparent, // optional
+          // displacement: 50, // optional pull distance
+          child: Scaffold(
+            body: Stack(
+              children: [
+                // Background Image
+                Positioned.fill(
+                  child: Image.network(AppConfig.bodyBg, fit: BoxFit.cover),
                 ),
-              ),
-              Column(
-                children: [
-                  const SizedBox(height: 60),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+
+                // Main Scrollable Content
+                SafeArea(
+                  child: SingleChildScrollView(
+                    // padding: const EdgeInsets.only(bottom: 40),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 25,
-                                  backgroundImage: NetworkImage(avatar),
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  name,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.notifications,
-                                color: Colors.grey[800],
-                              ),
-                              iconSize: 30,
-                              padding: EdgeInsets.zero,
-                              onPressed: () {},
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        if (accountMsg != "")
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
+                        const SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Icon(
-                                Icons.info_outlined,
-                                color: Colors.redAccent,
-                              ),
-                              const SizedBox(width: 10),
-                              SizedBox(
-                                width: 300,
-                                child: Text(
-                                  accountMsg,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 25,
+                                    backgroundColor: Colors.grey[200],
+                                    backgroundImage:
+                                        (avatar != null && avatar.isNotEmpty)
+                                        ? NetworkImage(avatar)
+                                        : null, // no background image when avatar is null or empty
+                                    child: (avatar == null || avatar.isEmpty)
+                                        ? Icon(
+                                            Icons.person,
+                                            size: 30,
+                                            color: Colors.grey[500],
+                                          )
+                                        : null, // show icon only when no image
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 5,
-                                  softWrap: false,
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    name,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.notifications,
+                                  color: Colors.grey[800],
                                 ),
+                                iconSize: 30,
+                                padding: EdgeInsets.zero,
+                                onPressed: () {},
                               ),
                             ],
                           ),
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.35),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                  blurStyle: BlurStyle.outer,
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 25),
+                            child: WalletSection(),
+                          ),
+                        ),
+                        //
+                        const SizedBox(height: 15),
+                        const InviteFriendsCard(),
+                        const SizedBox(height: 15),
+                        //
+                        Container(
+                          width: double.infinity,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(30),
+                              topRight: Radius.circular(30),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 10,
+                                offset: Offset(0, -2),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              top: 25,
+                              left: 10,
+                              right: 10,
+                              bottom: 20,
+                            ),
+                            child: Column(
+                              children: [
+                                if (currentAccountStage != 'account verified')
+                                  Column(
+                                    children: [
+                                      AccountMessageCard(
+                                        accountMsg: accountMsg,
+                                        steps: steps,
+                                      ),
+                                      const SizedBox(height: 20),
+                                    ],
+                                  ),
+                                const TeacherQuickActions(),
+                                const SizedBox(height: 20),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10.0,
+                                    horizontal: 10.0,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Earnings",
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SpendTimeCard(),
+                                SizedBox(height: 10),
+                                WatchTimeCard(),
+                                SizedBox(height: 10),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10.0,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Student Reviews",
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: Colors.grey,
+                                        size: 16,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                StudentReviewsScrollSection(),
+                                SizedBox(height: 10),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10.0,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Dedications & Achievements",
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: Colors.grey,
+                                        size: 16,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                _buildLevelCard(),
+                                const SizedBox(height: 20),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    openWhatsApp(
+                                      context,
+                                      phone: "917510115544",
+                                      message:
+                                          "Hello, I want to connect with your team.",
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.chat_bubble,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  label: const Text(
+                                    "Connect With Our Team",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF25D366),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    elevation: 6,
+                                  ),
+                                ),
+                                const SizedBox(height: 30),
+                                SocialMediaIcons(),
+                                const SizedBox(height: 20),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    UserCredential? userCred =
+                                        await _authService
+                                            .verifyWithGoogleFirebase();
+
+                                    if (userCred != null) {
+                                      final user = userCred.user;
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Account Verified, ${user?.email}!',
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            '❌ Account not found. Please sign up normally.',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: const Text("Sign in with Google"),
+                                ),
+                                const SizedBox(height: 20),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 10,
-                            offset: Offset(0, -2),
-                          ),
-                        ],
-                      ),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          children: [
-                            CustomVerticalStepper(steps: steps),
-                            const SizedBox(height: 20),
-
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                openWhatsApp(
-                                  context,
-                                  phone: "917510115544", // no '+'
-                                  message:
-                                      "Hello, I want to connect with your team.",
-                                );
-                              },
-                              icon: const Icon(
-                                Icons.chat_bubble,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              label: const Text(
-                                "Connect With Our Team",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF25D366),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                elevation: 6,
-                              ),
-                            ),
-                            SizedBox(height: 20),
-
-                            // if (teacher['user']['email_verified_at'] == null)
-                            ElevatedButton(
-                              onPressed: () async {
-                                UserCredential? userCred = await _authService
-                                    .verifyWithGoogleFirebase();
-
-                                if (userCred != null) {
-                                  final user = userCred.user;
-                                  // print(user);
-                                  // print("✅ Signed in: ${user?.email}");
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Account Verified, ${user?.email}!',
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '❌ Account not found. Please sign up normally.',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                              child: const Text("Sign in with Google"),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
-}
 
-// ===== Custom Stepper Widget =====
-class CustomVerticalStepper extends StatelessWidget {
-  final List<StepData> steps;
-
-  const CustomVerticalStepper({super.key, required this.steps});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: List.generate(steps.length, (index) {
-        final step = steps[index];
-        final isLast = index == steps.length - 1;
-
-        return GestureDetector(
-          onTap: step.allow
-              ? () {
-                  context.go(step.route);
-                }
-              : null,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                children: [
-                  Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: step.status == StepStatus.completed
-                          ? Colors.green
-                          : step.status == StepStatus.inProgress
-                          ? Colors.white
-                          : Colors.grey[300],
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: step.status == StepStatus.inProgress
-                            ? Colors.grey
-                            : Colors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  if (!isLast)
-                    Container(
-                      width: 2,
-                      height: 50,
-                      color: step.status == StepStatus.completed
-                          ? Colors.green
-                          : Colors.grey[300],
-                    ),
-                ],
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        spacing: 4,
-                        children: [
-                          Text(
-                            step.title,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: step.allow ? Colors.black : Colors.grey,
-                            ),
-                          ),
-                          if (step.allow == true)
-                            Icon(
-                              // step.status == StepStatus.completed
-                              //     ?
-                              Icons.edit_rounded,
-                                  // : Icons.rotate_right,
-                              color: step.status == StepStatus.completed
-                                  ? Colors.green
-                                  : step.status == StepStatus.inProgress
-                                  ? Colors.blue
-                                  : Colors.grey,
-                              size: 14,
-                            ),
-                        ],
-                      ),
-
-                          if (step.subtitle != null)
-                            SizedBox(
-                              width:300,
-                              child: Text(
-                                step.subtitle!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: step.status == StepStatus.completed
-                                      ? Colors.green
-                                      : step.status == StepStatus.inProgress
-                                      ? Colors.deepPurple
-                                      : Colors.grey,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 5,
-                                softWrap: false,
-                              ),
-                            ),
-
-
-
-                    ],
-                  ),
-                ),
-              ),
-            ],
+  Widget _buildLevelCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.35),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+            blurStyle: BlurStyle.outer,
           ),
-        );
-      }),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          LevelStatusBadge(level: 2, pointsRemaining: 500),
+          const SizedBox(height: 15),
+
+          GoldProgressBar(progress: 0.7),
+          const SizedBox(height: 8),
+        ],
+      ),
     );
+    // }
   }
 }
 
@@ -408,3 +458,265 @@ class StepData {
 }
 
 enum StepStatus { completed, inProgress, pending }
+
+class GoldProgressBar extends StatelessWidget {
+  final double progress; // from 0.0 to 1.0
+  final int leftValue;
+  final int rightValue;
+  final String centerText;
+
+  const GoldProgressBar({
+    super.key,
+    required this.progress,
+    this.leftValue = 2,
+    this.rightValue = 3,
+    this.centerText = '5200/6000',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Blurred background glow
+        ClipRRect(
+          borderRadius: BorderRadius.circular(130),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+            child: Container(
+              height: 30,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF3B14E), Color(0xFFFFCE51)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(130),
+              ),
+            ),
+          ),
+        ),
+
+        // Gold flat progress bar
+        Container(
+          height: 18,
+          margin: const EdgeInsets.symmetric(horizontal: 40),
+          alignment: Alignment.centerLeft,
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(90),
+          ),
+          child: Stack(
+            children: [
+              Container(
+                height: 18,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(90),
+                ),
+              ),
+              FractionallySizedBox(
+                widthFactor: progress,
+                child: Container(
+                  height: 18,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFF3B14E), Color(0xFFFFCE51)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(90),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Left circle + number
+        Positioned(
+          left: 30,
+          child: Row(
+            children: [
+              _goldCircle(),
+              const SizedBox(width: 4),
+              Text(
+                '$leftValue',
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.8,
+                  color: Color(0xFF825C24),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Center text
+        Text(
+          centerText,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 14.8,
+            color: Color(0xFF685613),
+            letterSpacing: 0.025,
+          ),
+        ),
+
+        // Right circle + trophy + number
+        Positioned(
+          right: 30,
+          child: Row(
+            children: [
+              const Icon(
+                Icons.emoji_events,
+                color: Color(0xFF825C24),
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              _goldCircle(),
+              const SizedBox(width: 4),
+              Text(
+                '$rightValue',
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.8,
+                  color: Color(0xFF825C24),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _goldCircle() {
+    return Container(
+      width: 18, // slightly larger for border
+      height: 18,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white, // border color
+      ),
+      child: Center(
+        child: Container(
+          width: 17,
+          height: 17,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [Color(0xFFF3B14E), Color(0xFFFFCE51)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class LevelStatusBadge extends StatelessWidget {
+  final int level;
+  final int pointsRemaining;
+  final IconData icon;
+
+  const LevelStatusBadge({
+    super.key,
+    this.level = 2,
+    this.pointsRemaining = 500,
+    this.icon = Icons.emoji_events, // trophy icon
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Left dark circular background with trophy
+          Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF1A0F24),
+                  border: Border.all(
+                    color: const Color(0xFF3B4043),
+                    width: 2.4,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 6, // adds a small gap between icon and number
+                child: Icon(icon, size: 22, color: const Color(0xFFFFDD64)),
+              ),
+
+              // Gradient text "2"
+              Positioned(
+                bottom: 2, // adds a small gap between icon and number
+                child: ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [
+                      Color.fromRGBO(253, 253, 253, 0.97),
+                      Color(0xFFFFDD64),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ).createShader(bounds),
+                  child: Text(
+                    "$level",
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15.3,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(width: 15),
+
+          // Right side texts
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Level $level',
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 21,
+                  letterSpacing: -0.37,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                '$pointsRemaining Points to next level',
+                style: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14.8,
+                  letterSpacing: 0.02,
+                  color: Colors.black38,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -264,6 +264,30 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
+  //Verify googleAccount
+  Future<bool> verifyWithGoogleFirebase(String idToken) async {
+    await _initialize();
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+
+      final response = await apiService.verifyUserEmail(idToken);
+      print("________________");
+      print(response.success);
+      print(response.message);
+      print("________________");
+      if (response.success) {
+        return true;
+      } else {
+        state = state.copyWith(isLoading: false, error: response.message);
+        return false;
+      }
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+
   // Get user data
   Future<bool> getUserData() async {
     if (state.phoneNumber == null) {

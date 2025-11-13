@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
+import '../../../providers/user_provider.dart';
 import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
 
@@ -112,6 +113,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     final userData = ref.read(authControllerProvider).userData;
     final token = ref.read(authControllerProvider).authToken;
 
+
     print("****************************");
     print("userData Result");
     print(userData);
@@ -152,7 +154,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
 
     await LaunchStatusService.setUserRole(accType);
     await LaunchStatusService.setUserId(userId);
-
+    await ref.read(userProvider.notifier).loadUser();
     print("****************************");
     print("accType");
     print(accType);
