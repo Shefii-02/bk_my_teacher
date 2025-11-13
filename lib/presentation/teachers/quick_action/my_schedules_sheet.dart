@@ -67,6 +67,17 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
                     _focusedDay = focused;
                   });
                 },
+                onPageChanged: (focusedDay) {
+                  setState(() {
+                    _focusedDay = focusedDay;
+
+                    // Optional: reset selected day when month changes
+                    _selectedDay = null;
+
+                    // Optional: load events for the new month if you have a dynamic event source
+                    //  _loadEventsForMonth(focusedDay);
+                  });
+                },
                 eventLoader: _getEventsForDay,
                 calendarStyle: const CalendarStyle(
                   todayDecoration: BoxDecoration(

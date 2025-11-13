@@ -1,4 +1,7 @@
+import 'package:BookMyTeacher/presentation/teachers/quick_action/achievements_sheet.dart';
 import 'package:BookMyTeacher/presentation/teachers/quick_action/my_schedules_sheet.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/own_courses_sheet.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/rating_reviews.dart';
 import 'package:BookMyTeacher/presentation/teachers/quick_action/statistics_sheet.dart';
 import 'package:flutter/material.dart';
 
@@ -21,17 +24,17 @@ class TeacherQuickActions extends StatelessWidget {
       {
         "icon": "assets/images/icons/courses.png",
         "label": "Own Courses",
-        "widget": const SchedulesSheet(),
+        "widget": const OwnCoursesSheet(),
       },
       {
         "icon": "assets/images/icons/rating.png",
         "label": "Rating",
-        "widget": const SchedulesSheet(),
+        "widget": const RatingsReviewsSheet(),
       },
       {
         "icon": "assets/images/icons/achievements.png",
         "label": "Achievements",
-        "widget": const SchedulesSheet(),
+        "widget": const AchievementsSheet(),
       },
     ];
 

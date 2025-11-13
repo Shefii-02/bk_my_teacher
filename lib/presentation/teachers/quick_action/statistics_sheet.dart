@@ -1,13 +1,14 @@
-import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:flutter/rendering.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'dart:io';
-
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/rendering.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class StatisticsSheet extends StatefulWidget {
   const StatisticsSheet({super.key});
@@ -16,14 +17,19 @@ class StatisticsSheet extends StatefulWidget {
   State<StatisticsSheet> createState() => _StatisticsSheetState();
 }
 
-class _StatisticsSheetState extends State<StatisticsSheet> {
+class _StatisticsSheetState extends State<StatisticsSheet>
+    with SingleTickerProviderStateMixin {
+  final GlobalKey repaintKey = GlobalKey();
+  late TabController _tabController;
   String selectedRange = "Last 7 Days";
-  bool showBarChart = false;
-  final GlobalKey _chartKey = GlobalKey();
 
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
 
-  // Teaching stats (Spend time)
-  final Map<String, Map<String, List<double>>> multiLineData = {
+  final Map<String, Map<String, List<double>>> spendLineData = {
     "Last Day": {
       "Individual": [5],
       "Own Courses": [3],
@@ -54,183 +60,318 @@ class _StatisticsSheetState extends State<StatisticsSheet> {
     },
   };
 
-  // Watch stats (Students viewing)
-  final Map<String, Map<String, List<double>>> watchData = {
+  final Map<String, Map<String, List<double>>> watchLineData = {
     "Last Day": {
-      "Individual": [10],
-      "Own Courses": [8],
-      "YouTube": [15],
-      "Workshops": [6],
-      "Webinar": [9],
+      "Individual": [2],
+      "Own Courses": [4],
+      "YouTube": [9],
+      "Workshops": [3],
+      "Webinar": [5],
     },
     "Last 7 Days": {
-      "Individual": [8, 10, 12, 14, 15, 16, 18],
-      "Own Courses": [5, 6, 7, 8, 9, 10, 11],
-      "YouTube": [12, 14, 16, 18, 19, 20, 22],
-      "Workshops": [3, 4, 5, 6, 6, 7, 8],
-      "Webinar": [4, 5, 6, 7, 8, 9, 10],
+      "Individual": [4, 5, 6, 8, 7, 6, 9],
+      "Own Courses": [3, 4, 5, 7, 6, 8, 10],
+      "YouTube": [6, 9, 10, 12, 11, 13, 15],
+      "Workshops": [2, 3, 4, 5, 6, 5, 7],
+      "Webinar": [3, 5, 6, 8, 9, 10, 12],
     },
     "Current Month": {
-      "Individual": List.generate(14, (i) => (i + 4) * 1.4),
-      "Own Courses": List.generate(14, (i) => (i + 2) * 1.2),
+      "Individual": List.generate(14, (i) => (i + 2) * 1.1),
+      "Own Courses": List.generate(14, (i) => (i + 2) * 1.3),
       "YouTube": List.generate(14, (i) => (i + 3) * 1.8),
       "Workshops": List.generate(14, (i) => (i + 1) * 1.0),
-      "Webinar": List.generate(14, (i) => (i + 2) * 1.3),
+      "Webinar": List.generate(14, (i) => (i + 2) * 1.4),
     },
     "Last Month": {
-      "Individual": List.generate(30, (i) => (i + 3) * 1.3),
-      "Own Courses": List.generate(30, (i) => (i + 2) * 1.1),
-      "YouTube": List.generate(30, (i) => (i + 3) * 1.7),
+      "Individual": List.generate(30, (i) => (i + 3) * 1.1),
+      "Own Courses": List.generate(30, (i) => (i + 2) * 1.2),
+      "YouTube": List.generate(30, (i) => (i + 3) * 1.6),
       "Workshops": List.generate(30, (i) => (i + 1) * 0.9),
-      "Webinar": List.generate(30, (i) => (i + 2) * 1.2),
+      "Webinar": List.generate(30, (i) => (i + 2) * 1.3),
     },
   };
 
-  Future<void> _shareScreenshot() async {
+
+  /// 🧩 Capture screenshot for sharing
+  Future<void> _captureAndShare() async {
     try {
       RenderRepaintBoundary boundary =
-      _chartKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       ByteData? byteData =
       await image.toByteData(format: ui.ImageByteFormat.png);
       Uint8List pngBytes = byteData!.buffer.asUint8List();
 
-      final tempDir = await getTemporaryDirectory();
-      final file = await File('${tempDir.path}/statistics.png').create();
+      final directory = await getTemporaryDirectory();
+      final file = File('${directory.path}/teaching_stats.png');
       await file.writeAsBytes(pngBytes);
 
-      await Share.shareXFiles([XFile(file.path)], text: '📊 My Teaching Statistics');
+      await Share.shareXFiles([XFile(file.path)],
+          text: "📊 Teaching Statistics Report");
     } catch (e) {
-      debugPrint('Error sharing screenshot: $e');
+      debugPrint("Error sharing screenshot: $e");
     }
   }
 
-  Future<void> _exportAsPDF() async {
+  /// 🧾 Generate PDF and save to Android Download directory
+  // Future<void> _downloadPDF() async {
+  //   try {
+  //     // ✅ Request permission (Android 10+)
+  //     if (await Permission.manageExternalStorage.request().isDenied) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("❌ Storage permission denied")),
+  //       );
+  //       return;
+  //     }
+  //
+  //     // ✅ Capture the full widget image
+  //     RenderRepaintBoundary boundary =
+  //     repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+  //     ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+  //     ByteData? byteData =
+  //     await image.toByteData(format: ui.ImageByteFormat.png);
+  //     Uint8List pngBytes = byteData!.buffer.asUint8List();
+  //
+  //     final pdf = pw.Document();
+  //     final imageWidget = pw.MemoryImage(pngBytes);
+  //
+  //     final now = DateTime.now();
+  //     final formattedDate =
+  //         "${now.day}-${now.month}-${now.year} ${now.hour}:${now.minute.toString().padLeft(2, '0')}";
+  //
+  //     pdf.addPage(
+  //       pw.Page(
+  //         margin: const pw.EdgeInsets.all(24),
+  //         build: (pw.Context context) => pw.Column(
+  //           crossAxisAlignment: pw.CrossAxisAlignment.center,
+  //           children: [
+  //             pw.Text("📊 Teaching Statistics Report",
+  //                 style: pw.TextStyle(
+  //                     fontSize: 20, fontWeight: pw.FontWeight.bold)),
+  //             pw.SizedBox(height: 8),
+  //             pw.Text("Date Range: $selectedRange",
+  //                 style: const pw.TextStyle(fontSize: 14)),
+  //             pw.Text("Generated on: $formattedDate",
+  //                 style:
+  //                 const pw.TextStyle(fontSize: 12, color: PdfColors.grey)),
+  //             pw.Divider(),
+  //             pw.SizedBox(height: 10),
+  //             pw.Image(imageWidget, fit: pw.BoxFit.contain, width: 450),
+  //           ],
+  //         ),
+  //       ),
+  //     );
+  //
+  //     /// ✅ Save to Android Download folder
+  //     Directory downloadsDir = Directory('/storage/emulated/0/Download');
+  //     Directory targetDir =
+  //     Directory("${downloadsDir.path}/Teaching_Reports");
+  //
+  //     if (!await targetDir.exists()) {
+  //       await targetDir.create(recursive: true);
+  //     }
+  //
+  //     final timestamp = DateTime.now().millisecondsSinceEpoch;
+  //     final file =
+  //     File("${targetDir.path}/teaching_statistics_$timestamp.pdf");
+  //     await file.writeAsBytes(await pdf.save());
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text("✅ PDF saved to Downloads/Teaching_Reports"),
+  //         duration: Duration(seconds: 4),
+  //       ),
+  //     );
+  //
+  //     debugPrint("PDF saved at: ${file.path}");
+  //   } catch (e) {
+  //     debugPrint("Error generating PDF: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("❌ Failed to generate PDF")),
+  //     );
+  //   }
+  // }
+  // Future<void> _downloadPDF() async {
+  //   try {
+  //     RenderRepaintBoundary boundary =
+  //     repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+  //     ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+  //     ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  //     Uint8List pngBytes = byteData!.buffer.asUint8List();
+  //
+  //     final pdf = pw.Document();
+  //     final imageWidget = pw.MemoryImage(pngBytes);
+  //     pdf.addPage(
+  //       pw.Page(
+  //         build: (pw.Context context) =>
+  //             pw.Center(child: pw.Image(imageWidget, fit: pw.BoxFit.contain)),
+  //       ),
+  //     );
+  //
+  //     Directory? baseDir;
+  //
+  //     if (Platform.isAndroid) {
+  //       // ✅ Use public Downloads directory
+  //       baseDir = Directory("/storage/emulated/0/Download/Teaching_Reports");
+  //     } else {
+  //       // Fallback for iOS / desktop
+  //       baseDir = await getApplicationDocumentsDirectory();
+  //       baseDir = Directory("${baseDir.path}/Teaching_Reports");
+  //     }
+  //
+  //     if (!(await baseDir.exists())) {
+  //       await baseDir.create(recursive: true);
+  //     }
+  //
+  //     final timestamp = DateTime.now().millisecondsSinceEpoch;
+  //     final file = File("${baseDir.path}/teaching_statistics_$timestamp.pdf");
+  //
+  //     await file.writeAsBytes(await pdf.save());
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text("✅ PDF saved to: ${file.path}"),
+  //         duration: const Duration(seconds: 4),
+  //       ),
+  //     );
+  //
+  //     debugPrint("PDF saved at: ${file.path}");
+  //   } catch (e) {
+  //     debugPrint("Error generating PDF: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("❌ Failed to generate PDF")),
+  //     );
+  //   }
+  // }
+
+  Future<void> _downloadPDF() async {
     try {
       RenderRepaintBoundary boundary =
-      _chartKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      repaintKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData =
-      await image.toByteData(format: ui.ImageByteFormat.png);
+      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       final pdf = pw.Document();
       final imageWidget = pw.MemoryImage(pngBytes);
-
       pdf.addPage(
         pw.Page(
-          build: (pw.Context context) => pw.Center(
-            child: pw.Column(
-              children: [
-                pw.Text('📊 Teaching Statistics',
-                    style: pw.TextStyle(
-                        fontSize: 22, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 20),
-                pw.Image(imageWidget),
-              ],
-            ),
-          ),
+          build: (pw.Context context) =>
+              pw.Center(child: pw.Image(imageWidget, fit: pw.BoxFit.contain)),
         ),
       );
 
-      final dir = await getApplicationDocumentsDirectory();
-      final file = File("${dir.path}/Teaching_Statistics.pdf");
+      Directory? baseDir;
+
+      if (Platform.isAndroid) {
+        // ✅ Use public Downloads directory
+        baseDir = Directory("/storage/emulated/0/Download/Teaching_Reports");
+      } else {
+        // Fallback for iOS / desktop
+        baseDir = await getApplicationDocumentsDirectory();
+        baseDir = Directory("${baseDir.path}/Teaching_Reports");
+      }
+
+      if (!(await baseDir.exists())) {
+        await baseDir.create(recursive: true);
+      }
+
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final file = File("${baseDir.path}/teaching_statistics_$timestamp.pdf");
+
       await file.writeAsBytes(await pdf.save());
 
-      await Share.shareXFiles([XFile(file.path)], text: '📄 Teaching Statistics Report');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("✅ PDF saved to: ${file.path}"),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+
+      debugPrint("PDF saved at: ${file.path}");
     } catch (e) {
-      debugPrint('Error exporting PDF: $e');
+      debugPrint("Error generating PDF: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("❌ Failed to generate PDF")),
+      );
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final dataSet = multiLineData[selectedRange]!;
-    final watchSet = watchData[selectedRange]!;
-
+    final dataSetSpend = spendLineData[selectedRange]!;
+    final dataSetWatch = watchLineData[selectedRange]!;
     return DraggableScrollableSheet(
       expand: false,
-      initialChildSize: 0.9,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
+      initialChildSize: 0.7,  // Start smaller
+      minChildSize: 0.5,      // Minimum collapsed size
+      maxChildSize: 0.9,      // Maximum expanded size
       builder: (context, scrollController) {
         return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
+          color: Colors.white,
           child: ListView(
             controller: scrollController,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "📊 Teaching Statistics",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
-                        tooltip: "Download PDF",
-                        onPressed: _exportAsPDF,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.share, color: Colors.blueAccent),
-                        tooltip: "Share Screenshot",
-                        onPressed: _shareScreenshot,
-                      ),
-                    ],
-                  ),
-                ],
+              Padding(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("📊 Statistics",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                    Row(
+                      children: [
+                        IconButton(
+                            icon: const Icon(Icons.picture_as_pdf,
+                                color: Colors.redAccent),
+                            onPressed: _downloadPDF),
+                        IconButton(
+                            icon: const Icon(Icons.share,
+                                color: Colors.blueAccent),
+                            onPressed: _captureAndShare),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.grey),
+                          onPressed: () => Navigator.pop(context), // closes the bottom sheet
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20),
-
-
-              // Chart Type Selector
-              _buildChartTypeSelector(),
-              const SizedBox(height: 20),
-              // Range Selector
+              _buildSpendWatchCards(),
               _buildRangeSelector(),
 
-              const SizedBox(height: 10),
-
-
-              const SizedBox(height: 20),
-
-              // Spend Time Section
-              const Text(
-                "🕒 Spend Time (Hours)",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 10),
-              _buildScrollableChart(
-                showBarChart
-                    ? _buildBarChart(dataSet)
-                    : _buildMultiLineChart(dataSet),
-                dataSet,
+              // ✅ Fixed Tab UI
+              TabBar(
+                controller: _tabController,
+                labelColor: Colors.blueAccent,
+                unselectedLabelColor: Colors.grey,
+                indicatorColor: Colors.blueAccent,
+                tabs: const [
+                  Tab(icon: Icon(Icons.show_chart), text: "Line Chart"),
+                  Tab(icon: Icon(Icons.bar_chart), text: "Bar Chart"),
+                ],
               ),
 
-              const SizedBox(height: 30),
-
-              // Watch Time Section
-              const Text(
-                "👀 Students Watch Time",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              // ✅ Full chart captured
+              RepaintBoundary(
+                key: repaintKey,
+                child: SizedBox(
+                  height: 750,
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildScrollableCharts(dataSetSpend,dataSetWatch, chartType: 'line'),
+                      _buildScrollableCharts(dataSetSpend,dataSetWatch, chartType: 'bar'),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 10),
-              _buildScrollableChart(
-                showBarChart
-                    ? _buildBarChart(watchSet)
-                    : _buildMultiLineChart(watchSet),
-                watchSet,
-              ),
-
-              const SizedBox(height: 30),
+              const SizedBox(height: 16),
               _buildLegend(),
+              const SizedBox(height: 20),
             ],
           ),
         );
@@ -238,76 +379,120 @@ class _StatisticsSheetState extends State<StatisticsSheet> {
     );
   }
 
-  /// 🧭 Range Selector
+  Widget _buildSpendWatchCards() => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _infoCard("🕒 Spend Time", "12 hrs", Colors.indigo),
+        _infoCard("👁 Watch Time", "34 hrs", Colors.orange),
+      ],
+    ),
+  );
+
+  Widget _infoCard(String title, String value, Color color) => Expanded(
+    child: Card(
+      elevation: 3,
+      shape:
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Column(
+          children: [
+            Text(title,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    fontSize: 14)),
+            const SizedBox(height: 4),
+            Text(value,
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+    ),
+  );
+
   Widget _buildRangeSelector() {
     final ranges = ["Last Day", "Last 7 Days", "Current Month", "Last Month"];
-    return SizedBox(
-      height: 40,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          children: ranges.map((range) {
-            final bool isSelected = selectedRange == range;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: ChoiceChip(
-                label: Text(range),
-                selected: isSelected,
-                selectedColor: Colors.blueAccent,
-                backgroundColor: Colors.grey.shade200,
-                labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.w500,
-                ),
-                onSelected: (_) => setState(() => selectedRange = range),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        children: ranges.map((range) {
+          final selected = selectedRange == range;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: ChoiceChip(
+              label: Text(range),
+              selected: selected,
+              selectedColor: Colors.blueAccent,
+              backgroundColor: Colors.grey.shade200,
+              labelStyle: TextStyle(
+                color: selected ? Colors.white : Colors.black,
+                fontWeight: FontWeight.w500,
               ),
-            );
-          }).toList(),
-        ),
+              onSelected: (_) => setState(() => selectedRange = range),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 
-  /// 🧭 Chart Type Selector (Line / Bar)
-  Widget _buildChartTypeSelector() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildScrollableCharts(
+      Map<String, List<double>> spendDataSet,
+      Map<String, List<double>> watchDataSet,
+      {required String chartType}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ChoiceChip(
-          label: const Text("Line Chart",style: TextStyle(color: Colors.white),),
-          selected: !showBarChart,
-          onSelected: (_) => setState(() => showBarChart = false),
-          selectedColor: Colors.green,
+        // --- Spend Time Chart ---
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text("🕒 Spend Time",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo)),
         ),
-        const SizedBox(width: 8),
-        ChoiceChip(
-          label: const Text("Bar Chart"),
-          selected: showBarChart,
-          onSelected: (_) => setState(() => showBarChart = true),
-          selectedColor: Colors.blueAccent,
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: (spendDataSet.values.first.length * 50).toDouble().clamp(400, double.infinity),
+            height: 320,
+            child: chartType == 'line'
+                ? _buildMultiLineChart(spendDataSet)
+                : _buildBarChart(spendDataSet),
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // --- Watch Time Chart ---
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text("👁 Watch Time",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange)),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: (watchDataSet.values.first.length * 50).toDouble().clamp(400, double.infinity),
+            height: 320,
+            child: chartType == 'line'
+                ? _buildMultiLineChart(watchDataSet)
+                : _buildBarChart(watchDataSet),
+          ),
         ),
       ],
     );
   }
 
-  /// 📊 Scrollable Chart Wrapper
-  Widget _buildScrollableChart(Widget chart, Map<String, List<double>> dataSet) {
-    final bool isWide = dataSet.values.first.length > 14;
-    final double chartWidth = isWide
-        ? dataSet.values.first.length * 40.0
-        : MediaQuery.of(context).size.width;
-
-    return SizedBox(
-      height: 300,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: SizedBox(width: chartWidth, child: chart),
-      ),
-    );
-  }
-
-  /// 📈 Multi Line Chart
+// --- MultiLine Chart Function ---
   Widget _buildMultiLineChart(Map<String, List<double>> dataSet) {
     final colors = {
       "Individual": Colors.blueAccent,
@@ -317,60 +502,46 @@ class _StatisticsSheetState extends State<StatisticsSheet> {
       "Webinar": Colors.purple,
     };
 
-    final double maxY = dataSet.values.expand((e) => e).reduce((a, b) => a > b ? a : b);
-    final double minY = dataSet.values.expand((e) => e).reduce((a, b) => a < b ? a : b);
+    final maxY =
+        dataSet.values.expand((e) => e).reduce((a, b) => a > b ? a : b) + 1;
 
-    return LineChart(
-      LineChartData(
-        minY: minY - 1,
-        maxY: maxY + 1,
-        gridData: const FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        lineTouchData: LineTouchData(enabled: true),
-        titlesData: FlTitlesData(
-          topTitles: const AxisTitles(drawBelowEverything: true), // 🔥 Removed top numbers
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              reservedSize: 30,
-              showTitles: true,
-              getTitlesWidget: (v, _) =>
-                  Text(v.toInt().toString(), style: const TextStyle(fontSize: 10)),
+    return LineChart(LineChartData(
+      minY: 0,
+      maxY: maxY,
+      gridData: const FlGridData(show: false),
+      borderData: FlBorderData(show: false),
+      lineBarsData: dataSet.entries.map((entry) {
+        final color = colors[entry.key]!;
+        return LineChartBarData(
+          isCurved: true,
+          spots: List.generate(
+              entry.value.length, (i) => FlSpot(i.toDouble(), entry.value[i])),
+          color: color,
+          barWidth: 2.5,
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(
+            show: true,
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.25), Colors.transparent],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
           ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (v, _) =>
-                  Text("${v.toInt() + 1}", style: const TextStyle(fontSize: 10)),
-            ),
-          ),
-        ),
-        lineBarsData: dataSet.entries.map((entry) {
-          final color = colors[entry.key]!;
-          return LineChartBarData(
-            isCurved: true,
-            spots: List.generate(
-              entry.value.length,
-                  (i) => FlSpot(i.toDouble(), entry.value[i]),
-            ),
-            color: color,
-            barWidth: 2.5,
-            dotData: const FlDotData(show: false),
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                colors: [color.withOpacity(0.3), Colors.transparent],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          );
-        }).toList(),
+        );
+      }).toList(),
+      titlesData: const FlTitlesData(
+        topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        leftTitles: AxisTitles(
+            sideTitles:
+            SideTitles(showTitles: true, reservedSize: 28, interval: 2)),
+        bottomTitles:
+        AxisTitles(sideTitles: SideTitles(showTitles: true, interval: 1)),
       ),
-    );
+    ));
   }
 
-  /// 📊 Bar Chart
+// --- Bar Chart Function ---
   Widget _buildBarChart(Map<String, List<double>> dataSet) {
     final colors = {
       "Individual": Colors.blueAccent,
@@ -380,51 +551,40 @@ class _StatisticsSheetState extends State<StatisticsSheet> {
       "Webinar": Colors.purple,
     };
 
-    final double maxY = dataSet.values.expand((e) => e).reduce((a, b) => a > b ? a : b);
+    final barGroups = <BarChartGroupData>[];
+    for (int i = 0; i < dataSet.values.first.length; i++) {
+      barGroups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: dataSet.entries
+              .map((entry) => BarChartRodData(
+            toY: entry.value[i],
+            color: colors[entry.key],
+            width: 6,
+          ))
+              .toList(),
+        ),
+      );
+    }
 
     return BarChart(
       BarChartData(
-        maxY: maxY + 2,
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
-        barGroups: List.generate(
-          dataSet.values.first.length,
-              (i) => BarChartGroupData(
-            x: i,
-            barsSpace: 4,
-            barRods: dataSet.entries.map((entry) {
-              final color = colors[entry.key]!;
-              return BarChartRodData(
-                toY: entry.value[i],
-                color: color,
-                width: 10,
-                borderRadius: BorderRadius.circular(3),
-              );
-            }).toList(),
-          ),
-        ),
-        titlesData: FlTitlesData(
+        barGroups: barGroups,
+        titlesData: const FlTitlesData(
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
           leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              getTitlesWidget: (v, _) =>
-                  Text(v.toInt().toString(), style: const TextStyle(fontSize: 10)),
-            ),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (v, _) =>
-                  Text("${v.toInt() + 1}", style: const TextStyle(fontSize: 10)),
-            ),
-          ),
+              sideTitles:
+              SideTitles(showTitles: true, reservedSize: 28, interval: 2)),
+          bottomTitles:
+          AxisTitles(sideTitles: SideTitles(showTitles: true, interval: 1)),
         ),
       ),
     );
   }
 
-  /// 🎨 Legend Section
   Widget _buildLegend() {
     final legends = {
       "Individual": Colors.blueAccent,
@@ -433,28 +593,25 @@ class _StatisticsSheetState extends State<StatisticsSheet> {
       "Workshops": Colors.orange,
       "Webinar": Colors.purple,
     };
-
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 10,
-      runSpacing: 6,
-      children: legends.entries.map((entry) {
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(
-                color: entry.value,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(entry.key, style: const TextStyle(fontSize: 12)),
-          ],
-        );
-      }).toList(),
+      spacing: 12,
+      runSpacing: 8,
+      children: legends.entries
+          .map((e) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+                color: e.value, borderRadius: BorderRadius.circular(3)),
+          ),
+          const SizedBox(width: 4),
+          Text(e.key, style: const TextStyle(fontSize: 12)),
+        ],
+      ))
+          .toList(),
     );
   }
 }

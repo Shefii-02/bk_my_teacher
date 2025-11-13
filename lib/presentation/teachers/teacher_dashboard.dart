@@ -64,16 +64,16 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
               BottomNavigationBarItem(
-                icon: Icon(Icons.group),
-                label: "Students",
+                icon: Icon(Icons.calendar_month),
+                label: "Schedule",
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.menu_book),
-                label: "Courses",
+                label: "Store",
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.video_library),
-                label: "My Class",
+                icon: Icon(Icons.bar_chart),
+                label: "Statistics",
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person),
