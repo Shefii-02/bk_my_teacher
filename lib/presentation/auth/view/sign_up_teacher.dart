@@ -1,5 +1,6 @@
 import 'dart:io' show File;
 import 'dart:typed_data';
+import 'package:BookMyTeacher/presentation/auth/view/referral_popup.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -105,10 +106,13 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   List<String> _selectedGrades = [];
   List<String> _selectedSubjects = [];
 
+ final String autoFilledRefCode = '';
+
   @override
   void initState() {
     super.initState();
     _loadData();
+    _loadRefCode();
   }
 
   String? _nonNegInt(String? v) {
@@ -139,6 +143,11 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     } catch (e) {
       debugPrint("Error fetching data: $e");
     }
+  }
+
+
+  Future<String> _loadRefCode() async{
+    return await LaunchStatusService.getReferralCode();
   }
 
   // ---------- Validators (copied from your original code) ----------
@@ -318,7 +327,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     setState(() => _isLoading = true);
 
     try {
-      print(formData);
       final response = await container.read(
         teacherSignupProvider(formData).future,
       );
@@ -332,16 +340,17 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
       final userRole = response['user']?['acc_type'] ?? 'teacher';
       final user = response['user'];
 
-      print(user);
 
       if (user != null) {
         await LaunchStatusService.saveUserData(user);
         await LaunchStatusService.setUserRole(userRole);
         // await LaunchStatusService.setUserId(userId);
-        context.go('/teacher-dashboard', extra: {'teacherId': userId});
+        // 🔥 Show referral popup BEFORE navigating
+        _showReferralPopup(context);
+        // context.go('/teacher-dashboard', extra: {'teacherId': userId});
       }
     } catch (e) {
-      print(e);
+
       _toast("❌ Error: $e");
     } finally {
       setState(() => _isLoading = false);
@@ -1325,6 +1334,19 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
           vertical: 14,
         ),
       ),
+    );
+  }
+
+  void _showReferralPopup(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        return ReferralPopup();
+      },
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:BookMyTeacher/presentation/teachers/schedule_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../../providers/user_provider.dart';
@@ -38,7 +39,7 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
 
     _screens = [
       DashboardHome(),
-      StudentsList(),
+      SchedulePage(),
       CoursesScreen(),
       MyClassList(),
       ProfileScreen(),

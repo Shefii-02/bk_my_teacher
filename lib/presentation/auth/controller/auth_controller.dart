@@ -238,9 +238,7 @@ class AuthController extends StateNotifier<AuthState> {
       state = state.copyWith(isLoading: true, error: null);
 
       final response = await apiService.userLoginEmail(idToken);
-      print("________________");
-      print(response);
-      print("________________");
+
       if (response.success) {
         final token =
             response.data?['token'] ?? response.data?['data']?['token'];

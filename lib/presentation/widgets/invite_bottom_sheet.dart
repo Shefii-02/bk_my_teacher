@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/endpoints.dart';
 import '../../services/api_service.dart';
-import '../../services/launch_status_service.dart';
-import '../widgets/invite_bottom_sheet.dart';
 import '../widgets/show_success_alert.dart';
 
 

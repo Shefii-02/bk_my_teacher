@@ -12,11 +12,6 @@ class TeacherQuickActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> actions = [
       {
-        "icon": "assets/images/icons/statistics.png",
-        "label": "Statistics",
-        "widget": const StatisticsSheet(),
-      },
-      {
         "icon": "assets/images/icons/schedules.png",
         "label": "My Schedules",
         "widget": const SchedulesSheet(),
@@ -25,6 +20,11 @@ class TeacherQuickActions extends StatelessWidget {
         "icon": "assets/images/icons/courses.png",
         "label": "Own Courses",
         "widget": const OwnCoursesSheet(),
+      },
+      {
+        "icon": "assets/images/icons/statistics.png",
+        "label": "Statistics",
+        "widget": const StatisticsSheet(),
       },
       {
         "icon": "assets/images/icons/rating.png",

@@ -23,6 +23,7 @@ class _YoutubeEmbedState extends State<YoutubeEmbed> {
     _controller = YoutubePlayerController(
       initialVideoId: widget.videoId,
       flags: const YoutubePlayerFlags(
+        showLiveFullscreenButton: false,
         autoPlay: true,
         mute: false,
         disableDragSeek: true,
@@ -91,12 +92,91 @@ class _YoutubeEmbedState extends State<YoutubeEmbed> {
                   ),
                   if (!_isPlayerReady)
                     const Center(child: CircularProgressIndicator()),
+
                 ],
               ),
             );
           },
         ),
       ),
+    );
+  }
+}
+
+
+
+class YouTubeVideoPlayer extends StatefulWidget {
+  final String videoId;
+  const YouTubeVideoPlayer({super.key, required this.videoId});
+
+  @override
+  _YouTubeVideoPlayerState createState() => _YouTubeVideoPlayerState();
+}
+
+class _YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
+  late YoutubePlayerController _controller;
+
+  @override
+  void initState() {
+
+    _controller = YoutubePlayerController(
+      initialVideoId: widget.videoId,
+      flags: YoutubePlayerFlags(
+        autoPlay: false,
+        mute: false,
+        enableCaption: true,
+        isLive: false,
+        hideControls: true,
+      ),
+    );
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return YoutubePlayerBuilder(
+        player: YoutubePlayer(controller: _controller),
+        builder: (context, player) {
+          return Column(
+            children: [
+              player,
+              Center(
+                child: IconButton(
+                  onPressed: () {
+                    if (_controller.value.isPlaying) {
+                      _controller.pause();
+                    } else {
+                      _controller.play();
+                    }
+                  },
+                  icon: _controller.value.isPlaying ? Icon(Icons.pause_rounded, size: 48) : Icon(Icons.play_arrow_rounded, size: 48),
+                ),
+              ),
+              Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Text(_controller.metadata.title,
+                        style: TextStyle(
+                          fontSize: 20,
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text("By: ${_controller.metadata.author}"),
+                      ),
+                    ],
+                  )
+              ),
+            ],
+          );
+        },
     );
   }
 }

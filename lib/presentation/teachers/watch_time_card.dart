@@ -1,3 +1,4 @@
+import 'package:BookMyTeacher/presentation/teachers/quick_action/watch_time_sheet.dart';
 import 'package:flutter/material.dart';
 
 class WatchTimeCard extends StatelessWidget {
@@ -34,7 +35,22 @@ class WatchTimeCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              Icon(Icons.chevron_right, color: Colors.black.withOpacity(0.6)),
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (_) => WatchTimeSheet(),
+                  );
+                },
+                child: Icon(
+                  Icons.chevron_right,
+                  color: Colors.black.withOpacity(0.6),
+                ),
+              )
             ],
           ),
           const SizedBox(height: 10),
@@ -116,8 +132,6 @@ class _SpendItem extends StatelessWidget {
               ),
             ],
           )
-
-
         ],
       ),
     );

@@ -347,10 +347,9 @@ class ApiService {
     }
   }
 
-
   Future<ApiResponse<Map<String, dynamic>>> verifyUserEmail(
-      String idToken,
-      ) async {
+    String idToken,
+  ) async {
     try {
       final box = await Hive.openBox('app_storage');
       final token = box.get('auth_token') ?? '';
@@ -416,6 +415,33 @@ class ApiService {
     return StudentModel.fromJson(data);
   }
 
+  Future<Map<String, dynamic>> applyReferralProvider(String data) async {
+
+    final box = await Hive.openBox('app_storage');
+    final token = box.get('auth_token') ?? '';
+
+    if (token.isNotEmpty) setAuthToken(token);
+
+    final response = await _dio.post(
+      "/apply-referral",
+      data: {"referral_code": data},
+    );
+
+    return response.data;
+  }
+
+
+  Future<Map<String, dynamic>> takeReferral() async {
+    final box = await Hive.openBox('app_storage');
+    final token = box.get('auth_token') ?? '';
+
+    if (token.isNotEmpty) setAuthToken(token);
+    final response = await _dio.post(
+      "/take-referral"
+    );
+    return response.data;
+  }
+
 
 
   // Fetch top banners
@@ -440,9 +466,9 @@ class ApiService {
         'id': id,
         'title': 'Flutter Mastery Bootcamp',
         'description':
-        'A complete guide to mastering Flutter development — from basics to advanced topics.',
+            'A complete guide to mastering Flutter development — from basics to advanced topics.',
         'image':
-        'https://cdn.dribbble.com/users/1626229/screenshots/11174104/flutter_intro.png',
+            'https://cdn.dribbble.com/users/1626229/screenshots/11174104/flutter_intro.png',
       },
       'materials': [
         {
@@ -719,9 +745,6 @@ class ApiService {
   //     rethrow;
   //   }
   // }
-
-
-
 
   Future<Map<String, dynamic>> fetchSubjects() async {
     final res = await _dio.get('/subjects');

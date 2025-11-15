@@ -219,7 +219,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
       final userData = ref.read(authControllerProvider).userData;
       final token = ref.read(authControllerProvider).authToken;
-      await ref.read(userProvider.notifier).loadUser();
 
       debugPrint("✅ Google Login response received");
       debugPrint("userData: $userData");
@@ -254,10 +253,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       if (profileFill == 1) {
         switch (accType) {
           case 'teacher':
-            context.go('/teacher-dashboard', extra: {'teacherId': userId});
+            context.go('/teacher-dashboard');
             break;
           case 'student':
-            context.go('/student-dashboard', extra: {'studentId': userId});
+            context.go('/student-dashboard');
             break;
           case 'guest':
             context.go('/guest-dashboard', extra: {'guestId': userId});

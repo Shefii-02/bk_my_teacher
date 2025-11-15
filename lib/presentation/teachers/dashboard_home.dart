@@ -1,5 +1,8 @@
 import 'dart:ui';
 import 'package:BookMyTeacher/presentation/teachers/account_message_card.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/achievements_sheet.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/rating_reviews.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/watch_time_sheet.dart';
 import 'package:BookMyTeacher/presentation/teachers/spend_time_card.dart';
 import 'package:BookMyTeacher/presentation/teachers/student_reviews_scroll_section.dart';
 import 'package:BookMyTeacher/presentation/teachers/teacher_quick_actions.dart';
@@ -289,10 +292,26 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const Icon(
-                                        Icons.arrow_forward_ios,
-                                        color: Colors.grey,
-                                        size: 16,
+                                      GestureDetector(
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.vertical(
+                                                    top: Radius.circular(20),
+                                                  ),
+                                            ),
+                                            builder: (_) =>
+                                                RatingsReviewsSheet(),
+                                          );
+                                        },
+                                        child: const Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: Colors.grey,
+                                          size: 16,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -315,10 +334,26 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      const Icon(
-                                        Icons.arrow_forward_ios,
-                                        color: Colors.grey,
-                                        size: 16,
+                                      GestureDetector(
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.vertical(
+                                                    top: Radius.circular(20),
+                                                  ),
+                                            ),
+                                            builder: (_) =>
+                                                AchievementsSheet(),
+                                          );
+                                        },
+                                        child: const Icon(
+                                          Icons.arrow_forward_ios,
+                                          color: Colors.grey,
+                                          size: 16,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -362,38 +397,6 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                 ),
                                 const SizedBox(height: 30),
                                 SocialMediaIcons(),
-                                const SizedBox(height: 20),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    UserCredential? userCred =
-                                        await _authService
-                                            .verifyWithGoogleFirebase();
-
-                                    if (userCred != null) {
-                                      final user = userCred.user;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Account Verified, ${user?.email}!',
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            '❌ Account not found. Please sign up normally.',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: const Text("Sign in with Google"),
-                                ),
                                 const SizedBox(height: 20),
                               ],
                             ),

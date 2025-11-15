@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/user_provider.dart';
 import '../../services/launch_status_service.dart';
+import '../auth/controller/auth_controller.dart';
 
-class AccountManagePage extends StatefulWidget {
+class AccountManagePage extends ConsumerStatefulWidget {
   const AccountManagePage({super.key});
 
   @override
-  State<AccountManagePage> createState() => _AccountManagePageState();
+  ConsumerState<AccountManagePage> createState() => _AccountManagePageState();
 }
 
-class _AccountManagePageState extends State<AccountManagePage> {
+class _AccountManagePageState extends ConsumerState<AccountManagePage> {
   bool chatEnabled = true;
   bool commentEnabled = false;
   bool groupStudyEnabled = true;
@@ -84,6 +86,8 @@ class _AccountManagePageState extends State<AccountManagePage> {
                 "Are you sure you want to logout?",
               );
               if (confirmed) {
+                ref.invalidate(userProvider);
+                ref.invalidate(authControllerProvider);
                 await LaunchStatusService.resetApp();
                 context.go('/auth');
               }

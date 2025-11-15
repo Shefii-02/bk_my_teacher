@@ -28,6 +28,7 @@ class RecordedVideoWithDoubt extends StatelessWidget {
             YoutubeEmbed(videoId: 'HhjHYkPQ8F0',),
             const SizedBox(height: 20),
             const DoubtClearSection(),
+            YouTubeVideoPlayer( videoId: 'uM3Bjbskv48')
           ],
         ),
       ),
