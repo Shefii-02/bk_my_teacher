@@ -6,6 +6,12 @@ import 'package:hive/hive.dart';
 import '../core/constants/endpoints.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../model/course_details_model.dart';
+import '../model/course_model.dart';
+import '../model/schedule_model.dart';
+import '../model/statistics_model.dart';
+import '../model/stats_api_response.dart' hide StatisticsModel;
+
 class TeacherApiService {
   final Dio _dio = Dio(
     BaseOptions(
@@ -19,6 +25,17 @@ class TeacherApiService {
   // 🔹 Add auth token to header
   void setAuthToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
+  }
+
+  // ---------------------------------------------------------------------------
+  // 🔹 COMMON — Load token & add in header
+  // ---------------------------------------------------------------------------
+  Future<void> _loadAuth() async {
+
+    final box = await Hive.openBox('app_storage');
+    final token = box.get('auth_token') ?? '';
+
+    if (token.isNotEmpty) setAuthToken(token);
   }
 
   Future<Map<String, dynamic>> registerTeacher({
@@ -122,10 +139,10 @@ class TeacherApiService {
 
   Future<Map<String, dynamic>> fetchTeacherData() async {
     try {
-      final box = await Hive.openBox('app_storage');
-      final token = box.get('auth_token') ?? '';
-      if (token.isNotEmpty) setAuthToken(token);
-
+      // final box = await Hive.openBox('app_storage');
+      // final token = box.get('auth_token') ?? '';
+      // if (token.isNotEmpty) setAuthToken(token);
+      await _loadAuth();
       final response = await _dio.post(Endpoints.teacherHome);
 
       if (response.statusCode == 200 && response.data != null) {
@@ -181,10 +198,10 @@ class TeacherApiService {
         }
       }
 
-      final box = await Hive.openBox('app_storage');
-      final token = box.get('auth_token') ?? '';
-      if (token.isNotEmpty) setAuthToken(token);
-
+      // final box = await Hive.openBox('app_storage');
+      // final token = box.get('auth_token') ?? '';
+      // if (token.isNotEmpty) setAuthToken(token);
+      await _loadAuth();
       final response = await _dio.post(Endpoints.teacherUpdatePersonal, data: formData);
 
       return response.data;
@@ -219,9 +236,10 @@ class TeacherApiService {
         "home_exp": homeExp,
       });
 
-      final box = await Hive.openBox('app_storage');
-      final token = box.get('auth_token') ?? '';
-      if (token.isNotEmpty) setAuthToken(token);
+      // final box = await Hive.openBox('app_storage');
+      // final token = box.get('auth_token') ?? '';
+      // if (token.isNotEmpty) setAuthToken(token);
+      await _loadAuth();
 
       final response = await _dio.post(Endpoints.teacherUpdateTeachingDetails, data: formData);
 
@@ -233,8 +251,6 @@ class TeacherApiService {
 
   Future<Map<String, dynamic>> updateCvTeacher({PlatformFile? cvFile}) async {
     try {
-      print(cvFile);
-      print("*******");
       final formData = FormData();
       // ✅ CV handling
       if (cvFile != null) {
@@ -254,9 +270,8 @@ class TeacherApiService {
           );
         }
       }
-      final box = await Hive.openBox('app_storage');
-      final token = box.get('auth_token') ?? '';
-      if (token.isNotEmpty) setAuthToken(token);
+
+      await _loadAuth();
 
       final response = await _dio.post(Endpoints.teacherUpdateCv, data: formData);
 
@@ -265,4 +280,52 @@ class TeacherApiService {
       throw Exception(e.response?.data ?? "Signup failed");
     }
   }
+
+  Future<ScheduleResponse> fetchTeacherSchedule() async {
+    // final box = await Hive.openBox('app_storage');
+    // final token = box.get('auth_token') ?? '';
+    // if (token.isNotEmpty) setAuthToken(token);
+    await _loadAuth();
+
+    final response = await _dio.post('/teacher/schedule');
+
+    // assume backend returns JSON structure as agreed
+    return ScheduleResponse.fromJson(response.data);
+  }
+
+
+  Future<CourseSummary> fetchTeacherCourses() async {
+    await _loadAuth();
+    final res = await _dio.post('/teacher/courses');
+    return CourseSummary.fromJson(res.data);
+  }
+
+
+  Future<CourseDetails> fetchTeacherCourseSummary(int id) async {
+    await _loadAuth();
+    final res = await _dio.post('/teacher/course-details', data: {"id": id});
+    return CourseDetails.fromJson(res.data);
+  }
+
+
+
+  Future<StatisticsModel> fetchStatistics() async {
+    try {
+      await _loadAuth();
+      final response = await _dio.post("/teacher/statistics");
+
+      if (response.statusCode == 200 && response.data != null) {
+        return StatisticsModel.fromJson(response.data);
+      } else {
+        throw Exception(
+            "Invalid API response: ${response.statusCode} → ${response.data}");
+      }
+    } on DioException catch (e) {
+      throw Exception("Dio Error: ${e.message}");
+    } catch (e) {
+      throw Exception("Unknown Error: $e");
+    }
+  }
+
+
 }

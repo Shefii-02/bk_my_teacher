@@ -9,16 +9,16 @@ class RatingsReviewsSheet extends StatefulWidget {
 
 class _RatingsReviewsSheetState extends State<RatingsReviewsSheet> {
   // Dummy review data
-  final Map<String, List<Map<String, dynamic>>> courseReviews = {
-    "Flutter Basics": [
-      {"student": "Alice", "rating": 5.0, "comment": "Excellent!", "date": "Nov 10"},
-      {"student": "Bob", "rating": 4.0, "comment": "Very helpful", "date": "Nov 11"},
-    ],
-    "Laravel Advanced": [
-      {"student": "Charlie", "rating": 4.5, "comment": "Good explanations", "date": "Nov 12"},
-      {"student": "David", "rating": 4.0, "comment": "Learned a lot", "date": "Nov 13"},
-    ],
-  };
+  // final Map<String, List<Map<String, dynamic>>> courseReviews = {
+  //   "Flutter Basics": [
+  //     {"student": "Alice", "rating": 5.0, "comment": "Excellent!", "date": "Nov 10"},
+  //     {"student": "Bob", "rating": 4.0, "comment": "Very helpful", "date": "Nov 11"},
+  //   ],
+  //   "Laravel Advanced": [
+  //     {"student": "Charlie", "rating": 4.5, "comment": "Good explanations", "date": "Nov 12"},
+  //     {"student": "David", "rating": 4.0, "comment": "Learned a lot", "date": "Nov 13"},
+  //   ],
+  // };
 
   String selectedCourse = "Flutter Basics";
 

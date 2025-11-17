@@ -1,7 +1,14 @@
+// schedules_sheet.dart
+import 'dart:collection';
+import 'package:BookMyTeacher/services/teacher_api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../model/schedule_model.dart';
+import 'class_details_screen.dart';
+
 class SchedulesSheet extends StatefulWidget {
+
   const SchedulesSheet({super.key});
 
   @override
@@ -11,23 +18,57 @@ class SchedulesSheet extends StatefulWidget {
 class _SchedulesSheetState extends State<SchedulesSheet> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  bool _loading = false;
+  DateTime _firstDay = DateTime.now();
+  DateTime _lastDay = DateTime.now();
 
-  // Dummy schedule data
-  final Map<DateTime, List<Map<String, String>>> _events = {
-    DateTime.utc(2025, 11, 10): [
-      {"type": "Individual Class", "time": "10:00 AM - 11:00 AM"},
-      {"type": "Own Course Class", "time": "2:00 PM - 3:30 PM"},
-    ],
-    DateTime.utc(2025, 11, 12): [
-      {"type": "Webinar", "time": "6:00 PM - 8:00 PM"},
-    ],
-    DateTime.utc(2025, 11, 15): [
-      {"type": "Workshop", "time": "11:00 AM - 1:00 PM"},
-    ],
-  };
 
-  List<Map<String, String>> _getEventsForDay(DateTime day) {
+  // Map with DateTime.utc(day) keys and list of ScheduleEvent values
+  Map<DateTime, List<ScheduleEvent>> _events = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMonthlyEvents(_focusedDay);
+  }
+
+  // Convert backend date string keys ("2025-11-10") to DateTime.utc key
+  DateTime _toKey(String dateString) {
+    final d = DateTime.parse(dateString);
+    return DateTime.utc(d.year, d.month, d.day);
+  }
+
+  List<ScheduleEvent> _getEventsForDay(DateTime day) {
     return _events[DateTime.utc(day.year, day.month, day.day)] ?? [];
+  }
+
+  Future<void> _loadMonthlyEvents(DateTime month) async {
+    setState(() => _loading = true);
+    final monthStr = "${month.year.toString().padLeft(4, '0')}-${month.month.toString().padLeft(2, '0')}";
+    try {
+      final resp = await TeacherApiService().fetchTeacherSchedule();
+
+      final Map<DateTime, List<ScheduleEvent>> newEvents = {};
+      resp.events.forEach((dateStr, list) {
+        final key = _toKey(dateStr);
+        newEvents[key] = list;
+      });
+
+      setState(() {
+        _events = newEvents;
+        _firstDay = resp.firstDay;
+        _lastDay = resp.lastDay;
+      });
+
+    } catch (e) {
+      // handle error (toast/snackbar)
+      debugPrint('Failed to load schedule: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load schedule: $e')),
+      );
+    } finally {
+      setState(() => _loading = false);
+    }
   }
 
   @override
@@ -41,25 +82,34 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: Color(0x4DFFFFFF),
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          child:
-          ListView(
+          child: ListView(
             controller: scrollController,
             children: [
-              const Center(
-                child: Text(
-                  "🗓 My Schedules",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 40), // balance alignment
+                  const Text(
+                    "🗓 My Schedules",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                ],
               ),
               const SizedBox(height: 12),
-              // 📆 Calendar
+
               TableCalendar(
                 focusedDay: _focusedDay,
-                firstDay: DateTime.utc(2024, 1, 1),
-                lastDay: DateTime.utc(2030, 12, 31),
+                // firstDay: DateTime.utc(2024, 1, 1),
+                // lastDay: DateTime.utc(2030, 12, 31),
+                firstDay: _firstDay,
+                lastDay: _lastDay,
                 selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                 onDaySelected: (selected, focused) {
                   setState(() {
@@ -70,13 +120,9 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
                 onPageChanged: (focusedDay) {
                   setState(() {
                     _focusedDay = focusedDay;
-
-                    // Optional: reset selected day when month changes
                     _selectedDay = null;
-
-                    // Optional: load events for the new month if you have a dynamic event source
-                    //  _loadEventsForMonth(focusedDay);
                   });
+                  _loadMonthlyEvents(focusedDay);
                 },
                 eventLoader: _getEventsForDay,
                 calendarStyle: const CalendarStyle(
@@ -101,32 +147,66 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
 
               const SizedBox(height: 16),
 
-              // 🧾 Scheduled Classes List
-              if (_selectedDay == null)
-                const Center(
-                    child: Text("Select a date to see your schedule")),
+              if (_loading)
+                const Center(child: CircularProgressIndicator()),
+              if (!_loading && _selectedDay == null)
+                const Center(child: Text("Select a date to see your schedule")),
+              const SizedBox(height: 8),
+
               if (_selectedDay != null)
                 ..._getEventsForDay(_selectedDay!).map((event) {
                   return Card(
-                    margin:
-                    const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                    margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 2,
                     child: ListTile(
-                      leading: _buildIcon(event["type"]!),
-                      title: Text(event["type"]!),
-                      subtitle: Text(event["time"]!),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.info_outline),
-                        onPressed: () {
-                          _showClassDetails(context, event);
-                        },
+                      leading: event.thumbnailUrl != null
+                          ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          event.thumbnailUrl!,
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.cover,
+                          errorBuilder: (c, e, st) => CircleAvatar(child: Icon(Icons.event)),
+                        ),
+                      )
+                          : _buildIcon(event.type),
+                      title: Text(event.topic),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("${event.timeStart} - ${event.timeEnd} • ${event.subjectName}"),
+                          const SizedBox(height: 4),
+                          Text(
+                            event.description,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
+                          _statusChip(event.classStatus),
+                        ],
+                      ),
+                      isThreeLine: true,
+                      trailing: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 8),
+                          IconButton(
+                            icon: const Icon(Icons.info_outline),
+                            onPressed: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (_) => ClassDetailsScreen(event: event, dateKey: DateTime.utc(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day)),
+                              ));
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   );
                 }),
+              const SizedBox(height: 12),
             ],
           ),
         );
@@ -134,11 +214,9 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
     );
   }
 
-  // 🧩 Helper: event icon by type
   Widget _buildIcon(String type) {
     IconData icon;
     Color color;
-
     switch (type) {
       case "Individual Class":
         icon = Icons.person;
@@ -160,75 +238,27 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
         icon = Icons.event;
         color = Colors.grey;
     }
-
     return CircleAvatar(
-      backgroundColor: color.withOpacity(0.2),
+      backgroundColor: color.withOpacity(0.15),
       child: Icon(icon, color: color),
     );
   }
 
-  // 📋 Show class details in modal
-  void _showClassDetails(
-      BuildContext context, Map<String, String> eventDetails) {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              eventDetails["type"]!,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Divider(),
-            Row(
-              children: [
-                const Icon(Icons.access_time, size: 18),
-                const SizedBox(width: 8),
-                Text("Time: ${eventDetails['time']}"),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: const [
-                Icon(Icons.location_on_outlined, size: 18),
-                SizedBox(width: 8),
-                Text("Location: Online / Classroom"),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: const [
-                Icon(Icons.people_outline, size: 18),
-                SizedBox(width: 8),
-                Text("Students Enrolled: 25"),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.video_camera_front_outlined),
-              label: const Text("Join / Manage Class"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 45),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
+  Widget _statusChip(String status) {
+    Color bg;
+    switch (status) {
+      case 'live':
+        bg = Colors.redAccent;
+        break;
+      case 'completed':
+        bg = Colors.grey;
+        break;
+      default:
+        bg = Colors.green;
+    }
+    return Chip(
+      label: Text(status.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10)),
+      backgroundColor: bg,
     );
   }
 }

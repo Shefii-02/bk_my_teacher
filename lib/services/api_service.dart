@@ -33,6 +33,19 @@ class ApiService {
     _dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
+
+  // ---------------------------------------------------------------------------
+  // 🔹 COMMON — Load token & add in header
+  // ---------------------------------------------------------------------------
+  Future<void> _loadAuth() async {
+    final box = await Hive.openBox('app_storage');
+    final token = box.get('auth_token') ?? '';
+
+    if (token.isNotEmpty) {
+      _dio.options.headers['Authorization'] = 'Bearer $token';
+    }
+  }
+
   /// ✅ Server health check
   Future<bool> checkServer() async {
     try {
