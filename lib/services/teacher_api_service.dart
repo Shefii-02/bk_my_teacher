@@ -6,9 +6,14 @@ import 'package:hive/hive.dart';
 import '../core/constants/endpoints.dart';
 import 'package:file_picker/file_picker.dart';
 
+import '../model/achievement_level.dart';
 import '../model/course_details_model.dart';
 import '../model/course_model.dart';
+import '../model/course_review_model.dart';
+import '../model/level_data.dart';
 import '../model/schedule_model.dart';
+import '../model/student_review.dart';
+import '../model/time_card_model.dart';
 import '../model/statistics_model.dart';
 import '../model/stats_api_response.dart' hide StatisticsModel;
 
@@ -31,7 +36,6 @@ class TeacherApiService {
   // 🔹 COMMON — Load token & add in header
   // ---------------------------------------------------------------------------
   Future<void> _loadAuth() async {
-
     final box = await Hive.openBox('app_storage');
     final token = box.get('auth_token') ?? '';
 
@@ -202,7 +206,10 @@ class TeacherApiService {
       // final token = box.get('auth_token') ?? '';
       // if (token.isNotEmpty) setAuthToken(token);
       await _loadAuth();
-      final response = await _dio.post(Endpoints.teacherUpdatePersonal, data: formData);
+      final response = await _dio.post(
+        Endpoints.teacherUpdatePersonal,
+        data: formData,
+      );
 
       return response.data;
     } on DioException catch (e) {
@@ -241,7 +248,10 @@ class TeacherApiService {
       // if (token.isNotEmpty) setAuthToken(token);
       await _loadAuth();
 
-      final response = await _dio.post(Endpoints.teacherUpdateTeachingDetails, data: formData);
+      final response = await _dio.post(
+        Endpoints.teacherUpdateTeachingDetails,
+        data: formData,
+      );
 
       return response.data;
     } on DioException catch (e) {
@@ -273,7 +283,10 @@ class TeacherApiService {
 
       await _loadAuth();
 
-      final response = await _dio.post(Endpoints.teacherUpdateCv, data: formData);
+      final response = await _dio.post(
+        Endpoints.teacherUpdateCv,
+        data: formData,
+      );
 
       return response.data;
     } on DioException catch (e) {
@@ -293,21 +306,17 @@ class TeacherApiService {
     return ScheduleResponse.fromJson(response.data);
   }
 
-
   Future<CourseSummary> fetchTeacherCourses() async {
     await _loadAuth();
     final res = await _dio.post('/teacher/courses');
     return CourseSummary.fromJson(res.data);
   }
 
-
   Future<CourseDetails> fetchTeacherCourseSummary(int id) async {
     await _loadAuth();
     final res = await _dio.post('/teacher/course-details', data: {"id": id});
     return CourseDetails.fromJson(res.data);
   }
-
-
 
   Future<StatisticsModel> fetchStatistics() async {
     try {
@@ -318,7 +327,8 @@ class TeacherApiService {
         return StatisticsModel.fromJson(response.data);
       } else {
         throw Exception(
-            "Invalid API response: ${response.statusCode} → ${response.data}");
+          "Invalid API response: ${response.statusCode} → ${response.data}",
+        );
       }
     } on DioException catch (e) {
       throw Exception("Dio Error: ${e.message}");
@@ -327,5 +337,102 @@ class TeacherApiService {
     }
   }
 
+  Future<CourseReviewResponse> fetchReviews() async {
+    await _loadAuth();
+    final res = await _dio.post("/teacher/reviews");
+
+    return CourseReviewResponse.fromJson(res.data);
+  }
+
+  Future<AchievementResponse> fetchAchievements() async {
+    await _loadAuth();
+    final res = await _dio.get("/teacher/achievements");
+
+    return AchievementResponse.fromJson(res.data);
+  }
+
+  Future<List<TimeCardModel>> fetchSpendTime() async {
+    await _loadAuth();
+    final res = await _dio.post("/teacher/spend-time");
+    final List data = res.data["data"];
+
+    return data.map((e) => TimeCardModel.fromJson(e)).toList();
+  }
+
+  Future<List<TimeCardModel>> fetchWatchTime() async {
+    await _loadAuth();
+    final res = await _dio.post("/teacher/watch-time");
+    final List data = res.data["data"];
+    return data.map((e) => TimeCardModel.fromJson(e)).toList();
+  }
+
+
+  Future<LevelData> fetchCurrentLevel() async {
+    await _loadAuth();
+    final response = await _dio.post("/teacher/achievement-level");
+    return LevelData.fromJson(response.data['data']);
+  }
+
+  Future<Map<String, dynamic>> fetchOwnCourses() async {
+    await _loadAuth();
+    final res = await _dio.post('/teacher/own-courses');
+    return Map<String, dynamic>.from(res.data);
+  }
+
+
+  Future<StatisticsModel> fetchSpendStatistics() async {
+    try {
+      await _loadAuth();
+      final response = await _dio.post("/teacher/spend-statistics");
+
+      if (response.statusCode == 200 && response.data != null) {
+        return StatisticsModel.fromJson(response.data);
+      } else {
+        throw Exception(
+          "Invalid API response: ${response.statusCode} → ${response.data}",
+        );
+      }
+    } on DioException catch (e) {
+      throw Exception("Dio Error: ${e.message}");
+    } catch (e) {
+      throw Exception("Unknown Error: $e");
+    }
+  }
+
+  Future<StatisticsModel> fetchWatchStatistics() async {
+    try {
+      await _loadAuth();
+      final response = await _dio.post("/teacher/watch-statistics");
+
+      if (response.statusCode == 200 && response.data != null) {
+        return StatisticsModel.fromJson(response.data);
+      } else {
+        throw Exception(
+          "Invalid API response: ${response.statusCode} → ${response.data}",
+        );
+      }
+    } on DioException catch (e) {
+      throw Exception("Dio Error: ${e.message}");
+    } catch (e) {
+      throw Exception("Unknown Error: $e");
+    }
+  }
+
+
+  Future<List<StudentReviewMain>> fetchMainReviews() async {
+    try {
+      await _loadAuth();
+      final response = await _dio.post("/teacher/student-reviews");
+
+      if (response.statusCode == 200) {
+        List list = response.data["reviews"] ?? [];
+        return list.map((e) => StudentReviewMain.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      print("REVIEW FETCH ERROR: $e");
+      return [];
+    }
+  }
 
 }

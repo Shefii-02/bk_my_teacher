@@ -28,68 +28,6 @@ class _StatisticsSheetState extends State<StatisticsSheet>
   String totalSpend = "0";
   String totalWatch = "0";
 
-  // final Map<String, Map<String, List<double>>> spendLineData = {
-  //   "Last Day": {
-  //     "Individual": [5],
-  //     "Own Courses": [3],
-  //     "YouTube": [7],
-  //     "Workshops": [2],
-  //     "Webinar": [4],
-  //   },
-  //   "Last 7 Days": {
-  //     "Individual": [3, 6, 8, 7, 10, 9, 12],
-  //     "Own Courses": [2, 4, 5, 6, 7, 8, 9],
-  //     "YouTube": [5, 7, 8, 10, 9, 11, 13],
-  //     "Workshops": [1, 3, 2, 4, 3, 5, 4],
-  //     "Webinar": [2, 3, 4, 5, 6, 7, 8],
-  //   },
-  //   "Current Month": {
-  //     "Individual": List.generate(14, (i) => (i + 3) * 1.2),
-  //     "Own Courses": List.generate(14, (i) => (i + 2) * 1.0),
-  //     "YouTube": List.generate(14, (i) => (i + 3) * 1.5),
-  //     "Workshops": List.generate(14, (i) => (i + 1) * 0.9),
-  //     "Webinar": List.generate(14, (i) => (i + 2) * 1.3),
-  //   },
-  //   "Last Month": {
-  //     "Individual": List.generate(30, (i) => (i + 3) * 0.9),
-  //     "Own Courses": List.generate(30, (i) => (i + 2) * 0.8),
-  //     "YouTube": List.generate(30, (i) => (i + 3) * 1.4),
-  //     "Workshops": List.generate(30, (i) => (i + 1) * 0.7),
-  //     "Webinar": List.generate(30, (i) => (i + 2) * 1.0),
-  //   },
-  // };
-  //
-  // final Map<String, Map<String, List<double>>> watchLineData = {
-  //   "Last Day": {
-  //     "Individual": [2],
-  //     "Own Courses": [4],
-  //     "YouTube": [9],
-  //     "Workshops": [3],
-  //     "Webinar": [5],
-  //   },
-  //   "Last 7 Days": {
-  //     "Individual": [4, 5, 6, 8, 7, 6, 9],
-  //     "Own Courses": [3, 4, 5, 7, 6, 8, 10],
-  //     "YouTube": [6, 9, 10, 12, 11, 13, 15],
-  //     "Workshops": [2, 3, 4, 5, 6, 5, 7],
-  //     "Webinar": [3, 5, 6, 8, 9, 10, 12],
-  //   },
-  //   "Current Month": {
-  //     "Individual": List.generate(14, (i) => (i + 2) * 1.1),
-  //     "Own Courses": List.generate(14, (i) => (i + 2) * 1.3),
-  //     "YouTube": List.generate(14, (i) => (i + 3) * 1.8),
-  //     "Workshops": List.generate(14, (i) => (i + 1) * 1.0),
-  //     "Webinar": List.generate(14, (i) => (i + 2) * 1.4),
-  //   },
-  //   "Last Month": {
-  //     "Individual": List.generate(30, (i) => (i + 3) * 1.1),
-  //     "Own Courses": List.generate(30, (i) => (i + 2) * 1.2),
-  //     "YouTube": List.generate(30, (i) => (i + 3) * 1.6),
-  //     "Workshops": List.generate(30, (i) => (i + 1) * 0.9),
-  //     "Webinar": List.generate(30, (i) => (i + 2) * 1.3),
-  //   },
-  // };
-
   bool loading = true;
   StatisticsModel? stats;
 
@@ -263,7 +201,6 @@ class _StatisticsSheetState extends State<StatisticsSheet>
 
   @override
   Widget build(BuildContext context) {
-
     if (loading ||
         spendMap.isEmpty ||
         watchMap.isEmpty ||
@@ -282,7 +219,8 @@ class _StatisticsSheetState extends State<StatisticsSheet>
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white, // ALWAYS add color for shadows to render cleanly
+            color:
+                Colors.white, // ALWAYS add color for shadows to render cleanly
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(16),
               topRight: Radius.circular(16),
@@ -342,9 +280,9 @@ class _StatisticsSheetState extends State<StatisticsSheet>
                 ),
               ),
               _buildSpendWatchCards(),
-              SizedBox(height: 15,),
+              SizedBox(height: 15),
               _buildRangeSelector(),
-              SizedBox(height: 15,),
+              SizedBox(height: 15),
 
               // ✅ Fixed Tab UI
               TabBar(
@@ -468,7 +406,7 @@ class _StatisticsSheetState extends State<StatisticsSheet>
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
-              SizedBox(height: 20,),
+              SizedBox(height: 20),
               Text(
                 "🕒 Spend Time",
                 style: TextStyle(
@@ -477,7 +415,7 @@ class _StatisticsSheetState extends State<StatisticsSheet>
                   color: Colors.indigo,
                 ),
               ),
-              SizedBox(height: 20,),
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -501,7 +439,7 @@ class _StatisticsSheetState extends State<StatisticsSheet>
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
             children: [
-              SizedBox(height: 20,),
+              SizedBox(height: 20),
               Text(
                 "👁 Watch Time",
                 style: TextStyle(
@@ -510,7 +448,7 @@ class _StatisticsSheetState extends State<StatisticsSheet>
                   color: Colors.orange,
                 ),
               ),
-              SizedBox(height: 20,),
+              SizedBox(height: 20),
             ],
           ),
         ),

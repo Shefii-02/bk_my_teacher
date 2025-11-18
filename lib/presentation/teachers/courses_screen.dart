@@ -1,5 +1,7 @@
 import 'package:BookMyTeacher/core/constants/endpoints.dart';
 import 'package:BookMyTeacher/core/enums/app_config.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/course_details_page.dart';
+import 'package:BookMyTeacher/services/teacher_api_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -26,7 +28,7 @@ class _CoursesScreenState extends State<CoursesScreen>
 
   Future<void> _fetchCourses() async {
     try {
-      final result = await ApiService().fetchProvideCourses();
+      final result = await TeacherApiService().fetchOwnCourses();
       setState(() {
         _categories = result['data'];
         _tabController = TabController(length: _categories.length, vsync: this);
@@ -38,12 +40,13 @@ class _CoursesScreenState extends State<CoursesScreen>
     }
   }
 
-  void _showCourseDetail(Map<String, dynamic> course) {
+  void _showCourseDetail(int id) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _CourseDetailBottomSheet(course: course),
+      // builder: (_) => _CourseDetailBottomSheet(course: course),
+      builder: (_) => CourseDetailsPage(courseId: id),
     );
   }
 
@@ -77,12 +80,9 @@ class _CoursesScreenState extends State<CoursesScreen>
                 ),
                 child: Row(
                   children: [
-
                     _circleButton(
                       Icons.keyboard_arrow_left,
-                          () => context.push(
-                        '/teacher-dashboard',
-                      ),
+                      () => context.push('/teacher-dashboard'),
                     ),
                     const Expanded(
                       child: Center(
@@ -149,7 +149,16 @@ class _CoursesScreenState extends State<CoursesScreen>
                         itemBuilder: (context, index) {
                           final course = courses[index];
                           return InkWell(
-                            onTap: () => _showCourseDetail(course),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CourseDetailsPage(courseId: course['id']),
+                                ),
+                              );
+                            },
+                            // onTap: () => _showCourseDetail(course['id']),
+                            // onTap: () => CourseDetailsPage(courseId: course.id),
                             child: Container(
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               decoration: BoxDecoration(
@@ -187,7 +196,7 @@ class _CoursesScreenState extends State<CoursesScreen>
                                       ),
                                       child: Column(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             course['title'],
@@ -211,7 +220,7 @@ class _CoursesScreenState extends State<CoursesScreen>
                                           const SizedBox(height: 6),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
                                                 "⏳ ${course['duration']}",
@@ -247,6 +256,7 @@ class _CoursesScreenState extends State<CoursesScreen>
       ),
     );
   }
+
   Widget _circleButton(IconData icon, VoidCallback onPressed) {
     return Container(
       width: 40,
@@ -264,7 +274,6 @@ class _CoursesScreenState extends State<CoursesScreen>
     );
   }
 }
-
 
 class _CourseDetailBottomSheet extends StatefulWidget {
   final Map<String, dynamic> course;
@@ -378,17 +387,17 @@ class _CourseDetailBottomSheetState extends State<_CourseDetailBottomSheet> {
               ),
               child: _submitting
                   ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(color: Colors.white),
-              )
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(color: Colors.white),
+                    )
                   : Text(
-                _enrolled ? "Already Enrolled" : "Enroll Now",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
+                      _enrolled ? "Already Enrolled" : "Enroll Now",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
             ),
           ),
         ],

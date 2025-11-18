@@ -1,5 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import '../../model/student_review.dart';
+import '../../services/teacher_api_service.dart';
 
 class StudentReviewsScrollSection extends StatefulWidget {
   const StudentReviewsScrollSection({super.key});
@@ -9,64 +11,77 @@ class StudentReviewsScrollSection extends StatefulWidget {
 }
 
 class _StudentReviewsScrollSectionState extends State<StudentReviewsScrollSection> {
-  Widget _buildStudentReview(String name, String review, String image, double rating) {
+  // CORRECTED: Use StudentReviewMain consistently
+  List<StudentReviewMain> studentReviews = [];
+  bool loading = true;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReviews();
+  }
+
+  Future<void> _loadReviews() async {
+    final data = await TeacherApiService().fetchMainReviews();
+    setState(() {
+      studentReviews = data;
+      loading = false;
+    });
+  }
+
+  Widget _buildStudentReview(StudentReviewMain r) {
+    // CORRECTED: Uncommented the image and review text, fixed rating logic.
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       padding: const EdgeInsets.all(16),
-      width: MediaQuery.of(context).size.width * 0.7,
+      // Adjusted width for better fit, maybe 90% is better for the column layout
+      width: MediaQuery.of(context).size.width * 0.9,
       decoration: BoxDecoration(
-        color: Colors.transparent,
+        color: Colors.white, // Changed to white/light color for visibility
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
+          // A more standard box shadow for a card effect
           BoxShadow(
-            color: Colors.black.withOpacity(0.35),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-            blurStyle: BlurStyle.outer,
-          ),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(image),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Row(
-                      children: List.generate(
-                        5,
-                            (index) => Icon(
-                          index < rating ? Icons.star : Icons.star_border,
-                          color: Colors.amber,
-                          size: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          Row(children: [
+            // UNCOMMENTED: Added CircleAvatar back
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: NetworkImage(r.image),
+              // Fallback for missing image
+              onBackgroundImageError: (exception, stackTrace) => const Text('?'),
+            ),
+            const SizedBox(width: 8),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(r.name, style: const TextStyle(fontSize:13, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                // CORRECTED: Logic to handle double rating (e.g., 4.5 stars)
+                Row(children: List.generate(5, (i) {
+                  // i is 0 to 4. Full stars if rating is >= i+1. Half star if rating is between i and i+1.
+                  if (r.rating >= i + 1) {
+                    return const Icon(Icons.star, color: Colors.amber, size: 14);
+                  } else if (r.rating > i && r.rating < i + 1) {
+                    return const Icon(Icons.star_half, color: Colors.amber, size: 14);
+                  } else {
+                    return const Icon(Icons.star_border, color: Colors.amber, size: 14);
+                  }
+                }))
+              ],
+            )),
+          ]),
           const SizedBox(height: 6),
-          Text(
-            review,
-            style: const TextStyle(fontSize: 12, color: Colors.black87),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
+          // UNCOMMENTED: Added review text back
+          Text(r.review, style: const TextStyle(fontSize:12, color: Colors.black87), maxLines: 3, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -74,77 +89,12 @@ class _StudentReviewsScrollSectionState extends State<StudentReviewsScrollSectio
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> studentReviews = [
-      {
-        "name": "Aisha Patel",
-        "review": "Great teacher! Explained concepts very clearly.",
-        "image": "https://i.pravatar.cc/150?img=5",
-        "rating": 4.5,
-      },
-      {
-        "name": "Rahul Sharma",
-        "review": "Helpful and patient during sessions.",
-        "image": "https://i.pravatar.cc/150?img=12",
-        "rating": 5.0,
-      },
-      {
-        "name": "Sneha R.",
-        "review": "Good teaching but classes sometimes run late.",
-        "image": "https://i.pravatar.cc/150?img=8",
-        "rating": 3.5,
-      },
-      {
-        "name": "Kevin Thomas",
-        "review": "Very friendly and made learning fun!",
-        "image": "https://i.pravatar.cc/150?img=14",
-        "rating": 4.0,
-      },
-      {
-        "name": "Aisha Patel-1",
-        "review": "Great teacher! Explained concepts very clearly.",
-        "image": "https://i.pravatar.cc/150?img=5",
-        "rating": 4.5,
-      },
-      {
-        "name": "Rahul Sharma-2",
-        "review": "Helpful and patient during sessions.",
-        "image": "https://i.pravatar.cc/150?img=12",
-        "rating": 5.0,
-      },
-      {
-        "name": "Sneha R.-3",
-        "review": "Good teaching but classes sometimes run late.",
-        "image": "https://i.pravatar.cc/150?img=8",
-        "rating": 3.5,
-      },
-      {
-        "name": "Kevin Thomas-4",
-        "review": "Very friendly and made learning fun!",
-        "image": "https://i.pravatar.cc/150?img=14",
-        "rating": 4.0,
-      },
-      {
-        "name": "Rahul Sharma-5",
-        "review": "Helpful and patient during sessions.",
-        "image": "https://i.pravatar.cc/150?img=12",
-        "rating": 5.0,
-      },
-      {
-        "name": "Sneha R.-6",
-        "review": "Good teaching but classes sometimes run late.",
-        "image": "https://i.pravatar.cc/150?img=8",
-        "rating": 3.5,
-      },
-      {
-        "name": "Kevin Thomas-7",
-        "review": "Very friendly and made learning fun!",
-        "image": "https://i.pravatar.cc/150?img=14",
-        "rating": 4.0,
-      },
-    ];
+    if (loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-    // Split list into chunks of 2
-    final List<List<Map<String, dynamic>>> reviewPairs = [];
+    // Split into list of pairs of 2 items
+    final reviewPairs = <List<StudentReviewMain>>[];
     for (int i = 0; i < studentReviews.length; i += 2) {
       reviewPairs.add(studentReviews.sublist(
         i,
@@ -152,83 +102,61 @@ class _StudentReviewsScrollSectionState extends State<StudentReviewsScrollSectio
       ));
     }
 
-    int _currentPage = 0;
+    if (reviewPairs.isEmpty) {
+      return const Center(child: Text('No reviews available.'));
+    }
+
     return Column(
       children: [
+        // Main slider for pairs
         Container(
-          height: 280, // enough height for 2 cards vertically
+          // CORRECTED: Reduced height to better fit two cards (assuming card height ~120-130)
+          height: 280,
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: CarouselSlider.builder(
             itemCount: reviewPairs.length,
             options: CarouselOptions(
-              height: 360,
+              // CORRECTED: Set height closer to the container height
+              height: 256,
               enlargeCenterPage: false,
               enableInfiniteScroll: true,
-              viewportFraction: 0.8,
+              // CORRECTED: Adjusted viewportFraction for better visibility in a single column
+              viewportFraction: 0.9,
               autoPlay: true,
               pageSnapping: true,
-                onPageChanged: (index, reason) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                }
+              onPageChanged: (index, reason) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
             ),
             itemBuilder: (context, index, realIdx) {
               final pair = reviewPairs[index];
               return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: pair.map((r) {
-                  return _buildStudentReview(
-                    r['name'],
-                    r['review'],
-                    r['image'],
-                    r['rating'],
-                  );
-                }).toList(),
+                // Ensure a little space between the two review cards
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: pair.map((r) => _buildStudentReview(r)).toList(),
               );
             },
           ),
         ),
+
+        // Dots
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(reviewPairs.length > 5 ? 4 : reviewPairs.length, (index) {
+          children: List.generate(reviewPairs.length, (index) {
             return Container(
-              width: 8.0,
-              height: 8.0,
-              margin: EdgeInsets.symmetric(horizontal: 4.0),
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _currentPage == index ? Colors.blue : Colors.grey,
+                color: _currentPage == index ? Colors.blue : Colors.grey.withOpacity(0.5),
               ),
             );
           }),
-        )
+        ),
       ],
-    );
-
-    return SizedBox(
-      height: 280, // enough height for 2 cards vertically
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: reviewPairs.length,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemBuilder: (context, index) {
-          final pair = reviewPairs[index];
-          return Container(
-            margin: const EdgeInsets.only(right: 12),
-            child: Column(
-              children: pair.map((r) {
-                return _buildStudentReview(
-                  r['name'],
-                  r['review'],
-                  r['image'],
-                  r['rating'],
-                );
-              }).toList(),
-            ),
-          );
-        },
-      ),
     );
   }
 }
