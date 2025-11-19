@@ -1,5 +1,5 @@
 import 'package:BookMyTeacher/core/enums/app_config.dart';
-import 'package:BookMyTeacher/presentation/students/settings_page.dart';
+import 'package:BookMyTeacher/presentation/widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/account_provider.dart';

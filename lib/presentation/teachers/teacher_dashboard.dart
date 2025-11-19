@@ -1,4 +1,6 @@
+import 'package:BookMyTeacher/presentation/teachers/quick_action/statistics_sheet.dart';
 import 'package:BookMyTeacher/presentation/teachers/schedule_page.dart';
+import 'package:BookMyTeacher/presentation/teachers/statistics_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../../providers/user_provider.dart';
@@ -28,20 +30,11 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
   void initState() {
     super.initState();
 
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   // _checkUser();
-    // });
-
-    //
-    // final teacherId = widget.teacherId;
-    // _teacherDataFuture = _fetchTeacherData();
-    // _teacherDataFuture = TeacherApiService().fetchTeacherData();
-
     _screens = [
       DashboardHome(),
       SchedulePage(),
       CoursesScreen(),
-      MyClassList(),
+      StatisticsPage(),
       ProfileScreen(),
     ];
   }

@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/user_provider.dart';
 import '../../services/launch_status_service.dart';
+import '../../services/settings_service.dart';
 import '../auth/controller/auth_controller.dart';
+import 'my_performance_page.dart';
 
 class AccountManagePage extends ConsumerStatefulWidget {
   const AccountManagePage({super.key});
@@ -13,9 +15,30 @@ class AccountManagePage extends ConsumerStatefulWidget {
 }
 
 class _AccountManagePageState extends ConsumerState<AccountManagePage> {
-  bool chatEnabled = true;
+  bool chatEnabled = false;
   bool commentEnabled = false;
-  bool groupStudyEnabled = true;
+  bool groupStudyEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Load values from Hive
+    commentEnabled = SettingsService.getBool("comment_option", defaultValue: true);
+    chatEnabled = SettingsService.getBool("chat_option", defaultValue: true);
+    groupStudyEnabled = SettingsService.getBool("group_study_option", defaultValue: true);
+  }
+
+  void _updateToggle(bool v, String name) {
+    setState(() {
+      if (name == 'chat_option') chatEnabled = v;
+      if (name == 'comment_option') commentEnabled = v;
+      if (name == 'group_study_option') groupStudyEnabled = v;
+    });
+
+    SettingsService.setBool(name, v);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +58,9 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
           ),
           _AccountOptionTile(
             icon: Icons.school_outlined,
-            title: "Education Manage",
+            title: "Teaching Manage",
             subtitle: "Manage your subjects, grades, and syllabus",
-            onTap: () => _openBottomSheet(context, "Education Manage"),
+            onTap: () => _openBottomSheet(context, "Teaching Manage"),
           ),
           const Divider(),
 
@@ -47,21 +70,24 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
             title: "Chat Option",
             value: chatEnabled,
             subtitle: "Enable or disable chat access",
-            onChanged: (v) => setState(() => chatEnabled = v),
+            // onChanged: (v) => setState(() => chatEnabled = v),
+            onChanged: (v) => _updateToggle(v, "chat_option"),
           ),
+
           _SwitchOptionTile(
             icon: Icons.comment_outlined,
             title: "Comment Option",
             value: commentEnabled,
             subtitle: "Allow others to comment on your posts",
-            onChanged: (v) => setState(() => commentEnabled = v),
+            onChanged: (v) => _updateToggle(v, "comment_option"),
           ),
+
           _SwitchOptionTile(
             icon: Icons.groups_outlined,
             title: "Group Study Features",
             value: groupStudyEnabled,
             subtitle: "Enable group study participation",
-            onChanged: (v) => setState(() => groupStudyEnabled = v),
+            onChanged: (v) => _updateToggle(v, "group_study_option"),
           ),
           const Divider(),
 
@@ -70,8 +96,14 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
             icon: Icons.bar_chart_outlined,
             title: "My Performance",
             subtitle: "Track your academic performance",
-            onTap: () => _openBottomSheet(context, "My Performance"),
+            onTap: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const MyPerformancePage(),
+            ),
           ),
+
           const Divider(),
 
           const _SectionHeader(title: "Account Controls"),
@@ -95,15 +127,17 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
           ),
           _AccountOptionTile(
             icon: Icons.delete_outline,
-            title: "Delete Account",
+            title: "Request Delete Account",
             subtitle: "Permanently remove your account",
             onTap: () async {
               final confirmed = await _confirmAction(
                 context,
-                "Delete Account",
+                "Are you sure delete account",
                 "This action cannot be undone. Do you really want to delete your account?",
               );
               if (confirmed) {
+                ref.invalidate(userProvider);
+                ref.invalidate(authControllerProvider);
                 await LaunchStatusService.resetApp();
                 if (context.mounted) context.go('/auth');
                 // Delete account API call
@@ -117,7 +151,7 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
   }
 
   /// BottomSheet for managing selected section
-  void _openBottomSheet(BuildContext context, String title) {
+  void _openBottomSheet(BuildContext context, String type) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -133,7 +167,7 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
             children: [
               Center(
                 child: Text(
-                  title,
+                  type == "profile" ? "Profile Manage" : "Teaching Manage",
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -141,27 +175,29 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Here you can load actual data or add a form
+
+              /// VIEW
               ListTile(
                 leading: const Icon(Icons.info_outline),
                 title: const Text("View details"),
                 onTap: () {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Opening $title details...")),
-                  );
+                  if (type == "Profile Manage") context.push("/personal/view");
+                  if (type == "Teaching Manage") context.push("/teaching/view");
                 },
               ),
+
+              /// EDIT
               ListTile(
                 leading: const Icon(Icons.edit_outlined),
                 title: const Text("Edit settings"),
                 onTap: () {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Editing $title...")),
-                  );
+                  if (type == "Profile Manage") context.push("/personal-info");
+                  if (type == "Teaching Manage") context.push("/teaching-details");
                 },
               ),
+
               const SizedBox(height: 20),
             ],
           ),
@@ -170,29 +206,37 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
     );
   }
 
+
   /// Common confirmation dialog
   static Future<bool> _confirmAction(
-      BuildContext context, String title, String message) async {
+    BuildContext context,
+    String title,
+    String message,
+  ) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            child: const Text("Cancel"),
-            onPressed: () => Navigator.pop(context, false),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                child: const Text("Cancel"),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  "Confirm",
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text("Confirm",style: TextStyle(color: Colors.white),),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
-    ) ??
+        ) ??
         false;
   }
+
 }
 
 /// Section header
@@ -203,8 +247,7 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-      const EdgeInsets.only(left: 16, top: 20, bottom: 8),
+      padding: const EdgeInsets.only(left: 16, top: 20, bottom: 8),
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -238,8 +281,7 @@ class _AccountOptionTile extends StatelessWidget {
         backgroundColor: Colors.blue.shade50,
         child: Icon(icon, color: Colors.blue.shade700),
       ),
-      title: Text(title,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: subtitle != null ? Text(subtitle!) : null,
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
@@ -271,8 +313,7 @@ class _SwitchOptionTile extends StatelessWidget {
         backgroundColor: Colors.green.shade50,
         child: Icon(icon, color: Colors.green.shade700),
       ),
-      title: Text(title,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: subtitle != null ? Text(subtitle!) : null,
       value: value,
       onChanged: onChanged,

@@ -21,6 +21,7 @@ class AppRoutes {
 
   static const String personalInfo   = "/personal-info";
   static const String teachingDetails  = "/teaching-details";
+
   static const String cvUpload  = "/cv-upload";
   static const String uploadDemo  = "/upload-demo";
   

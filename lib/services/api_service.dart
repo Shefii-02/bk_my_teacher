@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 
 import '../core/constants/endpoints.dart';
 import '../model/grade_board_subject_model.dart';
+import '../model/performance_summary.dart';
 import '../model/student_model.dart';
 import '../model/teacher.dart';
 import '../model/top_banner.dart';
@@ -32,7 +33,6 @@ class ApiService {
   void setAuthToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
   }
-
 
   // ---------------------------------------------------------------------------
   // 🔹 COMMON — Load token & add in header
@@ -429,7 +429,6 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> applyReferralProvider(String data) async {
-
     final box = await Hive.openBox('app_storage');
     final token = box.get('auth_token') ?? '';
 
@@ -443,19 +442,14 @@ class ApiService {
     return response.data;
   }
 
-
   Future<Map<String, dynamic>> takeReferral() async {
     final box = await Hive.openBox('app_storage');
     final token = box.get('auth_token') ?? '';
 
     if (token.isNotEmpty) setAuthToken(token);
-    final response = await _dio.post(
-      "/take-referral"
-    );
+    final response = await _dio.post("/take-referral");
     return response.data;
   }
-
-
 
   // Fetch top banners
   Future<List<TopBanner>> fetchTopBanners() async {
@@ -666,7 +660,9 @@ class ApiService {
 
   Future<List<dynamic>> fetchSocialLinks() async {
     try {
-      final response = await _dio.get('/social-links'); // ✅ correct endpoint
+      final response = await _dio.get(
+        '/bottom-social-links',
+      ); // ✅ correct endpoint
       if (response.statusCode == 200) {
         final data = response.data;
         if (data['status'] == true && data['data'] != null) {
@@ -677,6 +673,44 @@ class ApiService {
       print('⚠️ fetchSocialLinks failed: $e');
     }
     return []; // ✅ Always return a list, even if empty
+  }
+
+  Future<Map<String, dynamic>> fetchConnectData() async {
+    try {
+      final response = await _dio.get('/social-links');
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        return {
+          "socials": data['socials'] ?? [],
+          "contact": data['contact'] ?? {},
+        };
+      }
+    } catch (e) {
+      print("⚠️ fetchConnectData error: $e");
+    }
+
+    // Default fallback
+    return {"socials": [], "contact": {}};
+  }
+
+  Future<List<dynamic>> fetchCommunityLinks() async {
+    try {
+      final response = await _dio.get('/community-links');
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        if (data['status'] == true && data['data'] != null) {
+          return data['data']; // return list
+        }
+      }
+    } catch (e) {
+      print('⚠️ fetchCommunityLinks failed: $e');
+    }
+
+    return [];
   }
 
   // ------------------------------
@@ -727,6 +761,43 @@ class ApiService {
       return data.map((e) => e.toString()).toList();
     }
     return [];
+  }
+
+  // Logout API
+  Future<void> logout() async {
+    try {
+      await _loadAuth();
+      await _dio.post('/logout');
+    } catch (_) {}
+  }
+
+  // Delete account request
+  Future<bool> requestDeleteAccount() async {
+    try {
+      await _loadAuth();
+      final res = await _dio.post('/account/delete-request');
+      return res.data['status'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+
+  Future<TeacherPerformanceModel?> fetchTeacherPerformance(String filter) async {
+    try {
+      await _loadAuth();
+      final response = await _dio.get(
+        '/teacher/performance',
+        queryParameters: {"filter": filter},
+      );
+
+      if (response.statusCode == 200 && response.data['status'] == true) {
+        return TeacherPerformanceModel.fromJson(response.data);
+      }
+    } catch (e) {
+      print("⚠️ Performance API error: $e");
+    }
+    return null;
   }
 
   // Future<List<String>> fetchSubjects() async {

@@ -9,17 +9,21 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool notification = false;
   bool darkMode = false;
 
+  // Updated Permissions for Android 13+
   final Map<String, Permission> permissions = {
     "Camera": Permission.camera,
     "Microphone": Permission.microphone,
-    "Storage / Files": Permission.storage,
     "Photos": Permission.photos,
+    "Videos": Permission.videos,
+    "Audio": Permission.audio,
     "Location": Permission.location,
     "Contacts": Permission.contacts,
     "Notification": Permission.notification,
+
+    // Full storage access (optional, requires manual settings approval)
+    "Manage Storage": Permission.manageExternalStorage,
   };
 
   Map<String, bool> permissionStatus = {};
@@ -30,6 +34,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _checkAllPermissions();
   }
 
+  // Check status of all permissions
   Future<void> _checkAllPermissions() async {
     final Map<String, bool> statuses = {};
     for (var entry in permissions.entries) {
@@ -50,18 +55,20 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
 
+    // For permanently denied permissions
     if (status.isPermanentlyDenied) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$key permission permanently denied. Opening app settings...')),
+        SnackBar(
+          content: Text('$key permission permanently denied. Opening Settings...'),
+        ),
       );
       await openAppSettings();
       return;
     }
 
+    // Request permission
     final result = await permission.request();
-    setState(() {
-      permissionStatus[key] = result.isGranted;
-    });
+    setState(() => permissionStatus[key] = result.isGranted);
   }
 
   @override
@@ -70,7 +77,7 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(title: const Text("App Settings")),
       body: ListView(
         children: [
-          // 🌙 Dark Mode
+          // 🌙 Dark mode
           SwitchListTile(
             title: const Text("Enable Dark Mode"),
             value: darkMode,
@@ -79,7 +86,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const Divider(),
 
-          // 🔒 Permissions
+          // 🔒 Permissions title
           const Padding(
             padding: EdgeInsets.all(12.0),
             child: Text(
@@ -87,8 +94,11 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
+
+          // Permission Switch List
           ...permissions.keys.map((key) {
             final granted = permissionStatus[key] ?? false;
+
             return SwitchListTile(
               title: Text(key),
               secondary: Icon(
@@ -110,16 +120,20 @@ class _SettingsPageState extends State<SettingsPage> {
         return Icons.camera_alt;
       case "Microphone":
         return Icons.mic;
-      case "Storage / Files":
-        return Icons.folder;
       case "Photos":
         return Icons.photo;
+      case "Videos":
+        return Icons.video_library;
+      case "Audio":
+        return Icons.audiotrack;
       case "Location":
         return Icons.location_on;
       case "Contacts":
         return Icons.contacts;
       case "Notification":
         return Icons.notifications;
+      case "Manage Storage":
+        return Icons.folder_copy;
       default:
         return Icons.settings;
     }

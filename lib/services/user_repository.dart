@@ -18,10 +18,25 @@ class UserRepository {
     _dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
-  Future<UserModel> profileUserData() async {
+
+  Future<void> _loadAuth() async {
     final box = await Hive.openBox('app_storage');
     final token = box.get('auth_token') ?? '';
-    if (token.isNotEmpty) setAuthToken(token);
+
+    if (token.isNotEmpty) {
+      _dio.options.headers['Authorization'] = 'Bearer $token';
+    }
+  }
+
+
+
+
+  Future<UserModel> profileUserData() async {
+    // final box = await Hive.openBox('app_storage');
+    // final token = box.get('auth_token') ?? '';
+    // if (token.isNotEmpty) setAuthToken(token);
+    // print(token);
+    await _loadAuth();
     final response = await _dio.post("/user-data-retrieve");
     final data = response.data['user'];
     return UserModel.fromJson(data);

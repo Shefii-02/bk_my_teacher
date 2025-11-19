@@ -1,6 +1,7 @@
 import 'package:BookMyTeacher/presentation/auth/view/sign_up_guest.dart';
 import 'package:BookMyTeacher/presentation/guest/guest_dashboard.dart';
 import 'package:BookMyTeacher/presentation/students/my_class_list.dart';
+import 'package:BookMyTeacher/presentation/widgets/personal_info_view.dart';
 import 'package:BookMyTeacher/services/upload_sample.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +23,7 @@ import '../presentation/splash/splash_screen.dart';
 import '../presentation/students/class_detail_screen.dart';
 import '../presentation/students/student_dashboard.dart';
 import '../presentation/widgets/pdf_view_page.dart';
+import '../presentation/widgets/teaching_details_info.dart';
 import '../presentation/widgets/top_banner_detail_page.dart';
 import '../presentation/teachers/account/cv_upload.dart';
 import '../presentation/teachers/account/personal_info.dart';
@@ -67,14 +69,26 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/personal-info',
       builder: (context, state) {
-        final teacherData = state.extra as Map<String, dynamic>?;
         return PersonalInfo(); // ✅ correct syntax
       },
     ),
     GoRoute(
+      path: '/personal/view',
+      builder: (context, state) {
+        final teacherData = state.extra as Map<String, dynamic>?;
+        return PersonalInfoView(); // ✅ correct syntax
+      },
+    ),
+
+    GoRoute(
       path: AppRoutes.teachingDetails,
       builder: (context, state) => const TeachingDetails(),
     ),
+    GoRoute(
+      path: '/teaching/view',
+      builder: (context, state) => const TeachingDetailsInfo(),
+    ),
+
     GoRoute(
       path: AppRoutes.cvUpload,
       builder: (context, state) => const CvUpload(),

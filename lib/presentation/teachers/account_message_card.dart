@@ -5,7 +5,6 @@ import '../../core/enums/app_config.dart';
 import '../../presentation/teachers/dashboard_home.dart';
 import '../../providers/user_provider.dart'; // for StepData, StepStatus
 
-// ================= Account Message Card =================
 class AccountMessageCard extends ConsumerWidget {
   final String accountMsg;
   final List<StepData> steps;
@@ -18,7 +17,6 @@ class AccountMessageCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
 
     if (accountMsg.isEmpty) return const SizedBox();
 

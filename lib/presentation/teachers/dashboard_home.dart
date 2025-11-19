@@ -22,6 +22,7 @@ import '../../providers/user_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/browser_service.dart';
 import '../../services/teacher_api_service.dart';
+import '../widgets/connect_with_team_whatsapp.dart';
 import '../widgets/verify_account_popup.dart';
 import '../widgets/wallet_section.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,27 +36,6 @@ class DashboardHome extends ConsumerStatefulWidget {
 
 class _DashboardHomeState extends ConsumerState<DashboardHome> {
   late Future<Map<String, dynamic>> userCard;
-  final List<Map<String, dynamic>> studentReviews = [
-    {
-      "name": "Aisha Patel",
-      "review": "Great teacher! Explained concepts very clearly.",
-      "image": "https://i.pravatar.cc/150?img=5",
-      "rating": 4.5,
-    },
-    {
-      "name": "Rahul Sharma",
-      "review": "Helpful and patient during sessions.",
-      "image": "https://i.pravatar.cc/150?img=12",
-      "rating": 5.0,
-    },
-    {
-      "name": "Sneha R.",
-      "review": "Good teaching but classes sometimes run late.",
-      "image": "https://i.pravatar.cc/150?img=8",
-      "rating": 3.5,
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -71,8 +51,6 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
         return StepStatus.pending;
     }
   }
-
-  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -322,40 +300,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                 SizedBox(height: 10),
                                 StudentAchievementCardSection(),
                                 const SizedBox(height: 20),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    openWhatsApp(
-                                      context,
-                                      phone: "917510115544",
-                                      message:
-                                          "Hello, I want to connect with your team.",
-                                    );
-                                  },
-                                  icon: const Icon(
-                                    Icons.chat_bubble,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  label: const Text(
-                                    "Connect With Our Team",
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF25D366),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 14,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    elevation: 6,
-                                  ),
-                                ),
+                                ConnectWithTeamWhatsapp(),
                                 const SizedBox(height: 30),
                                 SocialMediaIcons(),
                                 const SizedBox(height: 20),
@@ -374,8 +319,6 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
       },
     );
   }
-
-
 }
 
 class StepData {

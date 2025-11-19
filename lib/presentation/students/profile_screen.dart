@@ -1,12 +1,12 @@
 import 'dart:convert';
-import 'package:BookMyTeacher/presentation/students/settings_page.dart';
+import 'package:BookMyTeacher/presentation/widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/enums/app_config.dart';
 import '../../services/launch_status_service.dart';
 import '../widgets/invite_bottom_sheet.dart';
-import 'account_manage_page.dart';
+import '../widgets/account_manage_page.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Future<Map<String, dynamic>> studentDataFuture;

@@ -17,20 +17,18 @@ class _SchedulePageState extends State<SchedulePage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _loading = false;
+
   DateTime _firstDay = DateTime.now();
   DateTime _lastDay = DateTime.now();
 
-  // Map with DateTime.utc(day) keys and list of ScheduleEvent values
   Map<DateTime, List<ScheduleEvent>> _events = {};
 
   @override
   void initState() {
     super.initState();
-
     _loadMonthlyEvents(_focusedDay);
   }
 
-  // Convert backend date string keys ("2025-11-10") to DateTime.utc key
   DateTime _toKey(String dateString) {
     final d = DateTime.parse(dateString);
     return DateTime.utc(d.year, d.month, d.day);
@@ -42,8 +40,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
   Future<void> _loadMonthlyEvents(DateTime month) async {
     setState(() => _loading = true);
-    final monthStr =
-        "${month.year.toString().padLeft(4, '0')}-${month.month.toString().padLeft(2, '0')}";
+
     try {
       final resp = await TeacherApiService().fetchTeacherSchedule();
 
@@ -59,11 +56,9 @@ class _SchedulePageState extends State<SchedulePage> {
         _lastDay = resp.lastDay;
       });
     } catch (e) {
-      // handle error (toast/snackbar)
       debugPrint('Failed to load schedule: $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to load schedule: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to load schedule: $e')));
     } finally {
       setState(() => _loading = false);
     }
@@ -71,164 +66,222 @@ class _SchedulePageState extends State<SchedulePage> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.85,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            color: Color(0x4DFFFFFF),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(
+            height: 300,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/background/full-bg.jpg'),
+                fit: BoxFit.fill,
+              ),
+            ),
           ),
-          child: ListView(
-            controller: scrollController,
+          Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const SizedBox(width: 40), // balance alignment
-                  const Text(
-                    "🗓 My Schedules",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              TableCalendar(
-                focusedDay: _focusedDay,
-                // firstDay: DateTime.utc(2024, 1, 1),
-                // lastDay: DateTime.utc(2030, 12, 31),
-                firstDay: _firstDay,
-                lastDay: _lastDay,
-                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                onDaySelected: (selected, focused) {
-                  setState(() {
-                    _selectedDay = selected;
-                    _focusedDay = focused;
-                  });
-                },
-                onPageChanged: (focusedDay) {
-                  setState(() {
-                    _focusedDay = focusedDay;
-                    _selectedDay = null;
-                  });
-                  _loadMonthlyEvents(focusedDay);
-                },
-                eventLoader: _getEventsForDay,
-                calendarStyle: const CalendarStyle(
-                  todayDecoration: BoxDecoration(
-                    color: Colors.greenAccent,
-                    shape: BoxShape.circle,
-                  ),
-                  selectedDecoration: BoxDecoration(
-                    color: Colors.blueAccent,
-                    shape: BoxShape.circle,
-                  ),
-                  markerDecoration: BoxDecoration(
-                    color: Colors.orange,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                headerStyle: const HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              if (_loading) const Center(child: CircularProgressIndicator()),
-              if (!_loading && _selectedDay == null)
-                const Center(child: Text("Select a date to see your schedule")),
-              const SizedBox(height: 8),
-
-              if (_selectedDay != null)
-                ..._getEventsForDay(_selectedDay!).map((event) {
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                    child: ListTile(
-                      leading: event.thumbnailUrl != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                event.thumbnailUrl!,
-                                width: 56,
-                                height: 56,
-                                fit: BoxFit.cover,
-                                errorBuilder: (c, e, st) =>
-                                    CircleAvatar(child: Icon(Icons.event)),
-                              ),
-                            )
-                          : _buildIcon(event.type),
-                      title: Text(event.topic),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+              SizedBox(
+                height: 120,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 50),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "${event.timeStart} - ${event.timeEnd} • ${event.subjectName}",
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.8),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.keyboard_arrow_left_sharp,
+                                  color: Colors.black),
+                              iconSize: 20,
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                context.push('/teacher-dashboard');
+                              },
+                            ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            event.description,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
+                          const Text(
+                            "My Schedules",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22.0,
+                            ),
                           ),
-                          _statusChip(event.classStatus),
+                          const SizedBox(width: 50),
                         ],
                       ),
-                      isThreeLine: true,
-                      trailing: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(height: 8),
-                          IconButton(
-                            icon: const Icon(Icons.info_outline),
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ClassDetailsScreen(
-                                    event: event,
-                                    dateKey: DateTime.utc(
-                                      _selectedDay!.year,
-                                      _selectedDay!.month,
-                                      _selectedDay!.day,
+                    ],
+                  ),
+                ),
+              ),
+
+              /// CONTENT
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      TableCalendar(
+                        focusedDay: _focusedDay,
+                        firstDay: _firstDay,
+                        lastDay: _lastDay,
+                        selectedDayPredicate: (day) =>
+                            isSameDay(_selectedDay, day),
+                        onDaySelected: (selected, focused) {
+                          setState(() {
+                            _selectedDay = selected;
+                            _focusedDay = focused;
+                          });
+                        },
+                        onPageChanged: (focusedDay) {
+                          setState(() {
+                            _focusedDay = focusedDay;
+                            _selectedDay = null;
+                          });
+                          _loadMonthlyEvents(focusedDay);
+                        },
+                        eventLoader: _getEventsForDay,
+                        calendarStyle: const CalendarStyle(
+                          todayDecoration: BoxDecoration(
+                            color: Colors.greenAccent,
+                            shape: BoxShape.circle,
+                          ),
+                          selectedDecoration: BoxDecoration(
+                            color: Colors.blueAccent,
+                            shape: BoxShape.circle,
+                          ),
+                          markerDecoration: BoxDecoration(
+                            color: Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        headerStyle: const HeaderStyle(
+                          formatButtonVisible: false,
+                          titleCentered: true,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      if (_loading)
+                        const Center(child: CircularProgressIndicator()),
+
+                      if (!_loading && _selectedDay == null)
+                        const Center(
+                          child: Text("Select a date to see your schedule"),
+                        ),
+
+                      const SizedBox(height: 8),
+
+                      /// EVENT LIST
+                      if (_selectedDay != null)
+                        Expanded(
+                          child: ListView(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            children: _getEventsForDay(_selectedDay!).map((event) {
+                              return Card(
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                  horizontal: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: 2,
+                                child: ListTile(
+                                  leading: event.thumbnailUrl != null
+                                      ? ClipRRect(
+                                    borderRadius:
+                                    BorderRadius.circular(8),
+                                    child: Image.network(
+                                      event.thumbnailUrl!,
+                                      width: 56,
+                                      height: 56,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (c, e, st) =>
+                                      const CircleAvatar(
+                                        child: Icon(Icons.event),
+                                      ),
                                     ),
+                                  )
+                                      : _buildIcon(event.type),
+                                  title: Text(event.topic),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          "${event.timeStart} - ${event.timeEnd} • ${event.subjectName}"),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        event.description,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
+                                      ),
+                                      _statusChip(event.classStatus),
+                                    ],
+                                  ),
+                                  isThreeLine: true,
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.info_outline),
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => ClassDetailsScreen(
+                                            event: event,
+                                            dateKey: DateTime.utc(
+                                              _selectedDay!.year,
+                                              _selectedDay!.month,
+                                              _selectedDay!.day,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               );
-                            },
+                            }).toList(),
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-              const SizedBox(height: 12),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
   Widget _buildIcon(String type) {
     IconData icon;
     Color color;
+
     switch (type) {
       case "Individual Class":
         icon = Icons.person;
@@ -250,6 +303,7 @@ class _SchedulePageState extends State<SchedulePage> {
         icon = Icons.event;
         color = Colors.grey;
     }
+
     return CircleAvatar(
       backgroundColor: color.withOpacity(0.15),
       child: Icon(icon, color: color),
@@ -258,6 +312,7 @@ class _SchedulePageState extends State<SchedulePage> {
 
   Widget _statusChip(String status) {
     Color bg;
+
     switch (status) {
       case 'live':
         bg = Colors.redAccent;
@@ -268,6 +323,7 @@ class _SchedulePageState extends State<SchedulePage> {
       default:
         bg = Colors.green;
     }
+
     return Chip(
       label: Text(
         status.toUpperCase(),

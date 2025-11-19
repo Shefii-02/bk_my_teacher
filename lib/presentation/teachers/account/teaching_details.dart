@@ -1,8 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'dart:io' show File;
-import 'dart:typed_data';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,8 +8,6 @@ import '../../../providers/user_provider.dart';
 import '../../../services/api_service.dart';
 import '../../../services/launch_status_service.dart';
 import '../../auth/controller/auth_controller.dart';
-import '../../auth/providers/teacher_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TeachingDetails extends ConsumerStatefulWidget {
   const TeachingDetails({super.key});
