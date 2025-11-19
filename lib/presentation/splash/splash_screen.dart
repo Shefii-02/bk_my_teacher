@@ -27,7 +27,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
-  // class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {

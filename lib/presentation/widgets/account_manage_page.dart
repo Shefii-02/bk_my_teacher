@@ -1,3 +1,4 @@
+import 'package:BookMyTeacher/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -120,6 +121,7 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
               if (confirmed) {
                 ref.invalidate(userProvider);
                 ref.invalidate(authControllerProvider);
+                await ApiService().logout();
                 await LaunchStatusService.resetApp();
                 context.go('/auth');
               }
@@ -138,6 +140,7 @@ class _AccountManagePageState extends ConsumerState<AccountManagePage> {
               if (confirmed) {
                 ref.invalidate(userProvider);
                 ref.invalidate(authControllerProvider);
+                await ApiService().requestDeleteAccount();
                 await LaunchStatusService.resetApp();
                 if (context.mounted) context.go('/auth');
                 // Delete account API call

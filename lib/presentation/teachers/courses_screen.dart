@@ -181,8 +181,7 @@ class _CoursesScreenState extends State<CoursesScreen>
                                       bottomLeft: Radius.circular(12),
                                     ),
                                     child: Image.network(
-                                      // course['image'],
-                                      "${Endpoints.domain}/assets/mobile-app/banners/course-banner-1.png",
+                                      course['image'],
                                       width: 120,
                                       height: 100,
                                       fit: BoxFit.cover,

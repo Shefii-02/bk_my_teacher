@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 
 import '../core/constants/endpoints.dart';
 import '../model/grade_board_subject_model.dart';
+import '../model/notification_item.dart';
 import '../model/performance_summary.dart';
 import '../model/student_model.dart';
 import '../model/teacher.dart';
@@ -767,7 +768,8 @@ class ApiService {
   Future<void> logout() async {
     try {
       await _loadAuth();
-      await _dio.post('/logout');
+      final res = await _dio.post('/logout');
+
     } catch (_) {}
   }
 
@@ -776,14 +778,17 @@ class ApiService {
     try {
       await _loadAuth();
       final res = await _dio.post('/account/delete-request');
+
       return res.data['status'] == true;
+
     } catch (_) {
       return false;
     }
   }
 
-
-  Future<TeacherPerformanceModel?> fetchTeacherPerformance(String filter) async {
+  Future<TeacherPerformanceModel?> fetchTeacherPerformance(
+    String filter,
+  ) async {
     try {
       await _loadAuth();
       final response = await _dio.get(
@@ -1219,6 +1224,17 @@ class ApiService {
       data: {'referral_code': code, ...signupData},
     );
     return res.data;
+  }
+
+  Future<NotificationResponse> fetchNotifications() async {
+    final res = await _dio.get("/notifications");
+
+    return NotificationResponse.fromJson(res.data);
+  }
+
+  Future<bool> markNotificationRead(int id) async {
+    final res = await _dio.post("/notifications/mark-read/$id");
+    return res.data["status"] == 200;
   }
 }
 
