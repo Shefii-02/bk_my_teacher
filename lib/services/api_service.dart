@@ -9,8 +9,9 @@ import '../model/grade_board_subject_model.dart';
 import '../model/notification_item.dart';
 import '../model/performance_summary.dart';
 import '../model/student_model.dart';
-import '../model/teacher.dart';
+import '../model/student_performance.dart';
 import '../model/top_banner.dart';
+import '../providers/student_performance_provider.dart';
 
 class ApiResponse<T> {
   final bool success;
@@ -46,6 +47,26 @@ class ApiService {
       _dio.options.headers['Authorization'] = 'Bearer $token';
     }
   }
+
+
+  Future<StudentPerformance> getStudentPerformance() async {
+    try {
+      await _loadAuth();
+      final res = await _dio.post("/student/performance");
+
+      final data = res.data;
+
+      if (data == null || data["data"] == null || data["data"] is! Map<String, dynamic>) {
+        throw Exception("Invalid response format");
+      }
+
+      return StudentPerformance.fromJson(data["data"]);
+    } catch (e) {
+      throw Exception("Failed to load performance: $e");
+    }
+  }
+
+
 
   /// ✅ Server health check
   Future<bool> checkServer() async {
@@ -454,6 +475,7 @@ class ApiService {
 
   // Fetch top banners
   Future<List<TopBanner>> fetchTopBanners() async {
+    await _loadAuth();
     final res = await _dio.get('/top-banners');
     if (res.statusCode == 200) {
       final data = res.data['data'] as List;
@@ -986,6 +1008,7 @@ class ApiService {
 
   Future<List<Grade>> fetchGradesWithBoardsAndSubjects() async {
     try {
+      await _loadAuth();
       final response = await _dio.get('/grades');
       if (response.statusCode == 200 &&
           response.data != null &&

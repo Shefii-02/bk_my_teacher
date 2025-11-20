@@ -1,3 +1,4 @@
+import 'package:BookMyTeacher/presentation/widgets/show_failed_alert.dart';
 import 'package:BookMyTeacher/presentation/widgets/show_success_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,21 +91,16 @@ class _VerifyAccountPopupState extends ConsumerState<VerifyAccountPopup> {
       });
 
 
-
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(content: Text("✅ Account verified successfully")),
-      // );
-
       widget.onVerified();
     } catch (e) {
 
       debugPrint("❌ Google Account verification error: $e");
       if (mounted) {
-        showSuccessAlert(
+        showFailedAlert(
           context,
-          title: "Verified!",
+          title: "Failed!",
           subtitle: "Account verification failed",
-          color: Colors.green,
+          color: Colors.red,
           timer: 2,
           showButton: false,
         );

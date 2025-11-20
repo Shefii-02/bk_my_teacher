@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:BookMyTeacher/core/enums/app_config.dart';
+import 'package:BookMyTeacher/presentation/widgets/show_failed_alert.dart';
 import 'package:BookMyTeacher/services/api_service.dart';
 import 'package:BookMyTeacher/services/launch_status_service.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +12,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/endpoints.dart';
 import '../widgets/show_success_alert.dart';
 
-
 class TeacherDetailsPage extends ConsumerStatefulWidget {
   final Map<String, dynamic> teacher;
   const TeacherDetailsPage({super.key, required this.teacher});
@@ -23,366 +22,341 @@ class TeacherDetailsPage extends ConsumerStatefulWidget {
 
 class _TeacherDetailsPageState extends ConsumerState<TeacherDetailsPage> {
   late Map<String, dynamic> teacherData;
-  String selectedType = 'subject'; // subject or course
+
+  // Booking form state (class-level so submit method can read it)
+  String selectedType = 'subject'; // 'subject' or 'course'
   List<String> selectedItems = [];
-  String selectedClassType = 'individual'; // individual, common, crash
+  String selectedClassType = 'Individual'; // 'Individual', 'Common', 'Crash'
   final TextEditingController daysController = TextEditingController();
   final TextEditingController notesController = TextEditingController();
 
-  // Dummy subjects & courses
-  final List<String> subjects = ['Maths', 'Science', 'English', 'Computer'];
-  final List<String> courses = ['NEET', 'JEE', 'Spoken English'];
-
   bool isSubmitting = false;
   final ScreenshotController _screenshotController = ScreenshotController();
+
+  // Utility: parse teacher fields which may be String or List
+  List<String> _asStringList(dynamic value) {
+    if (value == null) return [];
+    if (value is List) {
+      return value
+          .map((e) => e?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .cast<String>()
+          .toList();
+    }
+    // If comma-separated string
+    if (value is String) {
+      return value
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
+    return [];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    teacherData = widget.teacher;
+    // If teacher already has preferred defaults, you can set them here:
+    // selectedItems = _asStringList(teacherData['subjects']).take(1).toList();
+  }
+
+  @override
+  void dispose() {
+    daysController.dispose();
+    notesController.dispose();
+    super.dispose();
+  }
+
   Future<void> _shareTeacherProfile() async {
     try {
-      // Capture screenshot
       final image = await _screenshotController.capture();
-
       if (image == null) return;
 
-      // Save image temporarily
       final directory = await getTemporaryDirectory();
       final filePath = '${directory.path}/teacher_share.png';
       final imageFile = File(filePath);
       await imageFile.writeAsBytes(image);
-      final referralCode = await LaunchStatusService.getReferralCode();
 
-      String shortUrl = "${Endpoints.domain}/invite?ref=$referralCode";
+      final referralCode = await LaunchStatusService.getReferralCode();
+      final shortUrl = "${Endpoints.domain}/invite?ref=$referralCode";
       final message =
           "Join BookMyTeacher using my referral code $referralCode and earn rewards!\n$shortUrl";
 
-      // Share using Share Plus
-      await Share.shareXFiles(
-        [XFile(filePath)],
-        text:message,
-      );
+      await Share.shareXFiles([XFile(filePath)], text: message);
     } catch (e) {
       debugPrint("Error sharing teacher: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error sharing: $e')));
     }
   }
+
   Future<void> submitClassDetails() async {
+    // simple validation
+    if (selectedItems.isEmpty) {
+      showFailedAlert(
+        context,
+        title: "Validation",
+        subtitle: 'Please select at least one item',
+        timer: 6,
+        color: Colors.red,
+        showButton: false,
+      );
+
+      return;
+    }
+    if (daysController.text.trim().isEmpty) {
+      showFailedAlert(
+        context,
+        title: "Validation",
+        subtitle: 'Please enter number of days',
+        timer: 6,
+        color: Colors.red,
+        showButton: false,
+      );
+      return;
+    }
+
     setState(() => isSubmitting = true);
 
     try {
       final data = {
+        'teacher_id': teacherData['id'],
         'type': selectedType, // subject or course
         'selected_items': selectedItems,
-        'class_type': selectedClassType,
-        'days_needed': daysController.text,
-        'notes': notesController.text,
+        'class_type': selectedClassType.toLowerCase(),
+        'days_needed': daysController.text.trim(),
+        'notes': notesController.text.trim(),
       };
 
       final res = await ApiService().submitTeacherClassRequest(data);
 
-      if (context.mounted) {
-        Navigator.of(context).pop(); // closes the bottom sheet
-      }
+      // Close the bottom sheet (if any)
+      if (context.mounted) Navigator.of(context).pop();
 
       showSuccessAlert(
         context,
-        title: res?['status'] == true ? "Success!" : "failed",
-        subtitle: res?['message'] ?? 'Class Booking details submitted successfully',
+        title: res?['status'] == true ? "Success!" : "Failed",
+        subtitle:
+            res?['message'] ?? 'Class booking request submitted successfully',
         timer: 6,
         color: res?['status'] == true ? Colors.green : Colors.red,
-        showButton: false, // 👈 hide/show button easily
+        showButton: false,
       );
 
       if (res?['status'] == true) {
         _resetForm();
-        // ✅ Close the bottom sheet after success
-
       }
-
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      debugPrint('submitClassDetails error: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
-      setState(() => isSubmitting = false);
+      if (mounted) setState(() => isSubmitting = false);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final teacher = widget.teacher;
-    final reviews = teacher['reviews'] ?? [];
+  void _resetForm() {
+    setState(() {
+      daysController.clear();
+      notesController.clear();
+      selectedItems.clear();
+      selectedType = 'subject';
+      selectedClassType = 'Individual';
+    });
+  }
 
-    return Screenshot(
-      controller: _screenshotController,
-      child: Scaffold(
-        backgroundColor: Colors.grey.shade100,
-        body: Stack(
-          children: [
-            CustomScrollView(
-              slivers: [
-                // 🔹 Collapsible Header
-                SliverAppBar(
-                  expandedHeight: 280,
-                  floating: false,
-                  pinned: true,
-                  backgroundColor: Colors.green.shade600,
-                  leading: _circleButton(
-                    Icons.arrow_back,
-                    () => Navigator.pop(context),
-                  ),
-                  actions: [
-                    _circleButton(Icons.share_outlined, _shareTeacherProfile),
-                  ],
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // 🌈 Gradient background
-                        Container(
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                AppConfig.bodyBg,
-                              ), // Replace with your asset path
-                              fit: BoxFit.cover,
-                            ),
-                            // gradient: LinearGradient(
-                            //   colors: [Color(0xFF43A047), Color(0xFF66BB6A)],
-                            //   begin: Alignment.topLeft,
-                            //   end: Alignment.bottomRight,
-                            // ),
-                          ),
-                        ),
-                        // 👩‍🏫 Profile Image
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 0),
-                            child: Image.network(
-                              teacher['imageUrl'] ??
-                                  "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-                              fit: BoxFit.cover,
-                              height: 280,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+  void _showBookingSheet() {
+    // Read lists from teacherData
+    final subjectList = _asStringList(teacherData['subjects']).isNotEmpty
+        ? _asStringList(teacherData['subjects'])
+        : ['Maths', 'English', 'Science'];
+    final courseList = _asStringList(teacherData['courses']).isNotEmpty
+        ? _asStringList(teacherData['courses'])
+        : ['Crash Course', 'Programming Basics', 'AI Course'];
 
-                // 📄 Content
-                SliverToBoxAdapter(
-                  child: Container(
-                    width: double.infinity,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(25),
+    // When opening the modal, we keep the class-level selectedItems etc.
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          left: 20,
+          right: 20,
+          top: 25,
+        ),
+        child: StatefulBuilder(
+          builder: (context, setModalState) {
+            // Local helpers to update both modal state and class-level state
+            void _toggleItem(String item, bool add) {
+              setModalState(() {
+                if (add) {
+                  if (!selectedItems.contains(item)) selectedItems.add(item);
+                } else {
+                  selectedItems.remove(item);
+                }
+              });
+              setState(() {}); // ensure outer state consistent if needed
+            }
+
+            void _setType(String type) {
+              setModalState(() => selectedType = type);
+              setState(() {});
+            }
+
+            void _setClassType(String type) {
+              setModalState(() => selectedClassType = type);
+              setState(() {});
+            }
+
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Center(
+                    child: Text(
+                      "📘 Book a Class",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
                       ),
                     ),
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Text(
-                            teacher['name'] ?? "Teacher Name",
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ChoiceChip(
+                        label: const Text("Subject"),
+                        selectedColor: Colors.green.shade100,
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            5,
-                            (i) => Icon(
-                              Icons.star_rounded,
-                              color: i < (teacher['rating'] ?? 4).round()
-                                  ? Colors.orange
-                                  : Colors.grey.shade300,
-                              size: 22,
-                            ),
-                          ),
+                        selected: selectedType == "subject",
+                        onSelected: (_) => _setType("subject"),
+                      ),
+                      const SizedBox(width: 10),
+                      ChoiceChip(
+                        label: const Text("Course"),
+                        selectedColor: Colors.green.shade100,
+                        labelStyle: const TextStyle(
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(height: 20),
-                        // 🧠 About Section
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "About Teacher",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        // 🔹 Description
-                        if (teacher['description'] != null)
-                          Text(
-                            teacher['description'],
-                            style: const TextStyle(
-                              fontSize: 14,
-                              height: 1.5,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        const SizedBox(height: 20),
-
-                        // ✅ Info Rows
-                        _detailRow("Ranking", "#${teacher['ranking'] ?? 1}"),
-                        _detailRow("Qualification", teacher['qualification']),
-                        _detailRow("Subjects", teacher['subjects']),
-                        _detailRow(
-                          "Student Rating",
-                          "${(teacher['rating'] ?? 4.5).toStringAsFixed(1)} ⭐",
-                        ),
-
-                        const SizedBox(height: 25),
-                        const Divider(),
-
-                        // 💬 Reviews
-                        if (reviews.isNotEmpty)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Student Reviews",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 18,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              CarouselSlider.builder(
-                                itemCount: reviews.length,
-                                options: CarouselOptions(
-                                  height: 160,
-                                  enlargeCenterPage: true,
-                                  autoPlay: true,
-                                  viewportFraction: 0.85,
-                                ),
-                                itemBuilder: (context, index, _) {
-                                  final review = reviews[index];
-
-                                  return Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(16),
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.green.shade300.withOpacity(0.2),
-                                          Colors.white,
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black12,
-                                          blurRadius: 5,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        // 🟢 Avatar Section
-                                        CircleAvatar(
-                                          radius: 25,
-                                          backgroundColor: Colors.green.shade200,
-                                          backgroundImage: (review['avatar'] != null &&
-                                              review['avatar'].toString().isNotEmpty)
-                                              ? NetworkImage(review['avatar'])
-                                              : const AssetImage('assets/images/default_avatar.png')
-                                          as ImageProvider,
-                                        ),
-                                        const SizedBox(width: 12),
-
-                                        // 🟢 Review Details
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                review['name'] ?? 'Student',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Row(
-                                                children: List.generate(
-                                                  5,
-                                                      (i) => Icon(
-                                                    Icons.star,
-                                                    color:
-                                                    i < (review['rating']?.round() ?? 4)
-                                                        ? Colors.amber
-                                                        : Colors.grey.shade300,
-                                                    size: 16,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 5),
-                                              Text(
-                                                review['comment'] ??
-                                                    'Very knowledgeable and kind teacher.',
-                                                style: const TextStyle(fontSize: 13),
-                                                maxLines: 3,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-
-                        const SizedBox(height: 120),
-                      ],
+                        selected: selectedType == "course",
+                        onSelected: (_) => _setType("course"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    selectedType == "subject"
+                        ? "Select Subject(s)"
+                        : "Select Course(s)",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
                     ),
                   ),
-                ),
-              ],
-            ),
-
-            // 🟢 Floating Book Button
-            Positioned(
-              bottom: 25,
-              left: 20,
-              right: 20,
-              child: ElevatedButton.icon(
-                onPressed: _showBookingSheet,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade600,
-                  minimumSize: const Size(double.infinity, 55),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    children:
+                        (selectedType == "subject" ? subjectList : courseList)
+                            .map(
+                              (item) => FilterChip(
+                                label: Text(item),
+                                labelStyle: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                selected: selectedItems.contains(item),
+                                selectedColor: Colors.green.shade200,
+                                showCheckmark: true,
+                                onSelected: (val) => _toggleItem(item, val),
+                              ),
+                            )
+                            .toList(),
                   ),
-                  elevation: 5,
-                ),
-                icon: const Icon(
-                  Icons.calendar_month_outlined,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  "Book Demo / Class",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Class Type",
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 10,
+                    children: ["Individual", "Common", "Crash"]
+                        .map(
+                          (type) => ChoiceChip(
+                            label: Text(type),
+                            selected: selectedClassType == type,
+                            selectedColor: Colors.green.shade200,
+                            onSelected: (_) => _setClassType(type),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: daysController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Number of Days",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(9.0),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: notesController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: "Notes (optional)",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(9.0),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 25),
+                  ElevatedButton.icon(
+                    onPressed: isSubmitting ? null : submitClassDetails,
+                    icon: isSubmitting
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.send, color: Colors.white),
+                    label: Text(
+                      isSubmitting ? 'Submitting...' : 'Submit Booking',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade600,
+                      minimumSize: const Size(double.infinity, 55),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -426,201 +400,281 @@ class _TeacherDetailsPageState extends ConsumerState<TeacherDetailsPage> {
     ),
   );
 
-  // 🧩 Stylish Booking Bottom Sheet
-  void _showBookingSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          left: 20,
-          right: 20,
-          top: 25,
-        ),
-        child: StatefulBuilder(
-          builder: (context, setModalState) => SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Center(
-                  child: Text(
-                    "📘 Book a Class",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                ),
-                const SizedBox(height: 20),
+  @override
+  Widget build(BuildContext context) {
+    final teacher = teacherData;
+    final reviews = teacher['reviews'] ?? [];
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ChoiceChip(
-                      label: const Text("Subject"),
-                      selectedColor: Colors.green.shade100,
-                      labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-                      selected: selectedType == "subject",
-                      onSelected: (_) =>
-                          setModalState(() => selectedType = "subject"),
-                    ),
-                    const SizedBox(width: 10),
-                    ChoiceChip(
-                      label: const Text("Course"),
-                      selectedColor: Colors.green.shade100,
-                      labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-                      selected: selectedType == "course",
-                      onSelected: (_) =>
-                          setModalState(() => selectedType = "course"),
-                    ),
+    return Screenshot(
+      controller: _screenshotController,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 280,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: Colors.black12,
+                  leading: _circleButton(
+                    Icons.arrow_back,
+                    () => Navigator.pop(context),
+                  ),
+                  actions: [
+                    _circleButton(Icons.share_outlined, _shareTeacherProfile),
                   ],
-                ),
-                const SizedBox(height: 20),
-
-                Text(
-                  selectedType == "subject"
-                      ? "Select Subject(s)"
-                      : "Select Course(s)",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 10,
-                  children:
-                      (selectedType == "subject"
-                              ? ["Maths", "English", "Science", "Physics"]
-                              : [
-                                  "Crash Course",
-                                  "Programming Basics",
-                                  "AI Course",
-                                ])
-                          .map(
-                            (item) => FilterChip(
-                              label: Text(item),
-                              labelStyle: const TextStyle(
-                                fontWeight: FontWeight.w500,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Container(
+                          decoration: const BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(
+                                "assets/images/background/full-bg.jpg",
                               ),
-                              selected: selectedItems.contains(item),
-                              selectedColor: Colors.green.shade200,
-                              onSelected: (val) {
-                                setModalState(() {
-                                  if (val) {
-                                    selectedItems.add(item);
-                                  } else {
-                                    selectedItems.remove(item);
-                                  }
-                                });
-                              },
+                              fit: BoxFit.fill,
                             ),
-                          )
-                          .toList(),
-                ),
-                const SizedBox(height: 20),
-
-                const Text(
-                  "Class Type",
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                ),
-                Wrap(
-                  spacing: 10,
-                  children: ["Individual", "Common", "Crash"]
-                      .map(
-                        (type) => ChoiceChip(
-                          label: Text(type),
-                          selected: selectedClassType == type,
-                          selectedColor: Colors.green.shade200,
-                          onSelected: (_) =>
-                              setModalState(() => selectedClassType = type),
+                          ),
                         ),
-                      )
-                      .toList(),
-                ),
-                const SizedBox(height: 20),
-
-                TextField(
-                  controller: daysController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "Number of Days",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        9.0,
-                      ), // Adjust the radius as needed
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 0),
+                            child: Image.network(
+                              teacher['imageUrl'] ??
+                                  "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+                              fit: BoxFit.cover,
+                              height: 280,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 15),
-
-                TextField(
-                  controller: notesController,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: "Notes (optional)",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        9.0,
-                      ), // Adjust the radius as needed
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 25),
-
-                // ElevatedButton(
-                //   onPressed: () {
-                //     Navigator.pop(context);
-                //     ScaffoldMessenger.of(context).showSnackBar(
-                //       const SnackBar(
-                //         content: Text("Booking request submitted!"),
-                //         backgroundColor: Colors.green,
-                //       ),
-                //     );
-                //   },
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: Colors.green.shade600,
-                //     minimumSize: const Size(double.infinity, 55),
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(15),
-                //     ),
-                //   ),
-                //   child: const Text(
-                //     "Submit Booking",
-                //     style: TextStyle(color: Colors.white, fontSize: 16),
-                //   ),
-                // ),
-                ElevatedButton.icon(
-                  onPressed: isSubmitting ? null : submitClassDetails,
-                  icon: isSubmitting
-                      ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                      : const Icon(Icons.send,color: Colors.white,),
-                  label: Text(isSubmitting ? 'Submitting...' : 'Submit Booking',style: TextStyle(color: Colors.white),),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade600,
-                      minimumSize: const Size(double.infinity, 55),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
+                SliverToBoxAdapter(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(25),
                       ),
                     ),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            teacher['name'] ?? "Teacher Name",
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            5,
+                            (i) => Icon(
+                              Icons.star_rounded,
+                              color: i < ((teacher['rating'] ?? 4).round())
+                                  ? Colors.orange
+                                  : Colors.grey.shade300,
+                              size: 22,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "About Teacher",
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        if (teacher['description'] != null)
+                          Text(
+                            teacher['description'],
+                            style: const TextStyle(
+                              fontSize: 14,
+                              height: 1.5,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        const SizedBox(height: 20),
+                        _detailRow("Ranking", "#${teacher['ranking'] ?? 1}"),
+                        _detailRow(
+                          "Qualification",
+                          teacher['qualification']?.toString(),
+                        ),
+                        // join subjects as display string
+                        _detailRow(
+                          "Subjects",
+                          _asStringList(teacher['subjects']).join(', '),
+                        ),
+                        _detailRow(
+                          "Student Rating",
+                          "${(teacher['rating'] ?? 4.5).toStringAsFixed(1)} ⭐",
+                        ),
+                        const SizedBox(height: 25),
+                        const Divider(),
+                        if ((reviews as List).isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Student Reviews",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              CarouselSlider.builder(
+                                itemCount: reviews.length,
+                                options: CarouselOptions(
+                                  height: 160,
+                                  enlargeCenterPage: true,
+                                  autoPlay: true,
+                                  viewportFraction: 0.85,
+                                ),
+                                itemBuilder: (context, index, _) {
+                                  final review = reviews[index];
+                                  return Container(
+                                    padding: const EdgeInsets.all(14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.white,
+                                          Colors.green.shade400,
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 5,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 25,
+                                          backgroundColor:
+                                              Colors.green.shade200,
+                                          backgroundImage:
+                                              (review['avatar'] != null &&
+                                                  review['avatar']
+                                                      .toString()
+                                                      .isNotEmpty)
+                                              ? NetworkImage(review['avatar'])
+                                              : const AssetImage(
+                                                      'assets/images/default_avatar.png',
+                                                    )
+                                                    as ImageProvider,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                review['name'] ?? 'Student',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Row(
+                                                children: List.generate(
+                                                  5,
+                                                  (i) => Icon(
+                                                    Icons.star,
+                                                    color:
+                                                        i <
+                                                            ((review['rating']
+                                                                    ?.round() ??
+                                                                4))
+                                                        ? Colors.amber
+                                                        : Colors.grey.shade300,
+                                                    size: 16,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 5),
+                                              Text(
+                                                review['comment'] ??
+                                                    'Very knowledgeable and kind teacher.',
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                ),
+                                                maxLines: 3,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        const SizedBox(height: 120),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
+            Positioned(
+              bottom: 25,
+              left: 20,
+              right: 20,
+              child: ElevatedButton.icon(
+                onPressed: _showBookingSheet,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green.shade600,
+                  minimumSize: const Size(double.infinity, 55),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  elevation: 5,
+                ),
+                icon: const Icon(
+                  Icons.calendar_month_outlined,
+                  color: Colors.white,
+                ),
+                label: const Text(
+                  "Book Demo / Class",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
-  }
-
-  void _resetForm() {
-    setState(() {
-      daysController.clear();
-      notesController.clear();
-      selectedItems.clear();
-      selectedType = 'subject';
-      selectedClassType = 'individual';
-    });
   }
 }

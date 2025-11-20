@@ -41,7 +41,6 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
 
   @override
   Widget build(BuildContext context) {
-
         return Scaffold(
           body: _screens[_currentIndex],
           bottomNavigationBar: BottomNavigationBar(
