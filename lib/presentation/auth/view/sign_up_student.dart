@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:BookMyTeacher/presentation/auth/view/referral_popup.dart';
 import 'package:BookMyTeacher/services/api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -317,9 +318,9 @@ class _SignUpStudentState extends State<SignUpStudent> {
       // await LaunchStatusService.setUserId(userId!.toString());
 
       setState(() => _isLoading = true); // ⏳ Show loader
-
+      _showReferralPopup(context);
       // context.go('/student-dashboard');
-      context.go('/student-dashboard', extra: {'studentId': userId});
+      // context.go('/student-dashboard', extra: {'studentId': userId});
       // }
       // catch (e) {
       //   print(e);
@@ -1270,6 +1271,20 @@ class _SignUpStudentState extends State<SignUpStudent> {
           vertical: 14,
         ),
       ),
+    );
+  }
+
+
+  void _showReferralPopup(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        return ReferralPopup();
+      },
     );
   }
 }

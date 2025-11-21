@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:BookMyTeacher/presentation/auth/view/referral_popup.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_stepper/easy_stepper.dart';
@@ -147,8 +148,8 @@ class _SignUpGuestState extends State<SignUpGuest> {
       );
 
       setState(() => _isLoading = true);
-
-      context.go('/guest-dashboard', extra: {'guestId': userId.toString()});
+      _showReferralPopup(context);
+      // context.go('/guest-dashboard', extra: {'guestId': userId.toString()});
     } catch (e) {
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -469,6 +470,20 @@ class _SignUpGuestState extends State<SignUpGuest> {
         floatingLabelBehavior: FloatingLabelBehavior.always,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
       ),
+    );
+  }
+
+
+  void _showReferralPopup(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (context) {
+        return ReferralPopup();
+      },
     );
   }
 }

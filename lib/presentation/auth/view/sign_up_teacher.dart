@@ -7,18 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/enums/app_config.dart';
 import '../../../services/api_service.dart';
 import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
 import '../providers/teacher_provider.dart';
-
-// Assuming these are in your project
-// import '../../../core/enums/app_config.dart';
-// import '../../../services/launch_status_service.dart';
-// import '../../services/api_service.dart'; // Adjust path if needed
-// import '../controller/auth_controller.dart';
-// import '../providers/teacher_provider.dart';
 
 class SignUpTeacher extends StatefulWidget {
   const SignUpTeacher({super.key});
