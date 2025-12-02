@@ -94,15 +94,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         userRole,
       );
 
-      // if (referralCode == null) {
-      //   final usrData = await ApiService().userDataStore();
-      //   print("0*******0");
-      //   print(usrData);
-      //   print("0*******0");
-      //   final refCode = usrData['referral_code'];
-      //   LaunchStatusService.saveReferralCode(refCode);
-      // }
-
       if (!isValid) {
         // ✅ Check if widget is still mounted before using context
         if (!mounted) return;
@@ -110,22 +101,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("User not found. Resetting app...")),
         );
-
-        // 🔹 First check internet connection
-        // final hasConnection = await _hasInternetConnection();
-        //
-        // if (!hasConnection) {
-        //   ScaffoldMessenger.of(context).showSnackBar(
-        //     SnackBar(
-        //       content: Text('⚠️ No internet connection.'),
-        //       backgroundColor: Colors.red,
-        //     ),
-        //   );
-        //   debugPrint("⚠️ No internet connection. Skipping user validation.");
-        //   return; // Don’t reset if offline
-        // } else {
-        // await LaunchStatusService.resetApp();
-        // }
       }
     } catch (e) {
       debugPrint("Error in _checkUser: $e");
@@ -133,7 +108,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _initAndRedirect() async {
-    // await _checkUser();
+
     final box = await Hive.openBox('app_storage');
     final String? token = await LaunchStatusService.getAuthToken();
     if(token == null){
@@ -143,14 +118,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     await ref.read(userProvider.notifier).loadUser();
     final userState = ref.read(userProvider);
     final user2 = userState.value;
-
+    final data = user2?.toJson();
     try {
+      print("****");
+      print(data);
+      print("****");
       // Read current state
-      final userState = ref.read(userProvider);
-      final user2 = userState.value;
       final String? userId = box.get('user_id');
-
-      final data = user2?.toJson();
 
       if (data != null) {
         LaunchStatusService.saveUserData(data);
@@ -167,7 +141,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       }
 
       print("****************************");
-      print("auth Token : ");
+      print("auth Token :");
       print(token);
       print("****************************");
       print("storedUserData : ");
@@ -227,31 +201,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     Map<String, dynamic>? userData;
 
     if (token != null && storedUserData != null) {
-      final fetched = await UserCheckService().fetchUserData(token);
-      if (!mounted) return;
-      print("****************************");
-      print("fetched : ");
-      print(fetched);
-      print("****************************");
-      if (fetched != null) {
-        userData = fetched['data'];
-      } else {
-        userData = storedUserData['data'];
-      }
-    } else if (userId != null) {
-      final fetched = await UserCheckService().setUserToken(userId);
-      if (!mounted) return;
-
-      if (fetched != null) {
-        userData = fetched as Map<String, dynamic>?;
-        await box.put('user_data', userData);
-        await box.put('auth_token', userData?['token']);
-      } else {
-        if (!mounted) return;
-        context.go('/auth');
-        return;
-      }
-    } else {
+      // final fetched = await UserCheckService().fetchUserData(token);
+      // if (!mounted) return;
+      // print("****************************");
+      // print("fetched : ");
+      // print(fetched);
+      // print("****************************");
+      // if (fetched != null) {
+        userData = storedUserData;
+      // } else {
+      //   userData = storedUserData['data'];
+      // }
+    }
+    // else if (userId != null) {
+    //   final fetched = await UserCheckService().setUserToken(userId);
+    //   if (!mounted) return;
+    //
+    //   if (fetched != null) {
+    //     userData = fetched as Map<String, dynamic>?;
+    //     await box.put('user_data', userData);
+    //     await box.put('auth_token', userData?['token']);
+    //   } else {
+    //     if (!mounted) return;
+    //     context.go('/auth');
+    //     return;
+    //   }
+    // }
+    else {
       if (!mounted) return;
       context.go('/auth');
       return;

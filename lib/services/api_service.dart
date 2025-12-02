@@ -53,19 +53,15 @@ class ApiService {
     try {
       await _loadAuth();
       final res = await _dio.post("/student/performance");
-
       final data = res.data;
-
       if (data == null || data["data"] == null || data["data"] is! Map<String, dynamic>) {
         throw Exception("Invalid response format");
       }
-
       return StudentPerformance.fromJson(data["data"]);
     } catch (e) {
       throw Exception("Failed to load performance: $e");
     }
   }
-
 
 
   /// ✅ Server health check
@@ -84,15 +80,6 @@ class ApiService {
       } else {
         return false;
       }
-
-      // if (response.statusCode == 200) {
-      //   // If API returns JSON with success
-      //   if (response.data is Map && response.data['status'] == 'ok') {
-      //     return true;
-      //   }
-      //   return true; // if just 200 OK without body
-      // }
-      // return false;
     } on DioException catch (_) {
       return false;
     } catch (_) {

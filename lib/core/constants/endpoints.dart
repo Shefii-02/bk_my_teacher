@@ -1,7 +1,7 @@
 class Endpoints {
   //Domain
   // static const domain = "https://bookmyteacher.cloud";
-
+  //
   static const domain = "https://stage.bookmyteacher.cloud";
 
   // Base

@@ -20,6 +20,16 @@ class StudentApiService {
     _dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
+  // ---------------------------------------------------------------------------
+  // 🔹 COMMON — Load token & add in header
+  // ---------------------------------------------------------------------------
+  Future<void> _loadAuth() async {
+    final box = await Hive.openBox('app_storage');
+    final token = box.get('auth_token') ?? '';
+
+    if (token.isNotEmpty) setAuthToken(token);
+  }
+
   Future<Map<String, dynamic>> registerStudent({
     required String studentId,
     required String studentName,
@@ -62,8 +72,6 @@ class StudentApiService {
         //     avatar.path,
         //     filename: avatar.path.split('/').last,
         //   ),
-
-
       });
 
       // Attach avatar
@@ -73,34 +81,29 @@ class StudentApiService {
           formData.files.add(
             MapEntry(
               "avatar",
-              MultipartFile.fromBytes(
-                avatar.bytes!,
-                filename: avatar.name,
-              ),
+              MultipartFile.fromBytes(avatar.bytes!, filename: avatar.name),
             ),
           );
         } else {
           formData.files.add(
             MapEntry(
               "avatar",
-              await MultipartFile.fromFile(
-                avatar.path!,
-                filename: avatar.name,
-              ),
+              await MultipartFile.fromFile(avatar.path!, filename: avatar.name),
             ),
           );
         }
       }
 
       // Add request source info
-      final headers = {
-        "X-Request-Source": kIsWeb ? "browser" : "app",
-      };
+      final headers = {"X-Request-Source": kIsWeb ? "browser" : "app"};
       // print("➡️ Posting Teacher Signup");
       // print("Data: ${formData.fields}");
-
-      final response = await _dio.post(Endpoints.studentSignup, data: formData,
-        options: Options(headers: headers),);
+      await _loadAuth();
+      final response = await _dio.post(
+        Endpoints.studentSignup,
+        data: formData,
+        options: Options(headers: headers),
+      );
       // print("✅ Response: ${response.data}");
       return response.data;
     } on DioException catch (e) {
@@ -110,7 +113,6 @@ class StudentApiService {
 
   Future<Map<String, dynamic>> fetchStudentData() async {
     try {
-
       // final formData = FormData.fromMap({
       //   "student_id": studentId,
       // });
@@ -120,21 +122,19 @@ class StudentApiService {
 
       if (token.isNotEmpty) setAuthToken(token);
 
-      final response = await _dio.post(
-        Endpoints.studentHome,
-      );
+      final response = await _dio.post(Endpoints.studentHome);
 
       if (response.statusCode == 200 && response.data != null) {
         // Dio automatically parses JSON response to Map<String, dynamic>
         return response.data;
       } else {
-        throw Exception("Failed to load teacher data: Server responded with status ${response.statusCode}");
+        throw Exception(
+          "Failed to load teacher data: Server responded with status ${response.statusCode}",
+        );
       }
     } on DioException catch (e) {
       // Catch Dio-specific errors (e.g., network issues, bad status codes)
       throw Exception(e.response?.data ?? "Error fetching student data");
     }
   }
-
-
 }

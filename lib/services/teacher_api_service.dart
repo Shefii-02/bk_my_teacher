@@ -128,6 +128,7 @@ class TeacherApiService {
         }
       }
       final headers = {"X-Request-Source": kIsWeb ? "browser" : "app"};
+      await _loadAuth();
 
       final response = await _dio.post(
         Endpoints.teacherSignup,
@@ -366,7 +367,6 @@ class TeacherApiService {
     return data.map((e) => TimeCardModel.fromJson(e)).toList();
   }
 
-
   Future<LevelData> fetchCurrentLevel() async {
     await _loadAuth();
     final response = await _dio.post("/teacher/achievement-level");
@@ -378,7 +378,6 @@ class TeacherApiService {
     final res = await _dio.post('/teacher/own-courses');
     return Map<String, dynamic>.from(res.data);
   }
-
 
   Future<StatisticsModel> fetchSpendStatistics() async {
     try {
@@ -418,7 +417,6 @@ class TeacherApiService {
     }
   }
 
-
   Future<List<StudentReviewMain>> fetchMainReviews() async {
     try {
       await _loadAuth();
@@ -434,5 +432,4 @@ class TeacherApiService {
       return [];
     }
   }
-
 }
