@@ -154,7 +154,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
           MaterialPageRoute(
             builder: (_) => RecordedVideoWithDoubt(
               title: title,
-              videoUrl: recorded,
+              videoUrl: recorded, classId: '', type: '',
             ),
           ),
         );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:flutter/services.dart';
@@ -20,26 +22,27 @@ class _YoutubeEmbedState extends State<YoutubeEmbed> {
     // Force portrait orientation for video
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-    _controller = YoutubePlayerController(
-      initialVideoId: widget.videoId,
-      flags: const YoutubePlayerFlags(
-        showLiveFullscreenButton: false,
-        autoPlay: true,
-        mute: false,
-        disableDragSeek: true,
-        hideControls: false,
-        loop: false,
-        enableCaption: false,
-        forceHD: true,
-        useHybridComposition: true, // For Android WebView fix
-      ),
-    )..addListener(() {
-      if (_controller.value.isReady && !_isPlayerReady) {
-        setState(() {
-          _isPlayerReady = true;
+    _controller =
+        YoutubePlayerController(
+          initialVideoId: widget.videoId,
+          flags: const YoutubePlayerFlags(
+            showLiveFullscreenButton: false,
+            autoPlay: false,
+            mute: false,
+            disableDragSeek: true,
+            hideControls: false,
+            loop: false,
+            enableCaption: false,
+            forceHD: true,
+            useHybridComposition: true, // For Android WebView fix
+          ),
+        )..addListener(() {
+          if (_controller.value.isReady && !_isPlayerReady) {
+            setState(() {
+              _isPlayerReady = true;
+            });
+          }
         });
-      }
-    });
   }
 
   @override
@@ -84,7 +87,7 @@ class _YoutubeEmbedState extends State<YoutubeEmbed> {
                 children: [
                   AspectRatio(aspectRatio: 16 / 9, child: player),
                   Text(
-                    "Recorded Class Video",
+                    "Class Video Loading...",
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -92,7 +95,6 @@ class _YoutubeEmbedState extends State<YoutubeEmbed> {
                   ),
                   if (!_isPlayerReady)
                     const Center(child: CircularProgressIndicator()),
-
                 ],
               ),
             );
@@ -102,8 +104,6 @@ class _YoutubeEmbedState extends State<YoutubeEmbed> {
     );
   }
 }
-
-
 
 class YouTubeVideoPlayer extends StatefulWidget {
   final String videoId;
@@ -115,68 +115,145 @@ class YouTubeVideoPlayer extends StatefulWidget {
 
 class _YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   late YoutubePlayerController _controller;
+  bool _showControls = true;
+  Timer? _hideTimer;
+  bool _isPlaying = false;
 
   @override
   void initState() {
-
     _controller = YoutubePlayerController(
       initialVideoId: widget.videoId,
       flags: YoutubePlayerFlags(
-        autoPlay: false,
+        autoPlay: true,
         mute: false,
-        enableCaption: true,
+        enableCaption: false,
         isLive: false,
         hideControls: true,
+        // forceHD: true,
+        // useHybridComposition: true,
+        loop: false,
+        // disableDragSeek: true,
+        showLiveFullscreenButton: false,
       ),
     );
+    _controller.addListener(() {
+      if (!mounted) return;
+
+      final playing = _controller.value.isPlaying;
+      if (playing != _isPlaying) {
+        setState(() {
+          _isPlaying = playing;
+        });
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
+  }
+
+  void _togglePlayPause() {
+    _controller.value.isPlaying ? _controller.pause() : _controller.play();
+    setState(() {});
+  }
+
+  Future<void> _seekForward() async {
+    _controller.pause();
+    await Future.delayed(const Duration(milliseconds: 400));
+    final pos = _controller.value.position;
+    _controller.seekTo(pos + const Duration(seconds: 30));
+    _controller.play();
+  }
+
+  Future<void> _seekBackward() async {
+    _controller.pause();
+    await Future.delayed(const Duration(milliseconds: 400));
+    final pos = _controller.value.position;
+    _controller.seekTo(pos - const Duration(seconds: 30));
+    _controller.play();
   }
 
   @override
   Widget build(BuildContext context) {
     return YoutubePlayerBuilder(
-        player: YoutubePlayer(controller: _controller),
-        builder: (context, player) {
-          return Column(
-            children: [
-              player,
-              Center(
-                child: IconButton(
-                  onPressed: () {
-                    if (_controller.value.isPlaying) {
-                      _controller.pause();
-                    } else {
-                      _controller.play();
-                    }
-                  },
-                  icon: _controller.value.isPlaying ? Icon(Icons.pause_rounded, size: 48) : Icon(Icons.play_arrow_rounded, size: 48),
-                ),
-              ),
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      Text(_controller.metadata.title,
-                        style: TextStyle(
-                          fontSize: 20,
+      player: YoutubePlayer(controller: _controller),
+      builder: (context, player) {
+        return Column(
+          children: [
+            player,
+
+            /// Dark overlay
+            AnimatedOpacity(
+              opacity: _showControls ? 1 : 0,
+              duration: const Duration(milliseconds: 250),
+              child: Container(color: Colors.black45),
+            ),
+
+            /// Center Controls
+            Center(
+              child: Column(
+                children: [
+                  SizedBox(height: 20),
+                  AnimatedOpacity(
+                    opacity: _showControls ? 1 : 0,
+                    duration: const Duration(milliseconds: 250),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        IconButton(
+                          iconSize: 40,
+                          icon: const Icon(
+                            Icons.replay_30,
+                            color: Colors.black,
+                          ),
+                          onPressed: _seekBackward,
                         ),
-                      ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text("By: ${_controller.metadata.author}"),
-                      ),
-                    ],
-                  )
+                        IconButton(
+                          onPressed: () {
+                            if (_controller.value.isPlaying) {
+                              _controller.pause();
+                            } else {
+                              _controller.play();
+                            }
+                          },
+                          icon: _isPlaying
+                              ? Icon(Icons.pause_circle_filled, size: 48)
+                              : Icon(Icons.play_circle_fill, size: 48),
+                        ),
+                        IconButton(
+                          iconSize: 40,
+                          icon: const Icon(
+                            Icons.replay_30,
+                            color: Colors.black,
+                          ),
+                          onPressed: _seekForward,
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.fullscreen,
+                            color: Colors.black,
+                          ),
+                          onPressed: () {
+                            _controller.toggleFullScreenMode();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          );
-        },
+            ),
+
+
+          ],
+        );
+      },
     );
   }
+
+
 }

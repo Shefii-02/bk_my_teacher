@@ -9,7 +9,8 @@ import '../widgets/show_success_alert.dart';
 
 class CourseDetailBottomSheet extends StatefulWidget {
   final Map<String, dynamic> course;
-  const CourseDetailBottomSheet({super.key, required this.course});
+  final redirectTo;
+  const CourseDetailBottomSheet({super.key, required this.course, required  this.redirectTo});
 
   @override
   State<CourseDetailBottomSheet> createState() =>
@@ -19,6 +20,8 @@ class CourseDetailBottomSheet extends StatefulWidget {
 class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
   bool _submitting = false;
   bool _enrolled = false;
+  String get redirectTo => widget.redirectTo;
+
 
   Future<void> _enrollCourse() async {
     setState(() => _submitting = true);
@@ -31,7 +34,11 @@ class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
         setState(() => _enrolled = true);
 
         showSuccessAlert(context, title: 'Success', subtitle: response?['message'], timer: 3, color: Colors.green,showButton:false);
-        context.go('/course-store');
+        // context.go(redirectTo);
+        Future.delayed(const Duration(seconds: 2), () {
+          // Redirect to landing page
+          context.go(redirectTo);
+        });
         // ScaffoldMessenger.of(context).showSnackBar(
         //   SnackBar(content: Text(response?['message'] ?? 'Enrolled!')),
         // );
@@ -42,6 +49,11 @@ class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
     } finally {
       setState(() => _submitting = false);
     }
+  }
+
+  void _redirectToEnrolledCourse() {
+    Navigator.of(context).pop(); // close bottom sheet
+    context.push('/class-detail', extra: widget.course['id'].toString());
   }
 
   @override
@@ -149,7 +161,16 @@ class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
       ),
       child: GestureDetector(
-        onTap: _submitting || _enrolled ? null : _enrollCourse,
+        // onTap: _submitting || _enrolled ? null : _enrollCourse,
+        onTap: _submitting
+            ? null
+            : () {
+          if (_enrolled) {
+            _redirectToEnrolledCourse();
+          } else {
+            _enrollCourse();
+          }
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
           decoration: BoxDecoration(

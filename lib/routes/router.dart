@@ -20,7 +20,7 @@ import '../presentation/errror/no_network_screen.dart';
 import '../presentation/onboarding/onboarding_screen.dart';
 import '../presentation/one_on_one/one_on_one_call_page.dart';
 import '../presentation/splash/splash_screen.dart';
-import '../presentation/students/class_detail_screen.dart';
+import '../presentation/widgets/class_detail_screen.dart';
 import '../presentation/students/courses_screen.dart';
 import '../presentation/students/student_dashboard.dart';
 import '../presentation/widgets/pdf_view_page.dart';
@@ -31,12 +31,15 @@ import '../presentation/teachers/account/personal_info.dart';
 import '../presentation/teachers/account/teaching_details.dart';
 import '../presentation/teachers/account/upload_demo.dart';
 import '../presentation/teachers/google_login_screen.dart';
+import '../presentation/teachers/teacher_courses_screen.dart';
 import '../presentation/teachers/teacher_dashboard.dart';
 import '../presentation/video_conference/conference_page.dart';
 import '../presentation/webinars/audience_live_page.dart';
 import '../presentation/webinars/audience_page.dart';
 import '../presentation/webinars/webinar_detail_page.dart';
 import '../presentation/webinars/webinar_stream_page.dart';
+import '../presentation/widgets/webinar_detail_screen.dart';
+import '../presentation/widgets/workshop_detail_screen.dart';
 import 'app_router.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -184,11 +187,19 @@ final GoRouter appRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/course-store',
+      path: '/student-course-store',
       builder: (context, state) {
         return CoursesScreen();
       },
     ),
+    GoRoute(
+      path: '/teacher-course-store',
+      builder: (context, state) {
+        return TeacherCoursesScreen();
+      },
+    ),
+
+
 
     GoRoute(
       path: '/class-detail',
@@ -197,6 +208,26 @@ final GoRouter appRouter = GoRouter(
         return ClassDetailScreen(classId: classId);
       },
     ),
+
+
+    GoRoute(
+      path: '/workshop-detail',
+      builder: (context, state) {
+        final classId = state.extra as String; // ✅ String ID
+        return WorkshopDetailScreen(classId: classId);
+      },
+    ),
+
+    GoRoute(
+      path: '/webinar-detail',
+      builder: (context, state) {
+        final classId = state.extra as String; // ✅ String ID
+        return WebinarDetailScreen(classId: classId);
+      },
+    ),
+
+
+
 
 
     // GoRoute(

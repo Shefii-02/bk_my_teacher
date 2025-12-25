@@ -8,7 +8,7 @@ import '../../services/launch_status_service.dart';
 import '../../services/teacher_api_service.dart';
 import '../../services/user_check_service.dart';
 import 'students_list.dart';
-import 'courses_screen.dart';
+import 'teacher_courses_screen.dart';
 import 'dashboard_home.dart';
 import 'my_class_list.dart';
 import 'profile_screen.dart';
@@ -33,7 +33,7 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
     _screens = [
       DashboardHome(),
       SchedulePage(),
-      CoursesScreen(),
+      TeacherCoursesScreen(),
       StatisticsPage(),
       ProfileScreen(),
     ];

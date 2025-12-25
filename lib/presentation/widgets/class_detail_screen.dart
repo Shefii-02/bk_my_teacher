@@ -155,10 +155,24 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
     final joinLink = c['join_link']?.toString();
     final recorded = c['recorded_video']?.toString();
     final title = (c['title'] ?? '').toString();
+    final source = (c['source'] ?? '').toString();
 
     if (status == 'ongoing') {
       if (joinLink != null && joinLink.isNotEmpty) {
-        await _openUrl(joinLink);
+        if(source == 'gmeet') {
+          await _openUrl(joinLink);
+        }
+        else if(source == 'youtube'){
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RecordedVideoWithDoubt(title: title, videoUrl: joinLink, classId: c['id'], type: 'course',),
+            ),
+          );
+        }
+        else{
+          _showSnack("Source link not available");
+        }
       } else {
         _showSnack("Join link not available");
       }
@@ -169,7 +183,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => RecordedVideoWithDoubt(title: title, videoUrl: recorded),
+            builder: (_) => RecordedVideoWithDoubt(title: title, videoUrl: recorded, classId: c['id'], type: 'course',),
           ),
         );
       } else {
@@ -189,23 +203,24 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
 
     if (ongoing == null) return const SizedBox.shrink();
 
-    return Positioned(
-      bottom: 16,
-      left: 16,
-      right: 16,
-      child: SafeArea(
-        child: ElevatedButton.icon(
-          icon: const Icon(Icons.videocam),
-          label: const Text("Join Ongoing Class"),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green.shade600,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          onPressed: () => _onClassAction(ongoing),
-        ),
-      ),
-    );
+    return SizedBox(height: 10,);
+    // return Positioned(
+    //   bottom: 16,
+    //   left: 16,
+    //   right: 16,
+    //   child: SafeArea(
+    //     child: ElevatedButton.icon(
+    //       icon: const Icon(Icons.videocam),
+    //       label: const Text("Join Ongoing Class"),
+    //       style: ElevatedButton.styleFrom(
+    //         backgroundColor: Colors.green.shade600,
+    //         padding: const EdgeInsets.symmetric(vertical: 14),
+    //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    //       ),
+    //       onPressed: () => _onClassAction(ongoing),
+    //     ),
+    //   ),
+    // );
   }
 
   // ------------------- Build -------------------
@@ -267,13 +282,28 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
       expandedHeight: 220,
       backgroundColor: Colors.green.shade600,
       elevation: 0,
-      flexibleSpace: FlexibleSpaceBar(
-        background: ShimmerImage(
-          imageUrl: info['image'] ?? '',
-          width: double.infinity,
-          height: 220,
-          borderRadius: 0,
-        ),
+      automaticallyImplyLeading: false, // disable default back button
+      flexibleSpace: Stack(
+        children: [
+
+          FlexibleSpaceBar(
+            background: ShimmerImage(
+              imageUrl: info['thumbnail'] ?? '',
+              width: double.infinity,
+              height: 220,
+              borderRadius: 0,
+            ),
+          ),
+          // 🔙 Custom Back Button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 12,
+            child: _circleButton(
+              Icons.keyboard_arrow_left,
+                  () => Navigator.of(context).pop(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -347,7 +377,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _statChip(Icons.timer, duration ?? '—'),
-            _statChip(Icons.school, info['certificate'] == true ? 'Certificate' : 'No cert'),
+            // _statChip(Icons.school, info['certificate'] == true ? 'Certificate' : 'No cert'),
             _statChip(Icons.folder, (info['materials_count'] ?? materialsCount(info)).toString()),
           ],
         ),
@@ -436,7 +466,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
               trailing: ElevatedButton(
                 onPressed: () => _onClassAction(c),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade600),
-                child: Text(_actionLabelForStatus(status)),
+                child: Text(_actionLabelForStatus(status),style: const TextStyle(color: Colors.white,)),
               ),
             );
           },
@@ -453,7 +483,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
         return 'Watch';
       case 'upcoming':
       default:
-        return 'Open';
+        return 'Not Available Now';
     }
   }
 
@@ -501,7 +531,23 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
       },
     );
   }
-}
+
+  Widget _circleButton(IconData icon, VoidCallback onPressed) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white.withOpacity(0.8),
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.black),
+        iconSize: 22,
+        padding: EdgeInsets.zero,
+        onPressed: onPressed,
+      ),
+    );
+  }}
 
 /// Helper: make a sticky TabBar sliver
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {

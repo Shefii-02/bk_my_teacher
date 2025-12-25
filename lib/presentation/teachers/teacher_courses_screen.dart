@@ -15,14 +15,14 @@ import 'package:intl/intl.dart';
 
 import '../components/workshop_detail_bottom_sheet.dart';
 
-class CoursesScreen extends StatefulWidget {
-  const CoursesScreen({super.key});
+class TeacherCoursesScreen extends StatefulWidget {
+  const TeacherCoursesScreen({super.key});
 
   @override
-  State<CoursesScreen> createState() => _CoursesScreenState();
+  State<TeacherCoursesScreen> createState() => _TeacherCoursesScreenState();
 }
 
-class _CoursesScreenState extends State<CoursesScreen>
+class _TeacherCoursesScreenState extends State<TeacherCoursesScreen>
     with SingleTickerProviderStateMixin {
   List<dynamic> _categories = [];
   bool _loading = true;
@@ -53,7 +53,7 @@ class _CoursesScreenState extends State<CoursesScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => CourseDetailBottomSheet(course: course,  redirectTo: '/student-course-store'),
+      builder: (_) => CourseDetailBottomSheet(course: course, redirectTo: '/teacher-course-store'),
     );
   }
 
@@ -63,7 +63,7 @@ class _CoursesScreenState extends State<CoursesScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => WebinarDetailBottomSheet(course: course,  redirectTo: '/student-course-store'),
+      builder: (_) => WebinarDetailBottomSheet(course: course, redirectTo: '/teacher-course-store'),
     );
   }
 
@@ -72,7 +72,7 @@ class _CoursesScreenState extends State<CoursesScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => WorkshopDetailBottomSheet(course: course,redirectTo : '/student-course-store'),
+      builder: (_) => WorkshopDetailBottomSheet(course: course, redirectTo: '/teacher-course-store'),
     );
   }
   @override
@@ -108,7 +108,7 @@ class _CoursesScreenState extends State<CoursesScreen>
                   children: [
                     _circleButton(
                       Icons.keyboard_arrow_left,
-                      () => context.push('/student-dashboard'),
+                          () => context.push('/teacher-dashboard'),
                     ),
                     const Expanded(
                       child: Center(

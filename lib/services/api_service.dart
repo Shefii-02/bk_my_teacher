@@ -455,57 +455,134 @@ class ApiService {
   // Fetch Class Detail
   // ==============================
   Future<Map<String, dynamic>> fetchClassDetail(String id) async {
-    await Future.delayed(const Duration(seconds: 1)); // simulate API delay
+    await _loadAuth();
+    final response = await _dio.post("/class-detail", data: {"course_id": id});
 
-    return {
-      'class_detail': {
-        'id': id,
-        'title': 'Flutter Mastery Bootcamp',
-        'description':
-            'A complete guide to mastering Flutter development — from basics to advanced topics.',
-        'image':
-            'https://cdn.dribbble.com/users/1626229/screenshots/11174104/flutter_intro.png',
-      },
-      'materials': [
-        {
-          'id': 1,
-          'title': 'Introduction to Flutter',
-          'file_url': 'https://example.com/flutter-intro.pdf',
-        },
-        {
-          'id': 2,
-          'title': 'State Management Overview',
-          'file_url': 'https://example.com/state-management.pdf',
-        },
-      ],
-      'classes': [
-        {
-          'id': '1',
-          'title': 'Welcome & Setup',
-          'status': 'completed',
-          'date_time': '2025-10-01T10:00:00Z',
-          'recorded_video': 'https://youtu.be/iLnmTe5Q2Qw',
-          'join_link': '',
-        },
-        {
-          'id': '2',
-          'title': 'Widgets 101',
-          'status': 'ongoing',
-          'date_time': '2025-11-06T10:00:00Z',
-          'join_link': 'https://meet.google.com/ufr-stwo-jjc',
-          'recorded_video': '',
-        },
-        {
-          'id': '3',
-          'title': 'Animations & Transitions',
-          'status': 'upcoming',
-          'date_time': '2025-11-08T08:00:00Z',
-          'join_link': '',
-          'recorded_video': '',
-        },
-      ],
-    };
+    return response.data?['data'];
   }
+  Future<Map<String, dynamic>> fetchWorkshopDetail(String id) async {
+    await _loadAuth();
+    final response = await _dio.post("/workshop-detail", data: {"workshop_id": id});
+    return response.data?['data'];
+  }
+
+  Future<Map<String, dynamic>> fetchWebinarDetail(String id) async {
+    await _loadAuth();
+    final response = await _dio.post("/webinar-detail", data: {"webinar_id": id});
+    return response.data?['data'];
+  }
+
+
+
+
+
+  // Future<Map<String, dynamic>> fetchWorkshopDetail(String id) async {
+  //   await Future.delayed(const Duration(seconds: 1)); // simulate API delay
+  //
+  //   return {
+  //     'class_detail': {
+  //       'id': id,
+  //       'title': 'Flutter Mastery Bootcamp',
+  //       'description':
+  //           'A complete guide to mastering Flutter development — from basics to advanced topics.',
+  //       'image':
+  //           'https://cdn.dribbble.com/users/1626229/screenshots/11174104/flutter_intro.png',
+  //     },
+  //     'materials': [
+  //       {
+  //         'id': 1,
+  //         'title': 'Introduction to Flutter',
+  //         'file_url': 'https://example.com/flutter-intro.pdf',
+  //       },
+  //       {
+  //         'id': 2,
+  //         'title': 'State Management Overview',
+  //         'file_url': 'https://example.com/state-management.pdf',
+  //       },
+  //     ],
+  //     'classes': [
+  //       {
+  //         'id': '1',
+  //         'title': 'Welcome & Setup',
+  //         'status': 'completed',
+  //         'date_time': '2025-10-01T10:00:00Z',
+  //         'recorded_video': 'https://youtu.be/iLnmTe5Q2Qw',
+  //         'join_link': '',
+  //       },
+  //       {
+  //         'id': '2',
+  //         'title': 'Widgets 101',
+  //         'status': 'ongoing',
+  //         'date_time': '2025-11-06T10:00:00Z',
+  //         'join_link': 'https://meet.google.com/ufr-stwo-jjc',
+  //         'recorded_video': '',
+  //       },
+  //       {
+  //         'id': '3',
+  //         'title': 'Animations & Transitions',
+  //         'status': 'upcoming',
+  //         'date_time': '2025-11-08T08:00:00Z',
+  //         'join_link': '',
+  //         'recorded_video': '',
+  //       },
+  //     ],
+  //   };
+  // }
+
+
+
+  // Future<Map<String, dynamic>> fetchWebinarDetail(String id) async {
+  //   await Future.delayed(const Duration(seconds: 1)); // simulate API delay
+  //
+  //   return {
+  //     'class_detail': {
+  //       'id': id,
+  //       'title': 'Flutter Mastery Bootcamp',
+  //       'description':
+  //           'A complete guide to mastering Flutter development — from basics to advanced topics.',
+  //       'image':
+  //           'https://cdn.dribbble.com/users/1626229/screenshots/11174104/flutter_intro.png',
+  //     },
+  //     'materials': [
+  //       {
+  //         'id': 1,
+  //         'title': 'Introduction to Flutter',
+  //         'file_url': 'https://example.com/flutter-intro.pdf',
+  //       },
+  //       {
+  //         'id': 2,
+  //         'title': 'State Management Overview',
+  //         'file_url': 'https://example.com/state-management.pdf',
+  //       },
+  //     ],
+  //     'classes': [
+  //       {
+  //         'id': '1',
+  //         'title': 'Welcome & Setup',
+  //         'status': 'completed',
+  //         'date_time': '2025-10-01T10:00:00Z',
+  //         'recorded_video': 'https://youtu.be/iLnmTe5Q2Qw',
+  //         'join_link': '',
+  //       },
+  //       {
+  //         'id': '2',
+  //         'title': 'Widgets 101',
+  //         'status': 'ongoing',
+  //         'date_time': '2025-11-06T10:00:00Z',
+  //         'join_link': 'https://meet.google.com/ufr-stwo-jjc',
+  //         'recorded_video': '',
+  //       },
+  //       {
+  //         'id': '3',
+  //         'title': 'Animations & Transitions',
+  //         'status': 'upcoming',
+  //         'date_time': '2025-11-08T08:00:00Z',
+  //         'join_link': '',
+  //         'recorded_video': '',
+  //       },
+  //     ],
+  //   };
+  // }
 
   /// Fetch all teachers, subjects, grades, boards
   // Future<Map<String, dynamic>> fetchAllSearchData() async {
@@ -1229,6 +1306,74 @@ class ApiService {
     final res = await _dio.post("/notifications/mark-read/$id");
     return res.data["status"] == 200;
   }
+
+
+  Future<bool> courseClassDoubtSubmit({
+    required String doubt,
+    required String classId
+  }) async {
+    try {
+      await _loadAuth();
+      final response = await _dio.post(
+        '/course-class-doubts',
+        data: {
+          'doubt': doubt,
+          'class_id': classId
+        },
+      );
+
+      return response.data['status'] == true;
+    } catch (e) {
+      debugPrint('Doubt submit error: $e');
+      return false;
+    }
+  }
+
+
+  Future<bool> workshopClassDoubtSubmit({
+    required String doubt,
+    required String classId
+  }) async {
+    try {
+      await _loadAuth();
+      final response = await _dio.post(
+        '/workshop-class-doubts',
+        data: {
+          'doubt': doubt,
+          'class_id': classId
+        },
+      );
+
+      return response.data['status'] == true;
+    } catch (e) {
+      debugPrint('Doubt submit error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> webinarClassDoubtSubmit({
+    required String doubt,
+    required String classId
+  }) async {
+    try {
+      await _loadAuth();
+      final response = await _dio.post(
+        '/webinar-class-doubts',
+        data: {
+          'doubt': doubt,
+          'class_id': classId
+        },
+      );
+
+      return response.data['status'] == true;
+    } catch (e) {
+      debugPrint('Doubt submit error: $e');
+      return false;
+    }
+  }
+
+
+
 }
 
 class DropdownItem {
