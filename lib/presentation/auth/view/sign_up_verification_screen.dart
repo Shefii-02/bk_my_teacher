@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BookMyTeacher/core/constants/image_paths.dart';
 import 'package:BookMyTeacher/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -268,7 +269,7 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
           SizedBox(
             height: 600,
             width: double.infinity,
-            child: Image.network(AppConfig.headerTop, fit: BoxFit.fitWidth),
+            child: Image.asset(ImagePaths.topBarBg, fit: BoxFit.fitWidth),
           ),
 
           // Main Content with Rounded Container

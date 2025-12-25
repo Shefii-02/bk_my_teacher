@@ -173,7 +173,7 @@ class _WebinarCardState extends ConsumerState<WebinarCard> {
                                   final response = await ref.read(
                                     webinarJoinProvider(webinar.id).future,
                                   );
-                                  print(response['data']);
+
                                   if (response['status'] == true) {
                                     final streamData =
                                         response['data']['stream'];

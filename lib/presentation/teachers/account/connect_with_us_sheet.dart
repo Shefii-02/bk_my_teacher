@@ -64,14 +64,14 @@ class _ConnectWithUsSheetState extends State<ConnectWithUsSheet> {
               title: Text(contact['email']),
               onTap: () => _launch(contact['email'], type: "email"),
             ),
-
+          //
           if (contact['phone'] != null)
             ListTile(
               leading: const Icon(Icons.phone, color: Colors.green),
               title: Text(contact['phone']),
               onTap: () => _launch(contact['phone'], type: "phone"),
             ),
-
+          //
           if (contact['website'] != null)
             ListTile(
               leading: const Icon(Icons.public, color: Colors.blueAccent),
@@ -103,7 +103,7 @@ class _ConnectWithUsSheetState extends State<ConnectWithUsSheet> {
               }).toList(),
             ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 50),
         ],
       ),
     );

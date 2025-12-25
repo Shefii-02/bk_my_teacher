@@ -1,9 +1,17 @@
+import 'package:BookMyTeacher/presentation/widgets/show_failed_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../services/api_service.dart';
+import '../../widgets/show_success_alert.dart';
 
 class ReferralPopup extends StatefulWidget {
-  const ReferralPopup({super.key});
+  final BuildContext parentContext;
+  final String? redirectionUrl;
+  const ReferralPopup({
+    super.key,
+    required this.parentContext,
+    this.redirectionUrl,
+  });
 
   @override
   State<ReferralPopup> createState() => _ReferralPopupState();
@@ -12,6 +20,10 @@ class ReferralPopup extends StatefulWidget {
 class _ReferralPopupState extends State<ReferralPopup> {
   final TextEditingController _refCtrl = TextEditingController();
   bool _isLoading = false;
+
+
+  String? _alertMessage;
+  Color? _alertColor;
 
   @override
   void initState() {
@@ -44,18 +56,60 @@ class _ReferralPopupState extends State<ReferralPopup> {
         _refCtrl.text.trim(),
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response["message"] ?? "Referral applied")),
-      );
+      if (!mounted) return;
 
-      Navigator.pop(context);
-      context.go('/teacher-dashboard');
+      if (response["status"] == true) {
+        setState(() {
+          _alertMessage = response["message"] ?? "Referral applied";
+          _alertColor = Colors.green;
+        });
 
+        // Optional redirect after 1 sec
+        Future.delayed(const Duration(seconds: 1), () {
+          if (widget.redirectionUrl != null) {
+            // final redirectTo = widget.redirectionUrl ?? '/';
+            // context.go(redirectTo);
+            context.go('/');
+          }
+        });
+      } else {
+        setState(() {
+          _alertMessage = response["message"] ?? "Error applying referral";
+          _alertColor = Colors.red;
+        });
+      }
+
+      // if (response["status"] == true) {
+      //   ShowSuccessAlert(
+      //     title: "Success",
+      //     subtitle: response["message"] ?? "Referral applied",
+      //     timer: 3,
+      //     color: Colors.green,
+      //   );
+      //
+      //   // ScaffoldMessenger.of(context).showSnackBar(
+      //   //   SnackBar(content: Text()),
+      //   // );
+      //
+      //   Navigator.pop(context);
+      //   context.go('/');
+      // } else {
+      //   print('object');
+      //
+      //   ShowSuccessAlert(
+      //     title: "Error",
+      //     subtitle: response["message"] ?? "Error applying referral",
+      //     timer: 3,
+      //     color: Colors.red,
+      //   );
+      // }
     } catch (e) {
-      print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      if (!mounted) return;
+
+      setState(() {
+        _alertMessage = "Error: $e";
+        _alertColor = Colors.red;
+      });
     } finally {
       setState(() => _isLoading = false);
     }
@@ -118,6 +172,21 @@ class _ReferralPopupState extends State<ReferralPopup> {
             ),
 
             const SizedBox(height: 20),
+            if (_alertMessage != null) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: _alertColor ?? Colors.green,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  _alertMessage!,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
 
             Row(
               children: [
@@ -125,7 +194,7 @@ class _ReferralPopupState extends State<ReferralPopup> {
                   child: OutlinedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      context.go('/teacher-dashboard');
+                      context.go('/');
                     },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -137,6 +206,7 @@ class _ReferralPopupState extends State<ReferralPopup> {
                   ),
                 ),
                 const SizedBox(width: 12),
+
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _submitReferral,
@@ -149,14 +219,17 @@ class _ReferralPopupState extends State<ReferralPopup> {
                     ),
                     child: _isLoading
                         ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                        : const Text("Submit",style: TextStyle(color: Colors.white),),
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            "Submit",
+                            style: TextStyle(color: Colors.white),
+                          ),
                   ),
                 ),
               ],

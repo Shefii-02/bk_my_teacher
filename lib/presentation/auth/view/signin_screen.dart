@@ -5,10 +5,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import '../../../core/constants/image_paths.dart';
 import '../../../core/enums/app_config.dart';
 import '../../../providers/user_provider.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/launch_status_service.dart';
+import '../../widgets/login_instruction_page.dart';
 import '../controller/auth_controller.dart';
 
 class SignInScreen extends ConsumerStatefulWidget {
@@ -74,12 +76,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     ],
                   ),
                   const Divider(),
-                  const Text(
-                    "",
-                    // "This is your offcanvas-top style popup with animation. "
-                    //     "You can add any content here.",
-                    style: TextStyle(fontSize: 14),
+
+                  // ⭐ FIXED PART
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: SingleChildScrollView(
+                      child: const LoginInstructionPage(),
+                    ),
                   ),
+
                 ],
               ),
             ),
@@ -283,15 +288,22 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          SizedBox(
-            height: 600,
-            width: double.infinity,
-            child: Image.network(AppConfig.headerTop, fit: BoxFit.fitWidth),
+          // SizedBox(
+          //   height: 600,
+          //   width: double.infinity,
+          //   child: Image.asset(ImagePaths.topBarBg, fit: BoxFit.fitWidth),
+          // ),
+          Positioned.fill(
+            top: -140,
+            child: Image.asset(
+              ImagePaths.topBarBg,
+              fit: BoxFit.fitHeight,
+            ),
           ),
           // Main Content with Rounded Container
           Column(
             children: [
-              const SizedBox(height: 60),
+              const SizedBox(height: 70),
               // Custom AppBar
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -367,7 +379,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       padding: const EdgeInsets.all(24),
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
-                          minHeight: MediaQuery.of(context).size.height - 190,
+                          minHeight: MediaQuery.of(context).size.height - 350,
                         ),
                         child: Center(
                           child: Column(
@@ -406,7 +418,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                                     color: Colors.black,
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 25,
-                                                    fontFamily: 'PetrovSans',
+                                                    // fontFamily: 'PetrovSans',
                                                   ),
                                                 ),
                                                 Text(
@@ -414,7 +426,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                                   style: TextStyle(
                                                     color: Colors.green,
                                                     fontWeight: FontWeight.bold,
-                                                    fontFamily: 'PetrovSans',
+                                                    // fontFamily: 'PetrovSans',
                                                     fontSize: 25,
                                                   ),
                                                 ),
@@ -423,7 +435,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                                   style: TextStyle(
                                                     color: Colors.black,
                                                     fontWeight: FontWeight.bold,
-                                                    fontFamily: 'PetrovSans',
+                                                    // fontFamily: 'PetrovSans',
                                                     fontSize: 25,
                                                   ),
                                                 ),
@@ -434,7 +446,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                               height: 3,
                                               child: DecoratedBox(
                                                 decoration: BoxDecoration(
-                                                  color: Colors.orangeAccent,
+                                                  color: Colors.green[900],
                                                   borderRadius:
                                                       BorderRadius.circular(10),
                                                 ),
@@ -774,7 +786,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                     child: Text(
                                       'Sign up with single click',
                                       style: TextStyle(
-                                        color: Colors.yellow[700],
+                                        color: Colors.green,
                                       ),
                                     ),
                                   ),
@@ -801,11 +813,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                       context.go('/signup-otp-screen');
                                       // context.go('/signup-stepper');
                                     },
-                                    child: const Text(
+                                    child: Text(
                                       'Sign up',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.green,
+                                        color: Colors.green[900],
                                       ),
                                     ),
                                   ),

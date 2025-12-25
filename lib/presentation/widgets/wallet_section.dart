@@ -209,7 +209,7 @@ class _WalletBottomSheetState extends State<WalletBottomSheet>
           mainAxisSize: MainAxisSize.min,
           children: [
             _detailRow("Type", tx['type']),
-            _detailRow("Amount", "₹${tx['amount']}"),
+            _detailRow("Amount/Coin", "₹${tx['amount']}"),
             _detailRow("Date", tx['date']),
             _detailRow("Status", tx['status']),
           ],
@@ -339,6 +339,7 @@ class _WalletBottomSheetState extends State<WalletBottomSheet>
             greenRequestPending,
             onPressed: () async {
               setState(() => greenRequestPending = true);
+              print('object');
               final result = await ApiService().convertToRupees(balance);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -482,42 +483,42 @@ class _WalletBottomSheetState extends State<WalletBottomSheet>
         ),
         const SizedBox(height: 12),
         ElevatedButton.icon(
-          // onPressed: isPending || progress < 1.0 ? null : onPressed,
-          onPressed: () async {
-            if (balance >= target) {
-              setState(() => rupeeRequestPending = true);
-              if (!isPending) {
-                final result = await ApiService().transferToBank(balance);
-                showSuccessAlert(
-                  context,
-                  title: result['success'] == true ? "Success!" : "failed",
-                  subtitle: result['message'] ?? 'Transfer submitted',
-                  timer: 6,
-                  color: result['success'] == true ? Colors.green : Colors.red,
-                  showButton: false, // 👈 hide/show button easily
-                );
-              } else {
-                showSuccessAlert(
-                  context,
-                  title: "failed",
-                  subtitle:'You have already submitted request',
-                  timer: 6,
-                  color: Colors.red,
-                  showButton: false, // 👈 hide/show button easily
-                );
-              }
-
-              // ScaffoldMessenger.of(context).showSnackBar(
-              //   SnackBar(
-              //     content: Text(result['message'] ?? 'Transfer submitted'),
-              //   ),
-              // );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Your target not archived')),
-              );
-            }
-          },
+          onPressed: isPending || progress < 1.0 ? null : onPressed,
+          // onPressed: () async {
+          //   if (balance >= target) {
+          //     setState(() => rupeeRequestPending = true);
+          //     if (!isPending) {
+          //       final result = await ApiService().transferToBank(balance);
+          //       showSuccessAlert(
+          //         context,
+          //         title: result['success'] == true ? "Success!" : "failed",
+          //         subtitle: result['message'] ?? 'Transfer submitted',
+          //         timer: 6,
+          //         color: result['success'] == true ? Colors.green : Colors.red,
+          //         showButton: false, // 👈 hide/show button easily
+          //       );
+          //     } else {
+          //       showSuccessAlert(
+          //         context,
+          //         title: "failed",
+          //         subtitle: 'You have already submitted request',
+          //         timer: 6,
+          //         color: Colors.red,
+          //         showButton: false, // 👈 hide/show button easily
+          //       );
+          //     }
+          //
+          //     // ScaffoldMessenger.of(context).showSnackBar(
+          //     //   SnackBar(
+          //     //     content: Text(result['message'] ?? 'Transfer submitted'),
+          //     //   ),
+          //     // );
+          //   } else {
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       SnackBar(content: Text('Your target not archived')),
+          //     );
+          //   }
+          // },
 
           icon: Icon(
             isPending ? Icons.hourglass_bottom : Icons.swap_horiz,

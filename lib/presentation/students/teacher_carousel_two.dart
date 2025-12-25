@@ -74,8 +74,12 @@ class _TeacherCarouselTwoRowsState extends State<TeacherCarouselTwoRows> {
                             name: chunk[i]['name'].length > 13
                                 ? "${chunk[i]['name'].substring(0, 13)}.."
                                 : chunk[i]['name'],
-                            qualification: chunk[i]['qualification'],
-                            subjects: chunk[i]['subjects'],
+                            qualification: chunk[i]['qualification'].length > 13
+                                ? "${chunk[i]['qualification'].substring(0, 13)}.."
+                                : chunk[i]['qualification'],
+                            subjects: chunk[i]['subjects'].length > 13
+                                ? "${chunk[i]['subjects'].substring(0, 13)}.."
+                                : chunk[i]['subjects'],
                             ranking: chunk[i]['ranking'],
                             rating: chunk[i]['rating'].toDouble(),
                             imageUrl: chunk[i]['imageUrl'],

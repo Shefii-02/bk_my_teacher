@@ -147,205 +147,203 @@ class _RequestFormState extends State<RequestForm> {
         SingleChildScrollView(
           child: Column(
             children: [
-              const SizedBox(height: 30),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0x52B0FFDF),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.green.withOpacity(0.2),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Request a Class/Course",
+              // const SizedBox(height: 30),
+              Container(
+                decoration: BoxDecoration(
+                  // color: const Color(0x52B0FFDF),
+                  // borderRadius: BorderRadius.circular(20),
+                  // boxShadow: [
+                  //   BoxShadow(
+                  //     color: Colors.green.withOpacity(0.2),
+                  //     blurRadius: 12,
+                  //     offset: const Offset(0, 6),
+                  //   ),
+                  // ],
+                ),
+                // padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        // const Text(
+                        //   "Request a Class/Course",
+                        //   style: TextStyle(
+                        //     fontSize: 12,
+                        //     fontWeight: FontWeight.w900,
+                        //     color: Colors.black,
+                        //   ),
+                        // ),
+                        TextButton.icon(
+                          onPressed: () => _showRequestsBottomSheet(context),
+                          icon: const Icon(Icons.history),
+                          label: const Text(
+                            "View Requested Classes",
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w900,
+                              fontWeight: FontWeight.w300,
                               color: Colors.black,
                             ),
                           ),
-                          TextButton.icon(
-                            onPressed: () => _showRequestsBottomSheet(context),
-                            icon: const Icon(Icons.history),
-                            label: const Text(
-                              "View Requested Classes",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
+                        ),
+                      ],
+                    ),
+                    // const SizedBox(height: 20),
 
-                      _buildField(controller: fromCtrl, label: "You are from?"),
-                      const SizedBox(height: 12),
+                    _buildField(controller: fromCtrl, label: "You are from?"),
+                    const SizedBox(height: 12),
 
-                      _buildDropdown(
+                    _buildDropdown(
+                      label: "Select Grade",
+                      value: selectedGrade?.name,
+                      items: grades.map((g) => g.name).toList(),
+                      onTap: () => _showRadioModal(
                         label: "Select Grade",
-                        value: selectedGrade?.name,
-                        items: grades.map((g) => g.name).toList(),
+                        options: grades.map((e) => e.name).toList(),
+                        selected: selectedGrade?.name,
+                        onSelect: (val) {
+                          setState(() {
+                            selectedGrade = grades.firstWhere(
+                              (g) => g.name == val,
+                            );
+                            selectedBoard = null;
+                            selectedSubject = null;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (selectedGrade != null)
+                      _buildDropdown(
+                        label: "Select Board/University/Skill",
+                        value: selectedBoard?.name,
+                        items:
+                            selectedGrade!.boards
+                                .map((b) => b.name)
+                                .toList() +
+                            ["Other"],
                         onTap: () => _showRadioModal(
-                          label: "Select Grade",
-                          options: grades.map((e) => e.name).toList(),
-                          selected: selectedGrade?.name,
+                          label: "Select Board/University/Skill",
+                          options:
+                              selectedGrade!.boards
+                                  .map((b) => b.name)
+                                  .toList() +
+                              ["Other"],
+                          selected: selectedBoard?.name,
                           onSelect: (val) {
                             setState(() {
-                              selectedGrade = grades.firstWhere(
-                                (g) => g.name == val,
-                              );
-                              selectedBoard = null;
+                              selectedBoard = val == "Other"
+                                  ? Board(
+                                      id: 999,
+                                      name: "Other",
+                                      subjects: [],
+                                    )
+                                  : selectedGrade!.boards.firstWhere(
+                                      (b) => b.name == val,
+                                    );
                               selectedSubject = null;
                             });
                           },
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      if (selectedGrade != null)
-                        _buildDropdown(
-                          label: "Select Board/University/Skill",
-                          value: selectedBoard?.name,
-                          items:
-                              selectedGrade!.boards
-                                  .map((b) => b.name)
-                                  .toList() +
-                              ["Other"],
-                          onTap: () => _showRadioModal(
-                            label: "Select Board/University/Skill",
-                            options:
-                                selectedGrade!.boards
-                                    .map((b) => b.name)
+                    const SizedBox(height: 12),
+                    if (selectedBoard?.name == "Other")
+                      _buildField(
+                        controller: otherBoardCtrl,
+                        label: "Enter your Board/University/Skill",
+                      ),
+                    const SizedBox(height: 12),
+                    // && selectedBoard!.name != "Other"
+                    if (selectedBoard != null)
+                      Column(
+                        children: [
+                          _buildDropdown(
+                            label: "Select Subject",
+                            value: selectedSubject?.name,
+                            items:
+                                selectedBoard!.subjects
+                                    .map((s) => s.name)
                                     .toList() +
                                 ["Other"],
-                            selected: selectedBoard?.name,
-                            onSelect: (val) {
-                              setState(() {
-                                selectedBoard = val == "Other"
-                                    ? Board(
-                                        id: 999,
-                                        name: "Other",
-                                        subjects: [],
-                                      )
-                                    : selectedGrade!.boards.firstWhere(
-                                        (b) => b.name == val,
-                                      );
-                                selectedSubject = null;
-                              });
-                            },
-                          ),
-                        ),
-                      const SizedBox(height: 12),
-                      if (selectedBoard?.name == "Other")
-                        _buildField(
-                          controller: otherBoardCtrl,
-                          label: "Enter your Board/University/Skill",
-                        ),
-                      const SizedBox(height: 12),
-                      // && selectedBoard!.name != "Other"
-                      if (selectedBoard != null)
-                        Column(
-                          children: [
-                            _buildDropdown(
+                            onTap: () => _showRadioModal(
                               label: "Select Subject",
-                              value: selectedSubject?.name,
-                              items:
+                              options:
                                   selectedBoard!.subjects
                                       .map((s) => s.name)
                                       .toList() +
                                   ["Other"],
-                              onTap: () => _showRadioModal(
-                                label: "Select Subject",
-                                options:
-                                    selectedBoard!.subjects
-                                        .map((s) => s.name)
-                                        .toList() +
-                                    ["Other"],
-                                selected: selectedSubject?.name,
-                                onSelect: (val) {
-                                  setState(() {
-                                    if (val == "Other") {
-                                      selectedSubject = Subject(
-                                        name: "Other",
-                                        id: -1,
-                                      ); // temp subject
-                                    } else {
-                                      selectedSubject = selectedBoard!.subjects
-                                          .firstWhere((s) => s.name == val);
-                                    }
-                                  });
-                                },
-                              ),
+                              selected: selectedSubject?.name,
+                              onSelect: (val) {
+                                setState(() {
+                                  if (val == "Other") {
+                                    selectedSubject = Subject(
+                                      name: "Other",
+                                      id: -1,
+                                    ); // temp subject
+                                  } else {
+                                    selectedSubject = selectedBoard!.subjects
+                                        .firstWhere((s) => s.name == val);
+                                  }
+                                });
+                              },
                             ),
-                            if (selectedSubject?.name == "Other")
-                              Column(
-                                children: [
-                                  const SizedBox(height: 10),
-                                  _buildField(
-                                    controller: otherSubjectCtrl,
-                                    label: "Enter your Subject/Skill",
-                                  ),
-                                ],
-                              ),
-                          ],
-                        ),
-                      const SizedBox(height: 16),
-                      _buildField(
-                        controller: noteCtrl,
-                        label: "Do you want to tell me something?",
-                        maxLines: 3,
+                          ),
+                          if (selectedSubject?.name == "Other")
+                            Column(
+                              children: [
+                                const SizedBox(height: 10),
+                                _buildField(
+                                  controller: otherSubjectCtrl,
+                                  label: "Enter your Subject/Skill",
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
-                      const SizedBox(height: 28),
+                    const SizedBox(height: 16),
+                    _buildField(
+                      controller: noteCtrl,
+                      label: "Do you want to tell me something?",
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 28),
 
-                      Center(
-                        child: NeoPopTiltedButton(
-                          isFloating: true,
-                          onTapUp: _submitting ? null : _submit, // disable tap when submitting
-                          decoration: const NeoPopTiltedButtonDecoration(
-                            color: Color(0xFF70E183),
-                            plunkColor: Color(0xFFE8F9E8),
-                            shadowColor: Color(0xFF2A3B2A),
-                            showShimmer: true,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 70.0, vertical: 15),
-                            child: _submitting
-                                ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.black,
-                                strokeWidth: 2,
-                              ),
-                            )
-                                : const Text(
-                              'Submit Request',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
+                    Center(
+                      child: NeoPopTiltedButton(
+                        isFloating: true,
+                        onTapUp: _submitting ? null : _submit, // disable tap when submitting
+                        decoration: const NeoPopTiltedButtonDecoration(
+                          color: Color(0xFF70E183),
+                          plunkColor: Color(0xFFE8F9E8),
+                          shadowColor: Color(0xFF2A3B2A),
+                          showShimmer: true,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 70.0, vertical: 15),
+                          child: _submitting
+                              ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.black,
+                              strokeWidth: 2,
+                            ),
+                          )
+                              : const Text(
+                            'Submit Request',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
                             ),
                           ),
                         ),
-                      )
+                      ),
+                    ),
+                    const SizedBox(height: 26),
 
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ],

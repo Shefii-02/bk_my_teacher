@@ -45,12 +45,12 @@ class _SpendTimeSheetState extends State<SpendTimeSheet>
       stats = await TeacherApiService().fetchStatistics();
       if (stats != null) {
         spendMap = {
-          "Last Day": {
-            "Individual": stats!.spend["Last Day"]!.individual ?? [],
-            "Own Courses": stats!.spend["Last Day"]!.ownCourses ?? [],
-            "YouTube": stats!.spend["Last Day"]!.youtube ?? [],
-            "Workshops": stats!.spend["Last Day"]!.workshops ?? [],
-            "Webinar": stats!.spend["Last Day"]!.webinar ?? [],
+          "Last 2 Days": {
+            "Individual": stats!.spend["Last 2 Days"]!.individual ?? [],
+            "Own Courses": stats!.spend["Last 2 Days"]!.ownCourses ?? [],
+            "YouTube": stats!.spend["Last 2 Days"]!.youtube ?? [],
+            "Workshops": stats!.spend["Last 2 Days"]!.workshops ?? [],
+            "Webinar": stats!.spend["Last 2 Days"]!.webinar ?? [],
           },
           "Last 7 Days": {
             "Individual": stats!.spend["Last 7 Days"]!.individual ?? [],
@@ -321,7 +321,7 @@ class _SpendTimeSheetState extends State<SpendTimeSheet>
   );
 
   Widget _buildRangeSelector() {
-    final ranges = ["Last Day", "Last 7 Days", "Current Month", "Last Month"];
+    final ranges = ["Last 2 Days", "Last 7 Days", "Current Month", "Last Month"];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

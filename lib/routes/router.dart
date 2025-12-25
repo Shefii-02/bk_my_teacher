@@ -21,6 +21,7 @@ import '../presentation/onboarding/onboarding_screen.dart';
 import '../presentation/one_on_one/one_on_one_call_page.dart';
 import '../presentation/splash/splash_screen.dart';
 import '../presentation/students/class_detail_screen.dart';
+import '../presentation/students/courses_screen.dart';
 import '../presentation/students/student_dashboard.dart';
 import '../presentation/widgets/pdf_view_page.dart';
 import '../presentation/widgets/teaching_details_info.dart';
@@ -180,6 +181,12 @@ final GoRouter appRouter = GoRouter(
           title: data['title'] as String,
           hostName: data['hostName'] as String,
         );
+      },
+    ),
+    GoRoute(
+      path: '/course-store',
+      builder: (context, state) {
+        return CoursesScreen();
       },
     ),
 

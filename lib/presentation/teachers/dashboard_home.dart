@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:BookMyTeacher/core/constants/image_paths.dart';
 import 'package:BookMyTeacher/presentation/teachers/account_message_card.dart';
 import 'package:BookMyTeacher/presentation/teachers/quick_action/achievements_sheet.dart';
 import 'package:BookMyTeacher/presentation/teachers/quick_action/rating_reviews.dart';
@@ -23,6 +24,7 @@ import '../../providers/user_provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/browser_service.dart';
 import '../../services/teacher_api_service.dart';
+import '../widgets/bodyBg.dart';
 import '../widgets/connect_with_team_whatsapp.dart';
 import '../widgets/notification_bell.dart';
 import '../widgets/verify_account_popup.dart';
@@ -115,9 +117,8 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
               children: [
                 // Background Image
                 Positioned.fill(
-                  child: Image.network(AppConfig.bodyBg, fit: BoxFit.cover),
+                  child: BodyBg(),
                 ),
-
                 // Main Scrollable Content
                 SafeArea(
                   child: SingleChildScrollView(
@@ -404,6 +405,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                       color: item.isRead ? Colors.grey : Colors.black,
                     ),
                     onPressed: () async {
+
                       /// Mark as read
                       await ref
                           .read(markNotificationReadProvider(item.id).future);

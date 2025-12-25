@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/constants/image_paths.dart';
 import '../widgets/teacher_profile_card.dart';
 
 class TeachersList extends StatefulWidget {
@@ -48,11 +49,17 @@ class _TeachersListState extends State<TeachersList> {
           : Stack(
         children: [
           // Background
-          CachedNetworkImage(
-            imageUrl:AppConfig.bodyBg,
-            fit: BoxFit.cover,
-            height: double.infinity,
-            width: double.infinity,
+          // CachedNetworkImage(
+          //   imageUrl:AppConfig.bodyBg,
+          //   fit: BoxFit.cover,
+          //   height: double.infinity,
+          //   width: double.infinity,
+          // ),
+          Image.asset(
+            ImagePaths.appBg,
+            fit: BoxFit.contain,
+            // height: double.infinity,
+            // width: double.infinity,
           ),
           Column(
             children: [
@@ -170,71 +177,71 @@ class _TeachersListState extends State<TeachersList> {
     );
   }
 
-  Widget _buildTeacherCard(Map<String, dynamic> teacher) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white,
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Teacher image
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: CachedNetworkImage(
-              imageUrl: teacher['imageUrl'] ?? '',
-              height: 110,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  teacher['name'] ?? '',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  teacher['qualification'] ?? '',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.orange, size: 16),
-                    Text(
-                      "${teacher['rating'] ?? 0}",
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    const Spacer(),
-                    Text(
-                      "Rank ${teacher['ranking']}",
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildTeacherCard(Map<String, dynamic> teacher) {
+  //   return Container(
+  //     margin: const EdgeInsets.symmetric(horizontal: 5),
+  //     decoration: BoxDecoration(
+  //       borderRadius: BorderRadius.circular(20),
+  //       color: Colors.white,
+  //       boxShadow: const [
+  //         BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       children: [
+  //         // Teacher image
+  //         ClipRRect(
+  //           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+  //           child: CachedNetworkImage(
+  //             imageUrl: teacher['imageUrl'] ?? '',
+  //             height: 110,
+  //             width: double.infinity,
+  //             fit: BoxFit.cover,
+  //             placeholder: (context, url) => const Center(
+  //               child: CircularProgressIndicator(strokeWidth: 2),
+  //             ),
+  //             errorWidget: (context, url, error) => const Icon(Icons.error),
+  //           ),
+  //         ),
+  //         Padding(
+  //           padding: const EdgeInsets.all(8.0),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               Text(
+  //                 teacher['name'] ?? '',
+  //                 style: const TextStyle(
+  //                   fontWeight: FontWeight.bold,
+  //                   fontSize: 14,
+  //                 ),
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //               Text(
+  //                 teacher['qualification'] ?? '',
+  //                 style: const TextStyle(color: Colors.grey, fontSize: 12),
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //               Row(
+  //                 children: [
+  //                   const Icon(Icons.star, color: Colors.orange, size: 16),
+  //                   Text(
+  //                     "${teacher['rating'] ?? 0}",
+  //                     style: const TextStyle(fontSize: 12),
+  //                   ),
+  //                   const Spacer(),
+  //                   Text(
+  //                     "Rank ${teacher['ranking']}",
+  //                     style: const TextStyle(fontSize: 12, color: Colors.grey),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _circleButton(IconData icon, VoidCallback onPressed) {
     return Container(

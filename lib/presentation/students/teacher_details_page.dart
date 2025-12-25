@@ -175,10 +175,10 @@ class _TeacherDetailsPageState extends ConsumerState<TeacherDetailsPage> {
     // Read lists from teacherData
     final subjectList = _asStringList(teacherData['subjects']).isNotEmpty
         ? _asStringList(teacherData['subjects'])
-        : ['Maths', 'English', 'Science'];
+        : [];
     final courseList = _asStringList(teacherData['courses']).isNotEmpty
         ? _asStringList(teacherData['courses'])
-        : ['Crash Course', 'Programming Basics', 'AI Course'];
+        : [];
 
     // When opening the modal, we keep the class-level selectedItems etc.
     showModalBottomSheet(

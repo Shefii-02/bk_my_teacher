@@ -7,7 +7,8 @@ class RatingsReviewsSheet extends ConsumerStatefulWidget {
   const RatingsReviewsSheet({super.key});
 
   @override
-  ConsumerState<RatingsReviewsSheet> createState() => _RatingsReviewsSheetState();
+  ConsumerState<RatingsReviewsSheet> createState() =>
+      _RatingsReviewsSheetState();
 }
 
 class _RatingsReviewsSheetState extends ConsumerState<RatingsReviewsSheet> {
@@ -25,6 +26,29 @@ class _RatingsReviewsSheetState extends ConsumerState<RatingsReviewsSheet> {
       error: (e, _) => Center(child: Text("Error: $e")),
       data: (response) {
         final courses = response.courses;
+
+        // Handle empty courses safely
+        if (courses.isEmpty) {
+          return SizedBox(
+            height: 400,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.menu_book, size: 60, color: Colors.grey),
+                  SizedBox(height: 12),
+                  Text(
+                    "No courses or reviews available",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Ensure selectedIndex is valid
+        if (selectedIndex >= courses.length) selectedIndex = 0;
         final selected = courses[selectedIndex];
 
         return DraggableScrollableSheet(
@@ -38,6 +62,13 @@ class _RatingsReviewsSheetState extends ConsumerState<RatingsReviewsSheet> {
               decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, -4),
+                  ),
+                ],
               ),
               child: ListView(
                 controller: scrollController,
@@ -45,10 +76,11 @@ class _RatingsReviewsSheetState extends ConsumerState<RatingsReviewsSheet> {
                   const Center(
                     child: Text(
                       "⭐ Ratings & Reviews",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // COURSE DROPDOWN
                   DropdownButton<int>(
@@ -58,61 +90,51 @@ class _RatingsReviewsSheetState extends ConsumerState<RatingsReviewsSheet> {
                       courses.length,
                           (i) => DropdownMenuItem(
                         value: i,
-                        child: Text(courses[i].courseName),
+                        child: Text(
+                          courses[i].courseName,
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
                       ),
                     ),
-                    onChanged: (value) => setState(() => selectedIndex = value!),
+                    onChanged: (value) {
+                      if (value != null) setState(() => selectedIndex = value);
+                    },
                   ),
-
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // SUMMARY CARDS
                   Row(
                     children: [
                       Expanded(
-                        child: Card(
+                        child: _summaryCard(
+                          title: "Average Rating",
+                          value: selected.averageRating.toStringAsFixed(1),
                           color: Colors.blueAccent,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                const Text("Average Rating", style: TextStyle(color: Colors.white)),
-                                const SizedBox(height: 8),
-                                Text(
-                                  selected.averageRating.toStringAsFixed(1),
-                                  style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Card(
+                        child: _summaryCard(
+                          title: "Total Reviews",
+                          value: "${selected.totalReviews}",
                           color: Colors.orangeAccent,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                const Text("Total Reviews", style: TextStyle(color: Colors.white)),
-                                const SizedBox(height: 8),
-                                Text(
-                                  "${selected.totalReviews}",
-                                  style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
 
                   // REVIEWS LIST
-                  ...selected.reviews.map((r) => _buildStudentReview(r.name, r.comment, r.rating)),
+                  if (selected.reviews.isEmpty)
+                    const Center(
+                      child: Text(
+                        "No reviews available for this course",
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    )
+                  else
+                    ...selected.reviews
+                        .map((r) => _buildStudentReview(r.name, r.comment, r.rating)),
                 ],
               ),
             );
@@ -122,15 +144,41 @@ class _RatingsReviewsSheetState extends ConsumerState<RatingsReviewsSheet> {
     );
   }
 
+  Widget _summaryCard({required String title, required String value, required Color color}) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: color,
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text(title, style: const TextStyle(color: Colors.white)),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                  color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildStudentReview(String name, String review, double rating) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 4, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -141,22 +189,32 @@ class _RatingsReviewsSheetState extends ConsumerState<RatingsReviewsSheet> {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: Colors.blueAccent,
-                child: Text(name[0], style: const TextStyle(color: Colors.white)),
+                child: Text(name.isNotEmpty ? name[0] : "?", style: const TextStyle(color: Colors.white)),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
-                child: Row(
-                  children: List.generate(
-                    5,
-                        (i) => Icon(i < rating ? Icons.star : Icons.star_border,
-                        color: Colors.amber, size: 14),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: List.generate(
+                        5,
+                            (i) => Icon(i < rating ? Icons.star : Icons.star_border,
+                            color: Colors.amber, size: 16),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(review, style: const TextStyle(fontSize: 12, color: Colors.black87)),
+          const SizedBox(height: 8),
+          Text(
+            review.isNotEmpty ? review : "No comment",
+            style: const TextStyle(fontSize: 13, color: Colors.black87),
+          ),
         ],
       ),
     );

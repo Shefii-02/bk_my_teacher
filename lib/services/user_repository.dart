@@ -36,6 +36,7 @@ class UserRepository {
     // final token = box.get('auth_token') ?? '';
     // if (token.isNotEmpty) setAuthToken(token);
     // print(token);
+
     await _loadAuth();
     final response = await _dio.post("/user-data-retrieve");
     final data = response.data['user'];

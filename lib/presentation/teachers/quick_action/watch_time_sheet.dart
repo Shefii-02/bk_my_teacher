@@ -45,12 +45,12 @@ class _WatchTimeSheetState extends State<WatchTimeSheet>
       stats = await TeacherApiService().fetchStatistics();
       if (stats != null) {
         watchMap = {
-          "Last Day": {
-            "Individual": stats!.watch["Last Day"]!.individual ?? [],
-            "Own Courses": stats!.watch["Last Day"]!.ownCourses ?? [],
-            "YouTube": stats!.watch["Last Day"]!.youtube ?? [],
-            "Workshops": stats!.watch["Last Day"]!.workshops ?? [],
-            "Webinar": stats!.watch["Last Day"]!.webinar ?? [],
+          "Last 2 Days": {
+            "Individual": stats!.watch["Last 2 Days"]!.individual ?? [],
+            "Own Courses": stats!.watch["Last 2 Days"]!.ownCourses ?? [],
+            "YouTube": stats!.watch["Last 2 Days"]!.youtube ?? [],
+            "Workshops": stats!.watch["Last 2 Days"]!.workshops ?? [],
+            "Webinar": stats!.watch["Last 2 Days"]!.webinar ?? [],
           },
           "Last 7 Days": {
             "Individual": stats!.watch["Last 7 Days"]!.individual ?? [],
@@ -328,7 +328,7 @@ class _WatchTimeSheetState extends State<WatchTimeSheet>
   );
 
   Widget _buildRangeSelector() {
-    final ranges = ["Last Day", "Last 7 Days", "Current Month", "Last Month"];
+    final ranges = ["Last 2 Days", "Last 7 Days", "Current Month", "Last Month"];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

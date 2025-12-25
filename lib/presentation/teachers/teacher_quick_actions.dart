@@ -18,7 +18,7 @@ class TeacherQuickActions extends StatelessWidget {
       },
       {
         "icon": "assets/images/icons/courses.png",
-        "label": "Own Courses",
+        "label": "Courses",
         "widget": const OwnCoursesSheet(),
       },
       {

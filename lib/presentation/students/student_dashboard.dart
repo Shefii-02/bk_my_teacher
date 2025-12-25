@@ -1,19 +1,23 @@
 import 'package:BookMyTeacher/presentation/students/teachers_list.dart';
 import 'package:BookMyTeacher/services/student_api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as ref;
+import '../../providers/user_provider.dart';
 import '../students/dashboard_home.dart';
 import '../students/courses_screen.dart';
 import '../students/my_class_list.dart';
 import '../students/profile_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/user_provider.dart';
 
-class StudentDashboard extends StatefulWidget {
+class StudentDashboard extends ConsumerStatefulWidget {
   const StudentDashboard({super.key});
 
   @override
-  State<StudentDashboard> createState() => _StudentDashboardState();
+  ConsumerState<StudentDashboard> createState() => _StudentDashboardState();
 }
 
-class _StudentDashboardState extends State<StudentDashboard> {
+class _StudentDashboardState extends ConsumerState<StudentDashboard> {
   int _currentIndex = 0;
   late final List<Widget> _screens;
   @override
@@ -49,7 +53,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
           BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: "Store"),
           BottomNavigationBarItem(
             icon: Icon(Icons.video_library),
-            label: "Schedule",
+            label: "My Class",
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],

@@ -48,13 +48,14 @@ class ApiService {
     }
   }
 
-
   Future<StudentPerformance> getStudentPerformance() async {
     try {
       await _loadAuth();
       final res = await _dio.post("/student/performance");
       final data = res.data;
-      if (data == null || data["data"] == null || data["data"] is! Map<String, dynamic>) {
+      if (data == null ||
+          data["data"] == null ||
+          data["data"] is! Map<String, dynamic>) {
         throw Exception("Invalid response format");
       }
       return StudentPerformance.fromJson(data["data"]);
@@ -62,7 +63,6 @@ class ApiService {
       throw Exception("Failed to load performance: $e");
     }
   }
-
 
   /// ✅ Server health check
   Future<bool> checkServer() async {
@@ -237,10 +237,8 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> referralStats() async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
+    await _loadAuth();
 
-    if (token.isNotEmpty) setAuthToken(token);
     final response = await _dio.post("/referral/stats");
     return response.data;
   }
@@ -373,10 +371,7 @@ class ApiService {
     String idToken,
   ) async {
     try {
-      final box = await Hive.openBox('app_storage');
-      final token = box.get('auth_token') ?? '';
-
-      if (token.isNotEmpty) setAuthToken(token);
+      await _loadAuth();
 
       final response = await _dio.post(
         Endpoints.verifyWithGoogle,
@@ -403,10 +398,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> checkUserEmail(String idToken) async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-
-    if (token.isNotEmpty) setAuthToken(token);
+    await _loadAuth();
     final response = await _dio.post(
       "/google-login-check",
       data: {"idToken": idToken},
@@ -416,19 +408,13 @@ class ApiService {
 
   // UserDataStore
   Future<Map<String, dynamic>> userDataStore() async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-
-    if (token.isNotEmpty) setAuthToken(token);
+    await _loadAuth();
     final response = await _dio.post("/user-data-retrieve");
     return response.data;
   }
 
   Future<StudentModel> profileUserData() async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-
-    if (token.isNotEmpty) setAuthToken(token);
+    await _loadAuth();
 
     final response = await _dio.post("/user-data-retrieve");
 
@@ -438,11 +424,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> applyReferralProvider(String data) async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-
-    if (token.isNotEmpty) setAuthToken(token);
-
+    await _loadAuth();
     final response = await _dio.post(
       "/apply-referral",
       data: {"referral_code": data},
@@ -452,10 +434,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> takeReferral() async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-
-    if (token.isNotEmpty) setAuthToken(token);
+    await _loadAuth();
     final response = await _dio.post("/take-referral");
     return response.data;
   }
@@ -691,7 +670,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-
+        print(data);
         return {
           "socials": data['socials'] ?? [],
           "contact": data['contact'] ?? {},
@@ -778,7 +757,6 @@ class ApiService {
     try {
       await _loadAuth();
       final res = await _dio.post('/logout');
-
     } catch (_) {}
   }
 
@@ -789,7 +767,6 @@ class ApiService {
       final res = await _dio.post('/account/delete-request');
 
       return res.data['status'] == true;
-
     } catch (_) {
       return false;
     }
@@ -850,11 +827,13 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> fetchCourseBanners() async {
+    await _loadAuth();
     final res = await _dio.get('/course-banners');
     return Map<String, dynamic>.from(res.data);
   }
 
   Future<Map<String, dynamic>> fetchProvideCourses() async {
+    await _loadAuth();
     final res = await _dio.get('/provide-courses');
     return Map<String, dynamic>.from(res.data);
   }
@@ -878,9 +857,8 @@ class ApiService {
   }
 
   Future<dynamic> fetchMyClasses() async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-    if (token.isNotEmpty) setAuthToken(token);
+    await _loadAuth();
+
     final res = await _dio.post('/my-classes');
     return res.data;
   }
@@ -984,7 +962,21 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>?> requestCourseEnrollment(String bannerId) async {
-    return _submitRequest('/request-course/submit', {'banner_id': bannerId});
+    return _submitRequest('/request-course/submit', {'course_id': bannerId});
+  }
+
+  Future<Map<String, dynamic>?> requestWebinarEnrollment(
+    String bannerId,
+  ) async {
+    return _submitRequest('/request-webinar/submit', {'webinar_id': bannerId});
+  }
+
+  Future<Map<String, dynamic>?> requestWorkshopEnrollment(
+    String bannerId,
+  ) async {
+    return _submitRequest('/request-workshop/submit', {
+      'workshop_id': bannerId,
+    });
   }
 
   Future<Map<String, dynamic>?> requestSubjectClassBooking(
@@ -1146,10 +1138,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> fetchWalletData() async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-
-    if (token.isNotEmpty) setAuthToken(token);
+    await _loadAuth();
 
     final response = await _dio.post("/my-wallet");
 
@@ -1157,10 +1146,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> convertToRupees(double amount) async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-
-    if (token.isNotEmpty) setAuthToken(token);
+    await _loadAuth();
 
     final response = await _dio.post(
       '/wallet/convert-to-rupees',
@@ -1170,11 +1156,7 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> transferToBank(double amount) async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-
-    if (token.isNotEmpty) setAuthToken(token);
-
+    await _loadAuth();
     final response = await _dio.post(
       '/wallet/transfer-to-bank',
       data: {'amount': amount},
@@ -1221,28 +1203,29 @@ class ApiService {
     return res.data;
   }
 
-  Future<Map<String, dynamic>> applyReferralOnRegister(
-    String code,
-    Map<String, dynamic> signupData,
-  ) async {
-    final box = await Hive.openBox('app_storage');
-    final token = box.get('auth_token') ?? '';
-
-    if (token.isNotEmpty) setAuthToken(token);
-    final res = await _dio.post(
-      '/referral/register',
-      data: {'referral_code': code, ...signupData},
-    );
-    return res.data;
-  }
+  // Future<Map<String, dynamic>> applyReferralOnRegister(
+  //   String code,
+  //   Map<String, dynamic> signupData,
+  // ) async {
+  //   final box = await Hive.openBox('app_storage');
+  //   final token = box.get('auth_token') ?? '';
+  //
+  //   if (token.isNotEmpty) setAuthToken(token);
+  //   final res = await _dio.post(
+  //     '/referral/register',
+  //     data: {'referral_code': code, ...signupData},
+  //   );
+  //   return res.data;
+  // }
 
   Future<NotificationResponse> fetchNotifications() async {
-    final res = await _dio.get("/notifications");
-
+    await _loadAuth();
+    final res = await _dio.post("/notifications");
     return NotificationResponse.fromJson(res.data);
   }
 
   Future<bool> markNotificationRead(int id) async {
+    await _loadAuth();
     final res = await _dio.post("/notifications/mark-read/$id");
     return res.data["status"] == 200;
   }

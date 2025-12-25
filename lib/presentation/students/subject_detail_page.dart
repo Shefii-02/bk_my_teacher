@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/constants/endpoints.dart';
 import '../../core/enums/app_config.dart';
 import '../../services/launch_status_service.dart';
+import '../widgets/show_failed_alert.dart';
 import '../widgets/show_success_alert.dart';
 import '../widgets/teacher_profile_card.dart';
 
@@ -28,7 +29,6 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
   bool isSubmitting = false;
   late final subjectData = widget.subject;
   final ScreenshotController _screenshotController = ScreenshotController();
-
   Future<void> _shareTeacherProfile() async {
     try {
       // Capture screenshot
@@ -58,7 +58,7 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
   Widget build(BuildContext context) {
     final List teachers = subjectData['available_teachers'] ?? [];
     final List reviews = subjectData['reviews'] ?? [];
-    print(subjectData);
+
     return Screenshot(
       controller: _screenshotController,
       child: Scaffold(
@@ -69,13 +69,13 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
               slivers: [
                 // 🔹 Collapsible Header
                 SliverAppBar(
-                  expandedHeight: 280,
+                  expandedHeight: 120,
                   floating: false,
                   pinned: true,
-                  backgroundColor: Colors.green.shade600,
+                  backgroundColor: Colors.greenAccent,
                   leading: _circleButton(
                     Icons.arrow_back,
-                        () => Navigator.pop(context),
+                    () => Navigator.pop(context),
                   ),
                   actions: [
                     _circleButton(Icons.share_outlined, _shareTeacherProfile),
@@ -90,7 +90,7 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
                           subjectData['name'] ?? '',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             shadows: [
@@ -104,13 +104,14 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
                         ),
 
                         // if (subjectData['trending'] != null)
-                          Text("Trending : #${subjectData['trending'] ?? '1'}",
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.white70,
-                            ),
+                        Text(
+                          "Trending : #${subjectData['trending'] ?? '1'}",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.white70,
                           ),
+                        ),
                       ],
                     ),
                     background: Stack(
@@ -118,14 +119,14 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
                       children: [
                         // 🌄 Background Image
                         if (subjectData['main_image'] != null)
-                          Container(
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: NetworkImage(subjectData['main_image']),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
+                          // Container(
+                          //   decoration: BoxDecoration(
+                          //     image: DecorationImage(
+                          //       image: NetworkImage(subjectData['main_image']),
+                          //       fit: BoxFit.cover,
+                          //     ),
+                          //   ),
+                          // ),
 
                         // 🌫 Gradient Overlay for Text Visibility
                         Container(
@@ -145,7 +146,6 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
                     ),
                   ),
                 ),
-
 
                 // 📄 Content
                 SliverToBoxAdapter(
@@ -177,19 +177,22 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
                         // 👩‍🏫 Available Teachers
                         const Text(
                           "Available Teachers",
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
 
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.8,
-                          ),
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                                childAspectRatio: 0.8,
+                              ),
                           itemCount: teachers.length,
                           itemBuilder: (context, index) {
                             final teacher = teachers[index];
@@ -212,10 +215,8 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
                                 );
                               },
                             );
-
                           },
                         ),
-
 
                         const Divider(),
                         const SizedBox(height: 25),
@@ -337,7 +338,6 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
                           ),
 
                         const SizedBox(height: 120),
-
                       ],
                     ),
                   ),
@@ -374,81 +374,6 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // 🧩 Teacher Card Widget
-  // Widget _buildTeacherCard(Map teacher) {
-  //   return Card(
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //     elevation: 3,
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.center,
-  //       children: [
-  //         const SizedBox(height: 8),
-  //         CircleAvatar(
-  //           backgroundImage: NetworkImage(teacher['imageUrl'] ?? ''),
-  //           radius: 35,
-  //         ),
-  //         const SizedBox(height: 8),
-  //         Text(
-  //           teacher['name'] ?? '',
-  //           textAlign: TextAlign.center,
-  //           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-  //         ),
-  //         Text(
-  //           teacher['qualification'] ?? '',
-  //           textAlign: TextAlign.center,
-  //           style: const TextStyle(fontSize: 12, color: Colors.grey),
-  //         ),
-  //         const SizedBox(height: 4),
-  //         Text(
-  //           "${teacher['experience'] ?? ''} Exp",
-  //           style: const TextStyle(fontSize: 12, color: Colors.black54),
-  //         ),
-  //         const SizedBox(height: 4),
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.center,
-  //           children: List.generate(
-  //             5,
-  //             (i) => Icon(
-  //               i < (teacher['ranking'] ?? 0) ? Icons.star : Icons.star_border,
-  //               color: Colors.amber,
-  //               size: 16,
-  //             ),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // 🧩 Review Card Widget
-  Widget _buildReviewCard(Map review) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage: NetworkImage(review['avatar'] ?? ''),
-          radius: 25,
-        ),
-        title: Text(
-          review['name'] ?? '',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(review['comment'] ?? ''),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(
-            5,
-            (i) => Icon(
-              i < (review['rating'] ?? 0) ? Icons.star : Icons.star_border,
-              color: Colors.amber,
-              size: 16,
-            ),
-          ),
         ),
       ),
     );
@@ -503,6 +428,7 @@ class _SubjectDetailPageState extends State<SubjectDetailPage> {
   //   ),
   // );
 }
+
 class BookClassForm extends StatefulWidget {
   final Map<String, dynamic> subject; // expects subject data including teachers
 
@@ -514,6 +440,7 @@ class BookClassForm extends StatefulWidget {
 
 class _BookClassFormState extends State<BookClassForm> {
   final _formKey = GlobalKey<FormState>();
+  String selectedClassType = 'Individual'; // 'Individual', 'Common', 'Crash'
 
   final _days = TextEditingController();
   final _note = TextEditingController();
@@ -531,6 +458,10 @@ class _BookClassFormState extends State<BookClassForm> {
   @override
   Widget build(BuildContext context) {
     final teachers = widget.subject['available_teachers'] ?? [];
+    void _setClassType(String type) {
+      selectedClassType = type;
+      setState(() {});
+    }
 
     return Padding(
       padding: EdgeInsets.only(
@@ -596,8 +527,28 @@ class _BookClassFormState extends State<BookClassForm> {
                 const SizedBox(height: 16),
               ],
 
+              const Text(
+                "Class Type",
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              ),
+              const SizedBox(height: 15),
+              Wrap(
+                spacing: 10,
+                children: ["Individual", "Common", "Crash"]
+                    .map(
+                      (type) => ChoiceChip(
+                        label: Text(type),
+                        selected: selectedClassType == type,
+                        selectedColor: Colors.green.shade200,
+                        onSelected: (_) => _setClassType(type),
+                      ),
+                    )
+                    .toList(),
+              ),
+              const SizedBox(height: 20),
               /// FORM FIELDS
               _buildTextField(_days, "How many days you want"),
+              const SizedBox(height: 10),
               _buildTextField(_note, "Message / Notes", maxLines: 3),
               const SizedBox(height: 20),
 
@@ -605,21 +556,23 @@ class _BookClassFormState extends State<BookClassForm> {
               _loading
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton.icon(
-                onPressed: _submitBooking,
-                icon: const Icon(Icons.check_circle_outline,
-                    color: Colors.white),
-                label: const Text(
-                  "Submit Booking",
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade600,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
+                      onPressed: _submitBooking,
+                      icon: const Icon(
+                        Icons.check_circle_outline,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        "Submit Booking",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade600,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
             ],
           ),
         ),
@@ -629,11 +582,11 @@ class _BookClassFormState extends State<BookClassForm> {
 
   /// Text Field Builder
   Widget _buildTextField(
-      TextEditingController controller,
-      String label, {
-        int maxLines = 1,
-        TextInputType? keyboard,
-      }) {
+    TextEditingController controller,
+    String label, {
+    int maxLines = 1,
+    TextInputType? keyboard,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: TextFormField(
@@ -657,11 +610,25 @@ class _BookClassFormState extends State<BookClassForm> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedTeacherId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please select a teacher."),
-          backgroundColor: Colors.orange,
-        ),
+      showFailedAlert(
+        context,
+        title: "Validation",
+        subtitle: "Please select a teacher.",
+        timer: 6,
+        color: Colors.red,
+        showButton: false,
+      );
+      return;
+    }
+
+    if (_days.text.trim().isEmpty) {
+      showFailedAlert(
+        context,
+        title: "Validation",
+        subtitle: 'Please enter number of days',
+        timer: 6,
+        color: Colors.red,
+        showButton: false,
       );
       return;
     }
@@ -672,6 +639,7 @@ class _BookClassFormState extends State<BookClassForm> {
       final data = {
         "subject_id": widget.subject['id'],
         "teacher_id": _selectedTeacherId,
+        'class_type': selectedClassType.toLowerCase(),
         "days": _days.text.trim(),
         "note": _note.text.trim(),
       };
@@ -685,7 +653,8 @@ class _BookClassFormState extends State<BookClassForm> {
       showSuccessAlert(
         context,
         title: res?['status'] == true ? "Success!" : "failed",
-        subtitle: res?['message'] ?? 'Class Booking details submitted successfully',
+        subtitle:
+            res?['message'] ?? 'Class Booking details submitted successfully',
         timer: 6,
         color: res?['status'] == true ? Colors.green : Colors.red,
         showButton: false, // 👈 hide/show button easily
@@ -694,10 +663,7 @@ class _BookClassFormState extends State<BookClassForm> {
       if (res?['status'] == true) {
         _resetForm();
         // ✅ Close the bottom sheet after success
-
       }
-
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -710,11 +676,11 @@ class _BookClassFormState extends State<BookClassForm> {
     }
   }
 
-
   void _resetForm() {
     setState(() {
       _days.clear();
       _note.clear();
+      selectedClassType = 'Individual';
     });
   }
 }

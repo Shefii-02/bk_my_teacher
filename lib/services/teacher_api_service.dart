@@ -296,13 +296,10 @@ class TeacherApiService {
   }
 
   Future<ScheduleResponse> fetchTeacherSchedule() async {
-    // final box = await Hive.openBox('app_storage');
-    // final token = box.get('auth_token') ?? '';
-    // if (token.isNotEmpty) setAuthToken(token);
+
     await _loadAuth();
 
     final response = await _dio.post('/teacher/schedule');
-
     // assume backend returns JSON structure as agreed
     return ScheduleResponse.fromJson(response.data);
   }

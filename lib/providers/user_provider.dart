@@ -26,6 +26,7 @@ class UserNotifier extends StateNotifier<AsyncValue<UserModel?>> {
       print("-loaderUSerEnded");
       state = AsyncValue.data(user);
     } catch (e, st) {
+
       state = AsyncValue.error(e, st);
     }
   }

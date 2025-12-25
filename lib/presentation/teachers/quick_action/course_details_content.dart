@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:open_file/open_file.dart';
+import 'package:open_filex/open_filex.dart';
+// import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../model/course_details_model.dart';
 import 'package:dio/dio.dart';
@@ -191,12 +192,12 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
   Future<void> _openMaterial(MaterialItem item) async {
     if (item.fileType == "video") {
       // open video in browser
-      await OpenFile.open(item.fileUrl);
+      await OpenFilex.open(item.fileUrl);
       return;
     }
 
     if (item.fileType == "pdf") {
-      await OpenFile.open(item.fileUrl);
+      await OpenFilex.open(item.fileUrl);
       return;
     }
 
@@ -216,7 +217,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
         SnackBar(content: Text("Downloaded to: $savePath")),
       );
 
-      await OpenFile.open(savePath);
+      await OpenFilex.open(savePath);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Download Failed: $e")),

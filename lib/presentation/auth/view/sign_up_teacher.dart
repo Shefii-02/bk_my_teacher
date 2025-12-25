@@ -1337,7 +1337,8 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
-        return ReferralPopup();
+        return ReferralPopup(parentContext: context,
+            redirectionUrl: '/teacher-dashboard');
       },
     );
   }

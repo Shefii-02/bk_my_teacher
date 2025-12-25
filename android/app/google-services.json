@@ -7,42 +7,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:276832274178:android:06b4443bd856e48de4241b",
-        "android_client_info": {
-          "package_name": "coin.bookmyteacher"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD6S2Z4sgMT2fPt2iaevednUdub2Ph6AXk"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "276832274178-dmo9hlavi34jv7ud6iup8vmg9uokcsfj.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.bookMyTeacherApp"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:276832274178:android:0cb400a31546f977e4241b",
         "android_client_info": {
           "package_name": "coin.bookmyteacher.app"
@@ -50,41 +14,29 @@
       },
       "oauth_client": [
         {
-          "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
+          "client_id": "276832274178-0tgjd2a1633qpg6sphbnpsre7ojidlj4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "coin.bookmyteacher.app",
+            "certificate_hash": "0d7dee4fae143f522292d4b7521df9c97c7a28f4"
+          }
+        },
         {
-          "current_key": "AIzaSyD6S2Z4sgMT2fPt2iaevednUdub2Ph6AXk"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "276832274178-dmo9hlavi34jv7ud6iup8vmg9uokcsfj.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.example.bookMyTeacherApp"
-              }
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:276832274178:android:a07b8f2c1bb5393fe4241b",
-        "android_client_info": {
-          "package_name": "com.example.bk_app"
-        }
-      },
-      "oauth_client": [
+          "client_id": "276832274178-jhr8a51d94f45q520rdms60gv9qqb12l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "coin.bookmyteacher.app",
+            "certificate_hash": "2092ad16a0f014faedd815d5c590789b1e0efb11"
+          }
+        },
+        {
+          "client_id": "276832274178-necui2ijo7fmukm3qim10ogj9j2s850n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "coin.bookmyteacher.app",
+            "certificate_hash": "e8ea47b286d8a97c297b44bfac4cccaa6a6129f4"
+          }
+        },
         {
           "client_id": "276832274178-bjqs0inhi8d6jhbsvllaga0prdddl4v6.apps.googleusercontent.com",
           "client_type": 3

@@ -13,10 +13,12 @@ class StudentAccountManagePage extends ConsumerStatefulWidget {
   const StudentAccountManagePage({super.key});
 
   @override
-  ConsumerState<StudentAccountManagePage> createState() => _StudentAccountManagePageState();
+  ConsumerState<StudentAccountManagePage> createState() =>
+      _StudentAccountManagePageState();
 }
 
-class _StudentAccountManagePageState extends ConsumerState<StudentAccountManagePage> {
+class _StudentAccountManagePageState
+    extends ConsumerState<StudentAccountManagePage> {
   bool chatEnabled = false;
   bool commentEnabled = false;
   bool groupStudyEnabled = false;
@@ -26,9 +28,15 @@ class _StudentAccountManagePageState extends ConsumerState<StudentAccountManageP
     super.initState();
 
     // Load values from Hive
-    commentEnabled = SettingsService.getBool("comment_option", defaultValue: true);
+    commentEnabled = SettingsService.getBool(
+      "comment_option",
+      defaultValue: true,
+    );
     chatEnabled = SettingsService.getBool("chat_option", defaultValue: true);
-    groupStudyEnabled = SettingsService.getBool("group_study_option", defaultValue: true);
+    groupStudyEnabled = SettingsService.getBool(
+      "group_study_option",
+      defaultValue: true,
+    );
   }
 
   void _updateToggle(bool v, String name) {
@@ -40,7 +48,6 @@ class _StudentAccountManagePageState extends ConsumerState<StudentAccountManageP
 
     SettingsService.setBool(name, v);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -86,8 +93,29 @@ class _StudentAccountManagePageState extends ConsumerState<StudentAccountManageP
             onTap: () => showModalBottomSheet(
               context: context,
               isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (_) => const StudentPerformancePage(),
+              backgroundColor: Colors.white,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              builder: (_) {
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                    left: 20,
+                    right: 20,
+                    top: 25,
+                  ),
+                  child:
+                  DraggableScrollableSheet(
+                    initialChildSize: 0.9,
+                    expand: false,
+                    builder: (context, scrollController) {
+                      return StudentPerformancePage();
+                    },
+                  ),
+                );
+              },
+
             ),
           ),
 
@@ -139,37 +167,35 @@ class _StudentAccountManagePageState extends ConsumerState<StudentAccountManageP
     );
   }
 
-
   /// Common confirmation dialog
   static Future<bool> _confirmAction(
-      BuildContext context,
-      String title,
-      String message,
-      ) async {
+    BuildContext context,
+    String title,
+    String message,
+  ) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            child: const Text("Cancel"),
-            onPressed: () => Navigator.pop(context, false),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                child: const Text("Cancel"),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                child: const Text(
+                  "Confirm",
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () => Navigator.pop(context, true),
+              ),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text(
-              "Confirm",
-              style: TextStyle(color: Colors.white),
-            ),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ],
-      ),
-    ) ??
+        ) ??
         false;
   }
-
 }
 
 /// Section header

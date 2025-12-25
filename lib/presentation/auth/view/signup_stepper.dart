@@ -168,11 +168,11 @@ class _SignUpStepperState extends State<SignUpStepper> {
                             "I am a Student/Parent",
                             Icons.person,
                           ),
-                          _buildRoleCard(
-                            "guest",
-                            "I am a Guest User",
-                            Icons.group,
-                          ),
+                          // _buildRoleCard(
+                          //   "guest",
+                          //   "I am a Guest User (Limited Access)",
+                          //   Icons.group,
+                          // ),
                           const SizedBox(height: 40),
 
                           // 🔹 Submit button

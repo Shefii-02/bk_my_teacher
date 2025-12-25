@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'dart:io';
+import 'package:BookMyTeacher/presentation/widgets/show_success_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -11,6 +13,7 @@ import 'package:flutter/rendering.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../model/statistics_model.dart';
+import '../../../services/notification_service.dart';
 import '../../../services/teacher_api_service.dart';
 
 class StatisticsSheet extends StatefulWidget {
@@ -47,12 +50,12 @@ class _StatisticsSheetState extends State<StatisticsSheet>
       stats = await TeacherApiService().fetchStatistics();
       if (stats != null) {
         spendMap = {
-          "Last Day": {
-            "Individual": stats!.spend["Last Day"]!.individual ?? [],
-            "Own Courses": stats!.spend["Last Day"]!.ownCourses ?? [],
-            "YouTube": stats!.spend["Last Day"]!.youtube ?? [],
-            "Workshops": stats!.spend["Last Day"]!.workshops ?? [],
-            "Webinar": stats!.spend["Last Day"]!.webinar ?? [],
+          "Last 2 Days": {
+            "Individual": stats!.spend["Last 2 Days"]!.individual ?? [],
+            "Own Courses": stats!.spend["Last 2 Days"]!.ownCourses ?? [],
+            "YouTube": stats!.spend["Last 2 Days"]!.youtube ?? [],
+            "Workshops": stats!.spend["Last 2 Days"]!.workshops ?? [],
+            "Webinar": stats!.spend["Last 2 Days"]!.webinar ?? [],
           },
           "Last 7 Days": {
             "Individual": stats!.spend["Last 7 Days"]!.individual ?? [],
@@ -78,12 +81,12 @@ class _StatisticsSheetState extends State<StatisticsSheet>
         };
 
         watchMap = {
-          "Last Day": {
-            "Individual": stats!.watch["Last Day"]!.individual ?? [],
-            "Own Courses": stats!.watch["Last Day"]!.ownCourses ?? [],
-            "YouTube": stats!.watch["Last Day"]!.youtube ?? [],
-            "Workshops": stats!.watch["Last Day"]!.workshops ?? [],
-            "Webinar": stats!.watch["Last Day"]!.webinar ?? [],
+          "Last 2 Days": {
+            "Individual": stats!.watch["Last 2 Days"]!.individual ?? [],
+            "Own Courses": stats!.watch["Last 2 Days"]!.ownCourses ?? [],
+            "YouTube": stats!.watch["Last 2 Days"]!.youtube ?? [],
+            "Workshops": stats!.watch["Last 2 Days"]!.workshops ?? [],
+            "Webinar": stats!.watch["Last 2 Days"]!.webinar ?? [],
           },
           "Last 7 Days": {
             "Individual": stats!.watch["Last 7 Days"]!.individual ?? [],
@@ -183,12 +186,26 @@ class _StatisticsSheetState extends State<StatisticsSheet>
 
       await file.writeAsBytes(await pdf.save());
 
+      await AppNotificationService.showNotification(
+        title: "PDF Saved Successfully",
+        body: "Tap to open the file",
+        payload: file.path,   // Important → opens PDF when tapped
+      );
+      context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
+          backgroundColor: Colors.green,
           content: Text("✅ PDF saved to: ${file.path}"),
           duration: const Duration(seconds: 4),
         ),
       );
+
+      // ShowSuccessAlert(
+      //   title: 'Successfully saved',
+      //   subtitle: "✅ PDF saved to: ${file.path}",
+      //   timer: 3,
+      //   color: Colors.green,
+      // );
 
       debugPrint("PDF saved at: ${file.path}");
     } catch (e) {
@@ -367,7 +384,12 @@ class _StatisticsSheetState extends State<StatisticsSheet>
   );
 
   Widget _buildRangeSelector() {
-    final ranges = ["Last Day", "Last 7 Days", "Current Month", "Last Month"];
+    final ranges = [
+      "Last 2 Days",
+      "Last 7 Days",
+      "Current Month",
+      "Last Month",
+    ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

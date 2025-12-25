@@ -1,6 +1,7 @@
 class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String auth = '/auth';
+  static const String splashScreen = '/splash-screen';
   static const String studentDashboard = '/student-dashboard';
   static const String teacherDashboard = '/teacher-dashboard';
   static const String guestDashboard = '/guest-dashboard';

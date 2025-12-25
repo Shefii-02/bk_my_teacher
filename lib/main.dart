@@ -1,21 +1,26 @@
 import 'dart:io';
 
 import 'package:BookMyTeacher/firebase_options.dart';
+import 'package:BookMyTeacher/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 
 import './routes/router.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ import
-import 'data/datasources/local_data_source.dart';
-import 'data/repositories/app_repository_impl.dart';
-import 'domain/usecases/check_launch_status_usecase.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // Import this
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+
 void main() async {
+  final FlutterLocalNotificationsPlugin _notifications =
+  FlutterLocalNotificationsPlugin();
 
   WidgetsFlutterBinding.ensureInitialized();
+  // 🔔 Android Notification Settings
+  await AppNotificationService.initialize();
+
   if (Platform.isAndroid || Platform.isIOS) {
     // Setting web contents debugging for InAppWebView (used by the YouTube player)
     await InAppWebViewController.setWebContentsDebuggingEnabled(true);
@@ -42,6 +47,9 @@ void main() async {
   // final localDataSource = LocalDataSource(storage, appDataBox);
   // final appRepo = AppRepositoryImpl(localDataSource);
   // final useCase = CheckLaunchStatusUseCase(appRepo);
+
+
+
 
   runApp(
     ProviderScope(

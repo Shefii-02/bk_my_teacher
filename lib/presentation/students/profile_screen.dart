@@ -3,6 +3,7 @@ import 'package:BookMyTeacher/presentation/students/student_account_manage_page.
 import 'package:BookMyTeacher/presentation/widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants/image_paths.dart';
 import '../../core/enums/app_config.dart';
 import '../../providers/user_provider.dart';
 import '../teachers/account/app_details_sheet.dart';
@@ -54,7 +55,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           // Background image
           Positioned.fill(
-            child: Image.network(AppConfig.bodyBg, fit: BoxFit.cover),
+            child: Image.asset(ImagePaths.appBg, fit: BoxFit.cover),
           ),
 
           // Foreground white container

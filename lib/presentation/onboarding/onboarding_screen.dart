@@ -20,7 +20,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'color': '#FFFFFF',
       'title': 'Online Learning',
-      'image': '${Endpoints.domain}/assets/mobile-app/onboarding/slide-1.png',
+      'image': 'assets/images/onboarding/slide-1.png',
       'description':
       'We Provide Online Classes and Pre-Recorded Lectures!',
       'skip': true,
@@ -28,14 +28,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'color': '#FFFFFF',
       'title': 'Learn Anytime',
-      'image': '${Endpoints.domain}/assets/mobile-app/onboarding/slide-2.png',
+      'image': 'assets/images/onboarding/slide-2.png',
       'description': 'Book or Save Lectures for the Future',
       'skip': true,
     },
     {
       'color': '#FFFFFF',
       'title': 'Performance Visualization',
-      'image': '${Endpoints.domain}/assets/mobile-app/onboarding/slide-3.png',
+      'image': 'assets/images/onboarding/slide-3.png',
       'description': 'Check Your Performance and Track Your Education',
       'skip': false,
     },
@@ -149,7 +149,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             if (page['image'] != null)
-              Image.network(page['image'], width: 300, height: 300),
+              Image.asset(page['image'], width: 300, height: 300),
             if ((page['title'] ?? '').isNotEmpty) ...[
               const SizedBox(height: 16.0),
               Text(

@@ -6,6 +6,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../../model/schedule_model.dart';
 import 'class_details_screen.dart';
+import 'course_details_page.dart';
 
 class SchedulesSheet extends StatefulWidget {
 
@@ -58,6 +59,7 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
         _events = newEvents;
         _firstDay = resp.firstDay;
         _lastDay = resp.lastDay;
+        _focusedDay = DateTime(month.year, month.month, 1);
       });
 
     } catch (e) {
@@ -153,59 +155,86 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
                 const Center(child: Text("Select a date to see your schedule")),
               const SizedBox(height: 8),
 
-              if (_selectedDay != null)
-                ..._getEventsForDay(_selectedDay!).map((event) {
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                    child: ListTile(
-                      leading: event.thumbnailUrl != null
-                          ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          event.thumbnailUrl!,
-                          width: 56,
-                          height: 56,
-                          fit: BoxFit.cover,
-                          errorBuilder: (c, e, st) => CircleAvatar(child: Icon(Icons.event)),
-                        ),
-                      )
-                          : _buildIcon(event.type),
-                      title: Text(event.topic),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("${event.timeStart} - ${event.timeEnd} • ${event.subjectName}"),
-                          const SizedBox(height: 4),
+              if (_selectedDay != null) ...[
+                if (_getEventsForDay(_selectedDay!).isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Center(
+                      child: Column(
+                        children: const [
+                          Icon(
+                            Icons.event_busy,
+                            size: 42,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 10),
                           Text(
-                            event.description,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                          ),
-                          _statusChip(event.classStatus),
-                        ],
-                      ),
-                      isThreeLine: true,
-                      trailing: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(height: 8),
-                          IconButton(
-                            icon: const Icon(Icons.info_outline),
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (_) => ClassDetailsScreen(event: event, dateKey: DateTime.utc(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day)),
-                              ));
-                            },
+                            "No classes scheduled yet.\nCheck back later.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                }),
+                  )
+                else
+                  ..._getEventsForDay(_selectedDay!).map((event) {
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                      child: ListTile(
+                        leading: event.thumbnailUrl != null
+                            ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            event.thumbnailUrl!,
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                            errorBuilder: (c, e, st) =>
+                            const CircleAvatar(child: Icon(Icons.event)),
+                          ),
+                        )
+                            : _buildIcon(event.type),
+                        title: Text(event.topic),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${event.timeStart} - ${event.timeEnd} • ${event.subjectName}",
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              event.description,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                            _statusChip(event.classStatus),
+                          ],
+                        ),
+                        isThreeLine: true,
+                        trailing: IconButton(
+                          icon: const Icon(Icons.info_outline),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CourseDetailsPage(courseId: event.id),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  }),
+              ],
               const SizedBox(height: 12),
             ],
           ),

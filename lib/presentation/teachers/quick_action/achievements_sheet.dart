@@ -49,7 +49,14 @@ class AchievementsSheet extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-
+                  if (levels.isEmpty)
+                    const Center(
+                      child: Text(
+                        "No levels available",
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    )
+                  else
                   ...levels.map((lvl) => _buildLevelCard(context, lvl)),
                 ],
               ),

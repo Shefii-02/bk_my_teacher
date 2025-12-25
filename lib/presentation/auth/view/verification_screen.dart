@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:BookMyTeacher/core/enums/app_config.dart';
+import 'package:BookMyTeacher/presentation/widgets/otp_instruction_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sms_autofill/sms_autofill.dart';
+import '../../../core/constants/image_paths.dart';
 import '../../../providers/user_provider.dart';
 import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
@@ -286,7 +288,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "Mobile Number Verification Instruction",
+                        "OTP Instruction",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -299,7 +301,15 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                     ],
                   ),
                   const Divider(),
-                  const Text("", style: TextStyle(fontSize: 14)),
+
+                  // ⭐ FIXED PART
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: SingleChildScrollView(
+                      child: const OtpInstructionPage(),
+                    ),
+                  ),
+
                 ],
               ),
             ),
@@ -310,7 +320,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
         return SlideTransition(
           position: Tween<Offset>(
             begin: const Offset(0, -1),
-            end: Offset.zero,
+            end: const Offset(0, 0),
           ).animate(anim),
           child: child,
         );
@@ -326,10 +336,17 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          SizedBox(
-            height: 200,
-            width: double.infinity,
-            child: Image.network(AppConfig.headerTop, fit: BoxFit.fill),
+          // SizedBox(
+          //   height: 200,
+          //   width: double.infinity,
+          //   child: Image.network(AppConfig.headerTop, fit: BoxFit.fill),
+          // ),
+          Positioned.fill(
+            top: -140,
+            child: Image.asset(
+              ImagePaths.topBarBg,
+              fit: BoxFit.fitHeight,
+            ),
           ),
           Column(
             children: [
@@ -400,23 +417,24 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(18),
-                      topRight: Radius.circular(18),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        offset: Offset(0, -2),
-                      ),
-                    ],
-                  ),
-                  child: SingleChildScrollView(
+                // child: Container(
+                //   width: double.infinity,
+                //   decoration: const BoxDecoration(
+                //     color: Colors.white,
+                //     borderRadius: BorderRadius.only(
+                //       topLeft: Radius.circular(18),
+                //       topRight: Radius.circular(18),
+                //     ),
+                //     boxShadow: [
+                //       BoxShadow(
+                //         color: Colors.black12,
+                //         blurRadius: 10,
+                //         offset: Offset(0, -2),
+                //       ),
+                //     ],
+                //   ),
+                  child:
+                  SingleChildScrollView(
                     padding: const EdgeInsets.all(24),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
@@ -557,7 +575,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                       ),
                     ),
                   ),
-                ),
+                // ),
               ),
             ],
           ),
@@ -566,182 +584,3 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     );
   }
 }
-
-// import 'dart:async';
-//
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:go_router/go_router.dart';
-// import '../controller/auth_controller.dart';
-//
-// class VerificationScreen extends ConsumerStatefulWidget {
-//   final Map<String, dynamic> extra;
-//
-//   const VerificationScreen({super.key, required this.extra});
-//
-//   @override
-//   ConsumerState<VerificationScreen> createState() => _VerificationScreenState();
-// }
-//
-// class _VerificationScreenState extends ConsumerState<VerificationScreen> {
-//   final List<TextEditingController> _otpControllers = List.generate(6, (index) => TextEditingController());
-//   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
-//   String _phoneNumber = '';
-//   int _resendCount = 0;
-//   bool _canResend = true;
-//   int _cooldownSeconds = 0;
-//   Timer? _cooldownTimer;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     _phoneNumber = widget.extra['phoneNumber'] ?? '';
-//     _resendCount = widget.extra['resendCount'] ?? 0;
-//     _canResend = widget.extra['resendAllowed'] ?? true;
-//
-//     // Setup OTP field focus management
-//     for (int i = 0; i < _focusNodes.length; i++) {
-//       _focusNodes[i].addListener(() {
-//         if (_focusNodes[i].hasFocus && _otpControllers[i].text.isEmpty && i > 0) {
-//           _focusNodes[i-1].requestFocus();
-//         }
-//       });
-//     }
-//   }
-//
-//   @override
-//   void dispose() {
-//     for (var controller in _otpControllers) {
-//       controller.dispose();
-//     }
-//     for (var node in _focusNodes) {
-//       node.dispose();
-//     }
-//     _cooldownTimer?.cancel();
-//     super.dispose();
-//   }
-//
-//   void _verifyOtp() async {
-//     final otp = _otpControllers.map((controller) => controller.text).join();
-//     if (otp.length != 6) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text("Please enter a valid 6-digit OTP")),
-//       );
-//       return;
-//     }
-//
-//     final authController = ref.read(authControllerProvider.notifier);
-//     final verified = await authController.verifyOtp(_phoneNumber, otp);
-//
-//     if (verified) {
-//       context.go('/home');
-//     } else {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text("Invalid OTP. Please try again.")),
-//       );
-//     }
-//   }
-//
-//   void _resendOtp() async {
-//     if (!_canResend) return;
-//
-//     final authController = ref.read(authControllerProvider.notifier);
-//     final success = await authController.resendOtp(_phoneNumber);
-//
-//     if (success) {
-//       setState(() {
-//         _resendCount++;
-//         if (_resendCount >= 3) {
-//           _canResend = false;
-//           _cooldownSeconds = 300;
-//           _startCooldownTimer();
-//         }
-//       });
-//
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text("OTP sent successfully")),
-//       );
-//
-//       // Clear OTP fields
-//       for (var controller in _otpControllers) {
-//         controller.clear();
-//       }
-//       _focusNodes[0].requestFocus();
-//     }
-//   }
-//
-//   void _startCooldownTimer() {
-//     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-//       if (_cooldownSeconds > 0) {
-//         setState(() {
-//           _cooldownSeconds--;
-//         });
-//       } else {
-//         setState(() {
-//           _canResend = true;
-//         });
-//         timer.cancel();
-//       }
-//     });
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text("Verify OTP"),
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Column(
-//           children: [
-//             Text("Enter OTP sent to $_phoneNumber"),
-//             const SizedBox(height: 20),
-//             Row(
-//               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//               children: List.generate(6, (index) {
-//                 return SizedBox(
-//                   width: 40,
-//                   child: TextField(
-//                     controller: _otpControllers[index],
-//                     focusNode: _focusNodes[index],
-//                     textAlign: TextAlign.center,
-//                     keyboardType: TextInputType.number,
-//                     maxLength: 1,
-//                     decoration: const InputDecoration(counterText: ""),
-//                     onChanged: (value) {
-//                       if (value.isNotEmpty && index < 5) {
-//                         _focusNodes[index+1].requestFocus();
-//                       }
-//                       if (value.isEmpty && index > 0) {
-//                         _focusNodes[index-1].requestFocus();
-//                       }
-//                       if (value.isNotEmpty && index == 5) {
-//                         _verifyOtp();
-//                       }
-//                     },
-//                   ),
-//                 );
-//               }),
-//             ),
-//             const SizedBox(height: 20),
-//             ElevatedButton(
-//               onPressed: _verifyOtp,
-//               child: const Text("Verify OTP"),
-//             ),
-//             const SizedBox(height: 20),
-//             if (_canResend)
-//               TextButton(
-//                 onPressed: _resendOtp,
-//                 child: const Text("Resend OTP"),
-//               )
-//             else
-//               Text("Resend available in $_cooldownSeconds seconds"),
-//             if (_resendCount >= 2)
-//               Text("${3 - _resendCount} attempts remaining"),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

@@ -38,7 +38,7 @@ class TopBannerCarousel extends ConsumerWidget {
                 child: ClipRRect(
                   // borderRadius: BorderRadius.circular(12),
                   child: Image.network(
-                    banner.mainImage,
+                    banner.thumb,
                     fit: BoxFit.contain, // preserves original aspect ratio
                     width: double.infinity,
                   ),

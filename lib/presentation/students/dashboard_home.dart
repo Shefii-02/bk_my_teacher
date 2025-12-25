@@ -8,9 +8,14 @@ import 'package:BookMyTeacher/presentation/students/teacher_carousel_two.dart';
 import 'package:BookMyTeacher/presentation/widgets/connect_with_team.dart';
 import 'package:BookMyTeacher/presentation/widgets/social_media_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:neopop/widgets/buttons/neopop_tilted_button/neopop_tilted_button.dart';
 
 import 'package:permission_handler/permission_handler.dart';
+import '../../core/constants/image_paths.dart';
+import '../../firebase_options.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/user_provider.dart';
 import '../widgets/notification_bell.dart';
@@ -34,15 +39,32 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
   void initState() {
     super.initState();
     requestPermissions();
+    _initialize();
   }
 
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  bool _isInitialized = false;
+
+
+  Future<void> _initialize() async {
+    if (_isInitialized) return;
+    try {
+      await _googleSignIn.initialize();
+      _isInitialized = true;
+    } catch (e) {
+      print("Google Sign-In init failed: $e");
+    }
+  }
   Future<void> requestPermissions() async {
     // Permission.camera, Permission.microphone, Permission.contacts,
     await [Permission.manageExternalStorage, Permission.storage].request();
   }
 
+  bool showRequestForm = false;
   @override
   Widget build(BuildContext context) {
+
     final studentAsync = ref.watch(userProvider);
     return studentAsync.when(
         loading: () =>
@@ -73,6 +95,9 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
             );
           }
 
+
+
+
           return RefreshIndicator(
               onRefresh: () async {
                 // 👇 Re-fetch student data or refresh provider
@@ -91,7 +116,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                       width: double.infinity,
                       decoration: const BoxDecoration(
                         image: DecorationImage(
-                          image: CachedNetworkImageProvider(AppConfig.bodyBg),
+                          image: AssetImage(ImagePaths.appBg),
                           fit: BoxFit.fill,
                         ),
                       ),
@@ -165,8 +190,47 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                               // padding: const EdgeInsets.all(16),
                               child: Column(
                                 children: [
+                                  const SizedBox(height: 30),
+                                  // 🔘 Request a Class Button
+
+                                  Center(
+                                    child: NeoPopTiltedButton(
+                                      isFloating: true,
+                                      onTapUp: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.vertical(
+                                              top: Radius.circular(16),
+                                            ),
+                                          ),
+                                          builder: (context) {
+                                            return const RequestFormBottomSheet();
+                                          },
+                                        );
+                                      },
+                                      decoration: const NeoPopTiltedButtonDecoration(
+                                        color: Color(0xFF70E183),
+                                        plunkColor: Color(0xFFE8F9E8),
+                                        shadowColor: Color(0xFF2A3B2A),
+                                        showShimmer: true,
+                                      ),
+                                      child: const Padding(
+                                        padding: EdgeInsets.symmetric(horizontal: 70.0, vertical: 15),
+                                        child: Text(
+                                          'Request a Class/Course',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
                                   // ---------- Request Class Section ----------
-                                  RequestForm(),
+                                  // RequestForm(),
                                   const SizedBox(height: 20),
                                   InviteFriendsCard(),
                                   const SizedBox(height: 20),
@@ -345,6 +409,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                       color: item.isRead ? Colors.grey : Colors.black,
                     ),
                     onPressed: () async {
+
                       /// Mark as read
                       await ref
                           .read(markNotificationReadProvider(item.id).future);
@@ -398,6 +463,56 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
           error: (_, __) => Center(child: Text("Failed to load notifications")),
         );
       },
+    );
+  }
+}
+class RequestFormBottomSheet extends StatelessWidget {
+  const RequestFormBottomSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            // Drag handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+
+            Center(
+              child: const Text(
+                "Request a Class/Course",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            const RequestForm(),
+          ],
+        ),
+      ),
     );
   }
 }

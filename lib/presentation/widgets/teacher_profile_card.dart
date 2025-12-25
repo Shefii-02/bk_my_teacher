@@ -66,7 +66,7 @@ class TeacherProfileCard extends StatelessWidget {
               left: 10,
               top: 30,
               child: Text(
-                name,
+                name.length > 13 ? "${name.substring(0, 13)}.." : name,
                 style: const TextStyle(
                   fontFamily: 'Arial',
                   fontWeight: FontWeight.w700,
@@ -79,7 +79,9 @@ class TeacherProfileCard extends StatelessWidget {
               left: 10,
               top: 55,
               child: Text(
-                qualification,
+                qualification.length > 13
+                    ? "${qualification.substring(0, 13)}.."
+                    : qualification,
                 style: const TextStyle(
                   fontFamily: 'Arial',
                   fontWeight: FontWeight.w700,
@@ -92,7 +94,9 @@ class TeacherProfileCard extends StatelessWidget {
               left: 10,
               top: 70,
               child: Text(
-                subjects,
+                subjects.length > 13
+                    ? "${subjects.substring(0, 13)}.."
+                    : subjects,
                 style: const TextStyle(
                   fontFamily: 'Arial',
                   fontWeight: FontWeight.w700,

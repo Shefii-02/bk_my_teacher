@@ -15,27 +15,6 @@ class SubjectCarousel extends StatefulWidget {
 class _SubjectCarouselState extends State<SubjectCarousel> {
   List<Map<String, dynamic>> subjects = [];
 
-  // final List<Map<String, String>> subjects = const [
-  //   {'name': 'English', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Math', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Science', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'History', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Geography', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Art', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Physics', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Chemistry', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Biology', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'English-9', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Math-8', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Science-7', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'History-6', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Geography-5', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Art-4', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Physics-3', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Chemistry-2', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  //   {'name': 'Biology-1', 'image': "${Endpoints.domain}/assets/mobile-app/icons/book-icon.png"},
-  // ];
-
   bool isLoading = true;
   @override
   void initState() {
@@ -46,7 +25,6 @@ class _SubjectCarouselState extends State<SubjectCarousel> {
   Future<void> _fetchSubjects() async {
     try {
       final result = await ApiService().fetchSubjects();
-      print(result);
       if (mounted) {
         setState(() {
           subjects = List<Map<String, dynamic>>.from(result['data']);
@@ -121,24 +99,24 @@ class SubjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 128,
-      height: 50,
-      margin: const EdgeInsets.all(2),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          GestureDetector(
-            onTap: () {
-              // Navigate to subject detail page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SubjectDetailPage(subject: subject ?? {}),
-                ),
-              );
-            },
-            child: Container(
+    return GestureDetector(
+      onTap: () {
+        // Navigate to subject detail page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SubjectDetailPage(subject: subject ?? {}),
+          ),
+        );
+      },
+      child: Container(
+        width: 128,
+        height: 50,
+        margin: const EdgeInsets.all(2),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -151,55 +129,55 @@ class SubjectCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(9),
               ),
             ),
-          ),
-          Positioned(
-            left: 7,
-            top: 20,
-            width: 35.3,
-            height: 22.98,
-            child: Image.network(image, fit: BoxFit.contain),
-          ),
-          Positioned(
-            left: 45,
-            top: 20,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  name.length > 8 ? "${name.substring(0, 8)}.." : name,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                    height: 1.2,
-                    color: Colors.black,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  size: 16,
-                  color: Colors.black.withOpacity(0.46),
-                ),
-              ],
+            Positioned(
+              left: 7,
+              top: 20,
+              width: 35.3,
+              height: 22.98,
+              child: Image.network(image, fit: BoxFit.contain),
             ),
-          ),
-          // Positioned(
-          //   right: 2.75,
-          //   top: 10,
-          //   width: 2.5,
-          //   height: 4.99,
-          //   child: Container(
-          //     decoration: BoxDecoration(
-          //       border: Border.all(
-          //         color: Colors.black.withOpacity(0.46),
-          //         width: 2,
-          //       ),
-          //     ),
-          //   ),
-          // ),
-        ],
+            Positioned(
+              left: 45,
+              top: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    name.length > 8 ? "${name.substring(0, 8)}.." : name,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      height: 1.2,
+                      color: Colors.black,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: Colors.black.withOpacity(0.46),
+                  ),
+                ],
+              ),
+            ),
+            // Positioned(
+            //   right: 2.75,
+            //   top: 10,
+            //   width: 2.5,
+            //   height: 4.99,
+            //   child: Container(
+            //     decoration: BoxDecoration(
+            //       border: Border.all(
+            //         color: Colors.black.withOpacity(0.46),
+            //         width: 2,
+            //       ),
+            //     ),
+            //   ),
+            // ),
+          ],
+        ),
       ),
     );
   }

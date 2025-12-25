@@ -1283,7 +1283,8 @@ class _SignUpStudentState extends State<SignUpStudent> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
-        return ReferralPopup();
+        return ReferralPopup(parentContext: context,
+            redirectionUrl: '/student-dashboard');
       },
     );
   }

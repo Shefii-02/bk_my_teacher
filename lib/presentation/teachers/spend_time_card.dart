@@ -16,10 +16,8 @@ class SpendTimeCard extends ConsumerWidget {
         context,
         child: const Center(child: CircularProgressIndicator()),
       ),
-      error: (e, _) => _buildContainer(
-        context,
-        child: Center(child: Text("Error: $e")),
-      ),
+      error: (e, _) =>
+          _buildContainer(context, child: Center(child: Text("Error: $e"))),
       data: (items) {
         return _buildContainer(
           context,
@@ -45,8 +43,9 @@ class SpendTimeCard extends ConsumerWidget {
                         context: context,
                         isScrollControlled: true,
                         shape: const RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(20)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
                         ),
                         builder: (_) => SpendTimeSheet(),
                       );
@@ -55,7 +54,7 @@ class SpendTimeCard extends ConsumerWidget {
                       Icons.chevron_right,
                       color: Colors.black.withOpacity(0.6),
                     ),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
@@ -66,11 +65,11 @@ class SpendTimeCard extends ConsumerWidget {
                 children: items
                     .map(
                       (e) => _SpendItem(
-                    icon: e.icon,
-                    title: e.title,
-                    time: e.time,
-                  ),
-                )
+                        icon: e.icon,
+                        title: e.title,
+                        time: e.time,
+                      ),
+                    )
                     .toList(),
               ),
             ],
@@ -121,7 +120,8 @@ class _SpendItem extends StatelessWidget {
           Image.asset(icon, width: 28, height: 28),
           const SizedBox(width: 4),
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // 👈 makes title start from left
+            crossAxisAlignment:
+                CrossAxisAlignment.start, // 👈 makes title start from left
             children: [
               Text(
                 title,
@@ -150,9 +150,7 @@ class _SpendItem extends StatelessWidget {
                 ),
               ),
             ],
-          )
-
-
+          ),
         ],
       ),
     );

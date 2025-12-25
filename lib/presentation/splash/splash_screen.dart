@@ -115,11 +115,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       context.go('/auth');
       return ;
     }
-    await ref.read(userProvider.notifier).loadUser();
-    final userState = ref.read(userProvider);
-    final user2 = userState.value;
-    final data = user2?.toJson();
+
     try {
+      await ref.read(userProvider.notifier).loadUser();
+      final userState = ref.read(userProvider);
+      final user2 = userState.value;
+      final data = user2?.toJson();
       print("****");
       print(data);
       print("****");
@@ -128,6 +129,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
       if (data != null) {
         LaunchStatusService.saveUserData(data);
+        LaunchStatusService.saveReferralCode(data['referral_code']);
       }
 
       // final Map<String, dynamic>? storedUserData = await LaunchStatusService.getUserData();
@@ -161,7 +163,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (!mounted) return; // ✅ Check widget still in tree
 
       final status = await LaunchStatusService.getLaunchStatus();
-      print(status);
+
       switch (status) {
         case LaunchStatus.firstTime:
           if (!mounted) return;
@@ -256,7 +258,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         case 'guest':
           context.go(
             '/guest-dashboard',
-            extra: {'guestId': userData?['id'].toString()},
+            extra: {'guestId': userData['id'].toString()},
           );
           return;
         default:
@@ -287,6 +289,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         ),
       ),
     );
+
+
   }
 
   Future<bool> _hasInternetConnection() async {

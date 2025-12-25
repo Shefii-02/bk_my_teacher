@@ -10,10 +10,8 @@ class StudentPerformancePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncValue = ref.watch(studentPerformanceProvider);
     return Scaffold(
-
       body: asyncValue.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-
         error: (e, _) => Center(
           child: Text("Error: $e"),
         ),
@@ -24,7 +22,6 @@ class StudentPerformancePage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 /// SUMMARY SECTION
                 Row(
                   children: [
@@ -40,13 +37,12 @@ class StudentPerformancePage extends ConsumerWidget {
                   Colors.blue,
                   bigText: true,
                 ),
-
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
                 const Text(
                   "Monthly Performance",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 30),
 
                 /// BAR CHART
                 SizedBox(
@@ -99,7 +95,7 @@ class StudentPerformancePage extends ConsumerWidget {
                   ),
                 ),
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 35),
 
                 /// LIST VIEW
                 const Text(

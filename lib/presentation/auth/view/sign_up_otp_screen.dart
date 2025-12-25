@@ -1,3 +1,5 @@
+import 'package:BookMyTeacher/core/constants/image_paths.dart';
+import 'package:BookMyTeacher/presentation/widgets/signup_instruction.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -52,7 +54,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        "Sign up Instruction",
+                        "Sign Up Instruction",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -65,12 +67,15 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                     ],
                   ),
                   const Divider(),
-                  const Text(
-                    "",
-                    // "This is your offcanvas-top style popup with animation. "
-                    // "You can add any content here.",
-                    style: TextStyle(fontSize: 14),
+
+                  // ⭐ FIXED PART
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: SingleChildScrollView(
+                      child: const SignupInstruction(),
+                    ),
                   ),
+
                 ],
               ),
             ),
@@ -167,7 +172,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
           SizedBox(
             height: 600,
             width: double.infinity,
-            child: Image.network(AppConfig.headerTop, fit: BoxFit.fitWidth),
+            child: Image.asset(ImagePaths.topBarBg, fit: BoxFit.fitWidth),
           ),
           // Main Content with Rounded Container
           Column(
@@ -316,7 +321,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                                         height: 3,
                                         child: DecoratedBox(
                                           decoration: BoxDecoration(
-                                            color: Colors.yellow[700],
+                                            color: Colors.green[900],
                                             borderRadius: BorderRadius.circular(
                                               10,
                                             ),

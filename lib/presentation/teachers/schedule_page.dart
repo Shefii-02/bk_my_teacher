@@ -1,4 +1,5 @@
 import 'package:BookMyTeacher/presentation/teachers/quick_action/class_details_screen.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/course_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -54,11 +55,14 @@ class _SchedulePageState extends State<SchedulePage> {
         _events = newEvents;
         _firstDay = resp.firstDay;
         _lastDay = resp.lastDay;
+        _focusedDay = DateTime(month.year, month.month, 1);
+        print(_focusedDay);
       });
     } catch (e) {
       debugPrint('Failed to load schedule: $e');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to load schedule: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load schedule: $e')));
     } finally {
       setState(() => _loading = false);
     }
@@ -99,8 +103,10 @@ class _SchedulePageState extends State<SchedulePage> {
                               color: Colors.white.withOpacity(0.8),
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.keyboard_arrow_left_sharp,
-                                  color: Colors.black),
+                              icon: const Icon(
+                                Icons.keyboard_arrow_left_sharp,
+                                color: Colors.black,
+                              ),
                               iconSize: 20,
                               padding: EdgeInsets.zero,
                               onPressed: () {
@@ -201,7 +207,9 @@ class _SchedulePageState extends State<SchedulePage> {
                         Expanded(
                           child: ListView(
                             padding: const EdgeInsets.only(bottom: 20),
-                            children: _getEventsForDay(_selectedDay!).map((event) {
+                            children: _getEventsForDay(_selectedDay!).map((
+                              event,
+                            ) {
                               return Card(
                                 margin: const EdgeInsets.symmetric(
                                   vertical: 6,
@@ -214,27 +222,29 @@ class _SchedulePageState extends State<SchedulePage> {
                                 child: ListTile(
                                   leading: event.thumbnailUrl != null
                                       ? ClipRRect(
-                                    borderRadius:
-                                    BorderRadius.circular(8),
-                                    child: Image.network(
-                                      event.thumbnailUrl!,
-                                      width: 56,
-                                      height: 56,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (c, e, st) =>
-                                      const CircleAvatar(
-                                        child: Icon(Icons.event),
-                                      ),
-                                    ),
-                                  )
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          child: Image.network(
+                                            event.thumbnailUrl!,
+                                            width: 56,
+                                            height: 56,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (c, e, st) =>
+                                                const CircleAvatar(
+                                                  child: Icon(Icons.event),
+                                                ),
+                                          ),
+                                        )
                                       : _buildIcon(event.type),
                                   title: Text(event.topic),
                                   subtitle: Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                          "${event.timeStart} - ${event.timeEnd} • ${event.subjectName}"),
+                                        "${event.timeStart} - ${event.timeEnd} • ${event.subjectName}",
+                                      ),
                                       const SizedBox(height: 4),
                                       Text(
                                         event.description,
@@ -250,14 +260,15 @@ class _SchedulePageState extends State<SchedulePage> {
                                     onPressed: () {
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
-                                          builder: (_) => ClassDetailsScreen(
-                                            event: event,
-                                            dateKey: DateTime.utc(
-                                              _selectedDay!.year,
-                                              _selectedDay!.month,
-                                              _selectedDay!.day,
-                                            ),
-                                          ),
+                                          // builder: (_) => ClassDetailsScreen(
+                                          //   event: event,
+                                          //   dateKey: DateTime.utc(
+                                          //     _selectedDay!.year,
+                                          //     _selectedDay!.month,
+                                          //     _selectedDay!.day,
+                                          //   ),
+                                          // ),
+                                            builder: (_) =>CourseDetailsPage(courseId: event.id)
                                         ),
                                       );
                                     },
