@@ -1,6 +1,8 @@
 import 'package:BookMyTeacher/core/constants/extensions.dart';
 import 'package:BookMyTeacher/presentation/components/shimmer_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
+import 'dart:io' show Platform;
 
 class BaseCard extends StatelessWidget {
   final String image;
@@ -77,16 +79,23 @@ class BaseCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Text(
-              description,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13,
+            Html(data: description, style: {
+              "body": Style(
+                fontSize: FontSize(13),
+                lineHeight: LineHeight(1),
                 color: Colors.grey[700],
-              ),
+                maxLines: 1),}
             ),
-            const SizedBox(height: 12),
+            // Text(
+            //   description,
+            //   maxLines: 2,
+            //   overflow: TextOverflow.ellipsis,
+            //   style: TextStyle(
+            //     fontSize: 13,
+            //     color: Colors.grey[700],
+            //   ),
+            // ),
+            if(Platform.isAndroid)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

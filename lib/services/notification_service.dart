@@ -12,8 +12,23 @@ class AppNotificationService {
     const AndroidInitializationSettings androidSettings =
     AndroidInitializationSettings('@mipmap/ic_launcher');
 
+    // iOS (REQUIRED)
+    const DarwinInitializationSettings iosSettings =
+    DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+    // Combined settings
     const InitializationSettings initializationSettings =
-    InitializationSettings(android: androidSettings);
+    InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    // const InitializationSettings initializationSettings =
+    // InitializationSettings(android: androidSettings);
 
     await _notifications.initialize(
       initializationSettings,
@@ -27,6 +42,19 @@ class AppNotificationService {
           }
         }
       },
+    );
+
+
+
+    // 👇 iOS permission request (THIS IS THE RIGHT PLACE)
+    final iosPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+        IOSFlutterLocalNotificationsPlugin>();
+
+    await iosPlugin?.requestPermissions(
+      alert: true,
+      badge: true,
+      sound: true,
     );
   }
 

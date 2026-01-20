@@ -44,7 +44,7 @@ class _VerifyAccountPopupState extends ConsumerState<VerifyAccountPopup> {
 
     try {
       final GoogleSignInAccount? account = await _googleSignIn.authenticate(
-        scopeHint: ['email'],
+        scopeHint: ['email','profile'],
       );
       if (account == null) {
         // User cancelled sign-in
@@ -55,13 +55,16 @@ class _VerifyAccountPopupState extends ConsumerState<VerifyAccountPopup> {
       final GoogleSignInAuthentication tokens = await account.authentication;
       final idToken = tokens.idToken;
 
+      final email = account.email;
+      
+
       if (idToken == null) throw Exception("No ID token received");
 
       debugPrint("✅ Received Google ID Token: $idToken");
 
       // ✅ Send ID token to backend for verification
       final authController = ref.read(authControllerProvider.notifier);
-      final verified = await authController.verifyWithGoogleFirebase(idToken);
+      final verified = await authController.verifyWithGoogleFirebase(idToken,email);
 
       if (!verified) {
         final error = ref.read(authControllerProvider).error;

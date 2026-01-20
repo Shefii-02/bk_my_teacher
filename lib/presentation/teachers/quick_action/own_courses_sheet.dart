@@ -20,8 +20,8 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
   CourseSummary? summary;
 
   final Map<String, List<CourseItem>> courses = {
-    "Upcoming": [],
-    "Ongoing": [],
+    // "Ongoing": [],
+    "Upcoming_Ongoing": [],
     "Completed": [],
   };
 
@@ -38,8 +38,8 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
 
       summary = await TeacherApiService().fetchTeacherCourses();
 
-      courses["Upcoming"] = summary!.upcoming;
-      courses["Ongoing"] = summary!.ongoing;
+      // courses["Ongoing"] = summary!.ongoing;
+      courses["Upcoming_Ongoing"] = summary!.upcomingOngoing;
       courses["Completed"] = summary!.completed;
 
       setState(() {
@@ -69,12 +69,12 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
           ),
           child: Column(
             children: [
-              const SizedBox(height: 12),
+              const SizedBox(height: 18),
               const Text(
-                "📚 My Courses",
+                "📚 My Sections",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-
+              const SizedBox(height: 12),
               // LOADING
               if (loading)
                 const Expanded(
@@ -95,7 +95,7 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
                   labelColor: Colors.blueAccent,
                   unselectedLabelColor: Colors.grey,
                   indicatorColor: Colors.blueAccent,
-                  tabs: courses.keys.map((e) => Tab(text: e)).toList(),
+                  tabs: courses.keys.map((e) => Tab(text: e.replaceAll('_',' '))).toList(),
                 ),
                 Expanded(
                   child: TabBarView(
@@ -119,32 +119,38 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
                                 vertical: 6, horizontal: 12),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
-                            child: ListTile(
-                              leading: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  course.thumbnailUrl,
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
+                            child: GestureDetector(
+                              onTap : () =>  Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CourseDetailsPage(courseId: course.id),
                                 ),
                               ),
-                              title: Text(course.title),
-                              subtitle: Text(
-                                "${course.startDate} | ${course.startTime}",
+                              child: ListTile(
+                                leading: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    course.thumbnailUrl,
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                title: Text(course.title),
+                                subtitle: Text(
+                                  "${course.startDate} | ${course.startTime}",
+                                ),
+                                trailing: SizedBox(
+                                  child: Column(
+                                    children: [
+                                      Text(course.type,style: TextStyle(color: Colors.green,fontSize: 16,fontWeight: FontWeight.bold),), const SizedBox(height: 4),
+                                      const Icon(Icons.play_circle,color: Colors.redAccent,),
+
+                                      ])
+                                )
                               ),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.info_outline),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => CourseDetailsPage(courseId: course.id),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
+                            )
+
                           );
                         },
                       );

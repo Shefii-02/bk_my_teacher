@@ -20,7 +20,11 @@ class _YoutubeEmbedState extends State<YoutubeEmbed> {
   void initState() {
     super.initState();
     // Force portrait orientation for video
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    // SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
 
     _controller =
         YoutubePlayerController(
@@ -63,7 +67,7 @@ class _YoutubeEmbedState extends State<YoutubeEmbed> {
           player: YoutubePlayer(
             controller: _controller,
             showVideoProgressIndicator: true,
-            progressIndicatorColor: Colors.redAccent,
+            progressIndicatorColor: Colors.red,
             progressColors: const ProgressBarColors(
               playedColor: Colors.red,
               handleColor: Colors.redAccent,
@@ -118,9 +122,22 @@ class _YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
   bool _showControls = true;
   Timer? _hideTimer;
   bool _isPlaying = false;
+  bool isLoading = true;
+  bool _isLoading = true;
+  bool _isMuted = false;
+
+  Duration _currentPosition = Duration.zero;
+  Duration _totalDuration = Duration.zero;
+
+  Timer? _uiTimer;
 
   @override
   void initState() {
+    Future.delayed(const Duration(seconds: 3), () {
+      setState(() {
+        isLoading = false;
+      });
+    });
     _controller = YoutubePlayerController(
       initialVideoId: widget.videoId,
       flags: YoutubePlayerFlags(
@@ -131,11 +148,25 @@ class _YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
         hideControls: true,
         // forceHD: true,
         // useHybridComposition: true,
-        loop: false,
-        // disableDragSeek: true,
+        loop: true,
+        disableDragSeek: true,
         showLiveFullscreenButton: false,
       ),
     );
+
+    /// ⏱ Update UI every 500ms
+    _uiTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (!mounted) return;
+      if (!_controller.value.isReady) return;
+
+      setState(() {
+        _currentPosition = _controller.value.position;
+        _totalDuration = _controller.metadata.duration;
+        _isPlaying = _controller.value.isPlaying;
+        _isLoading = false;
+      });
+    });
+
     _controller.addListener(() {
       if (!mounted) return;
 
@@ -144,6 +175,15 @@ class _YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
         setState(() {
           _isPlaying = playing;
         });
+      }
+      // if (_controller.value.isReady && isLoading) {
+      //   setState(() => isLoading = false);
+      // }
+    });
+    // ⏳ 3-second fullscreen loader
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() => isLoading = false);
       }
     });
     super.initState();
@@ -177,83 +217,197 @@ class _YouTubeVideoPlayerState extends State<YouTubeVideoPlayer> {
     _controller.play();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return YoutubePlayerBuilder(
-      player: YoutubePlayer(controller: _controller),
-      builder: (context, player) {
-        return Column(
-          children: [
-            player,
+  void _toggleMute() {
+    if (_isMuted) {
+      _controller.unMute();
+    } else {
+      _controller.mute();
+    }
 
-            /// Dark overlay
-            AnimatedOpacity(
-              opacity: _showControls ? 1 : 0,
-              duration: const Duration(milliseconds: 250),
-              child: Container(color: Colors.black45),
-            ),
-
-            /// Center Controls
-            Center(
-              child: Column(
-                children: [
-                  SizedBox(height: 20),
-                  AnimatedOpacity(
-                    opacity: _showControls ? 1 : 0,
-                    duration: const Duration(milliseconds: 250),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        IconButton(
-                          iconSize: 40,
-                          icon: const Icon(
-                            Icons.replay_30,
-                            color: Colors.black,
-                          ),
-                          onPressed: _seekBackward,
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            if (_controller.value.isPlaying) {
-                              _controller.pause();
-                            } else {
-                              _controller.play();
-                            }
-                          },
-                          icon: _isPlaying
-                              ? Icon(Icons.pause_circle_filled, size: 48)
-                              : Icon(Icons.play_circle_fill, size: 48),
-                        ),
-                        IconButton(
-                          iconSize: 40,
-                          icon: const Icon(
-                            Icons.replay_30,
-                            color: Colors.black,
-                          ),
-                          onPressed: _seekForward,
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.fullscreen,
-                            color: Colors.black,
-                          ),
-                          onPressed: () {
-                            _controller.toggleFullScreenMode();
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-
-          ],
-        );
-      },
-    );
+    setState(() {
+      _isMuted = !_isMuted;
+    });
   }
 
 
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        YoutubePlayerBuilder(
+          player: YoutubePlayer(controller: _controller),
+          builder: (context, player) {
+            return Column(
+              children: [
+                player,
+
+                /// Dark overlay
+                AnimatedOpacity(
+                  opacity: _showControls ? 1 : 0,
+                  duration: const Duration(milliseconds: 250),
+                  child: Container(color: Colors.black45),
+                ),
+
+                /// 🎚 SEEK BAR
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 1.5,
+
+                    // ✅ Played part color
+                    activeTrackColor: Colors.green,
+
+                    // ✅ Unplayed part color
+                    inactiveTrackColor: Colors.grey.shade300,
+
+                    // ✅ Thumb color
+                    thumbColor: Colors.black,
+
+                    // ✅ Thumb ripple
+                    overlayColor: Colors.red.withOpacity(0.2),
+
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 6,
+                    ),
+
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 14,
+                    ),
+                  ),
+                  child: Slider(
+                    value: _currentPosition.inSeconds
+                        .clamp(0, _totalDuration.inSeconds)
+                        .toDouble(),
+                    max: _totalDuration.inSeconds > 0
+                        ? _totalDuration.inSeconds.toDouble()
+                        : 1,
+                    onChanged: (value) {},
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 22.0,
+                    vertical: 0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        formatTime(_currentPosition),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        formatTime(_totalDuration),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                /// Center Controls
+                Center(
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20),
+                      AnimatedOpacity(
+                        opacity: _showControls ? 1 : 0,
+                        duration: const Duration(milliseconds: 250),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            IconButton(
+                              iconSize: 40,
+                              icon: const Icon(
+                                Icons.replay_30,
+                                color: Colors.black,
+                              ),
+                              onPressed: _seekBackward,
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                if (_controller.value.isPlaying) {
+                                  _controller.pause();
+                                } else {
+                                  _controller.play();
+                                }
+                              },
+                              icon: _isPlaying
+                                  ? Icon(Icons.pause_circle_filled, size: 48)
+                                  : Icon(Icons.play_circle_fill, size: 48),
+                            ),
+                            IconButton(
+                              iconSize: 40,
+                              icon: const Icon(
+                                Icons.replay_30,
+                                color: Colors.black,
+                              ),
+                              onPressed: _seekForward,
+                            ),
+                            IconButton(
+                              iconSize: 28,
+                              icon: Icon(
+                                _isMuted ? Icons.volume_off : Icons.volume_up,
+                                color: Colors.black,
+                              ),
+                              onPressed: _toggleMute,
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.fullscreen,
+                                color: Colors.black,
+                              ),
+                              onPressed: () {
+                                _controller.toggleFullScreenMode();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+
+        /// ⏳ FULLSCREEN LOADER OVER VIDEO
+        if (isLoading)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// ⏱ FORMAT mm:ss
+String formatTime(Duration d) {
+  final hours = d.inHours;
+  final minutes = d.inMinutes.remainder(60);
+  final seconds = d.inSeconds.remainder(60);
+
+  String two(int n) => n.toString().padLeft(2, '0');
+
+  if (hours > 0) {
+    return "${two(hours)}:${two(minutes)}:${two(seconds)}";
+  } else {
+    return "${two(minutes)}:${two(seconds)}";
+  }
+  return "$minutes:$seconds";
 }

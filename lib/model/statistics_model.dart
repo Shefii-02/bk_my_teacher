@@ -5,8 +5,6 @@ class StatisticsModel {
   final String totalSpend;
   final String totalWatch;
 
-
-
   StatisticsModel({
     required this.totalSpend,
     required this.totalWatch,

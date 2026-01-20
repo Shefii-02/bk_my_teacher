@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import '../widgets/show_failed_alert.dart';
 import '../widgets/show_success_alert.dart';
+import 'dart:io' show Platform;
 
 class WorkshopDetailBottomSheet extends StatefulWidget {
   final Map<String, dynamic> course;
@@ -71,7 +73,6 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
     context.push('/workshop-detail', extra: widget.course['id'].toString());
   }
 
-
   @override
   Widget build(BuildContext context) {
     final course = widget.course;
@@ -119,14 +120,15 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
 
                   const SizedBox(height: 10),
 
-                  // 🔥 DESCRIPTION
-                  Text(
-                    course['description'] ?? '',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade700,
-                      height: 1.6,
-                    ),
+                  Html(
+                    data: course['description'] ?? '',
+                    style: {
+                      "body": Style(
+                        fontSize: FontSize(15),
+                        lineHeight: LineHeight(1.5),
+                        color: Colors.grey.shade700,
+                      ),
+                    },
                   ),
 
                   const SizedBox(height: 20),
@@ -181,12 +183,12 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
         onTap: _submitting
             ? null
             : () {
-          if (_enrolled) {
-            _redirectToEnrolledCourse();
-          } else {
-            _enrollCourse();
-          }
-        },
+                if (_enrolled) {
+                  _redirectToEnrolledCourse();
+                } else {
+                  _enrollCourse();
+                }
+              },
 
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
@@ -213,12 +215,12 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
                       ? Row(
                           key: const ValueKey("enrolled"),
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.lock_rounded, color: Colors.green),
-                            SizedBox(width: 8),
+                          children: [
+                            const Text('🔐', style: TextStyle(fontSize: 30),),
+                            const SizedBox(width: 8),
                             Text(
-                              "Enrolled",
-                              style: TextStyle(
+                              Platform.isAndroid ? "Enrolled - Explore Now" : "Access Granted",
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.green,
@@ -230,12 +232,14 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
                           key: const ValueKey("buy"),
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            if(Platform.isAndroid)
                             priceView(
                               actualPrice: course['actual_price'],
                               netPrice: course['net_price'],
                             ),
-                            const Text(
-                              "Enroll Now",
+                            Icon(Icons.lock_open_outlined, color: Colors.green),
+                            Text(
+                              Platform.isAndroid ? "Enroll Now" : "Access Restricted",
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -284,8 +288,6 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
     if (date == null || date.toString().isEmpty) return 'TBA';
     return DateFormat('dd MMM yyyy • hh:mm a').format(DateTime.parse(date));
   }
-
-
 }
 
 Widget priceView({required dynamic actualPrice, required dynamic netPrice}) {

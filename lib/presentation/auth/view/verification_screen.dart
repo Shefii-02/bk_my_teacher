@@ -453,7 +453,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                             const Text(
                               "Verification code",
                               style: TextStyle(
-                                fontSize: 25,
+                                fontSize: 23,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -463,7 +463,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
                               child: const Text(
                                 'We have sent OTP code verification to your mobile no',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey,
                                 ),

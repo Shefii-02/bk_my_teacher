@@ -145,8 +145,8 @@ class _WalletSectionState extends State<WalletSection> {
         ),
         child: Row(
           children: [
-            Image.network(imageUrl, height: 60, width: 60),
-            const SizedBox(width: 12),
+            Image.network(imageUrl, height: 45, width: 45),
+            const SizedBox(width: 5),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -32,7 +32,7 @@ class AuthService {
     try {
       // Start authentication flow
       final GoogleSignInAccount account = await _googleSignIn.authenticate(
-        scopeHint: ['email'],
+        scopeHint: ['email','profile'],
       );
 
       // Fetch tokens from the account
@@ -40,6 +40,7 @@ class AuthService {
       print("tokens: $tokens");
 
 
+      final email = account.email;
       final idToken = tokens.idToken;
       print("tokens: $idToken");
 
@@ -48,7 +49,7 @@ class AuthService {
       }
 
       // final accessToken = tokens.accessToken;
-      final response = await _apiService.userLoginEmail(idToken);
+      final response = await _apiService.userLoginEmail(idToken,email);
 
       print('++++++++++++++++++++++++++++=');
       print('Decoded data: ${response.data}');

@@ -48,12 +48,12 @@ class _StatisticsPageState extends State<StatisticsPage>
       stats = await TeacherApiService().fetchStatistics();
       if (stats != null) {
         spendMap = {
-          "Last Day": {
-            "Individual": stats!.spend["Last Day"]!.individual ?? [],
-            "Own Courses": stats!.spend["Last Day"]!.ownCourses ?? [],
-            "YouTube": stats!.spend["Last Day"]!.youtube ?? [],
-            "Workshops": stats!.spend["Last Day"]!.workshops ?? [],
-            "Webinar": stats!.spend["Last Day"]!.webinar ?? [],
+          "Last 2 Days": {
+            "Individual": stats!.spend["Last 2 Days"]!.individual ?? [],
+            "Own Courses": stats!.spend["Last 2 Days"]!.ownCourses ?? [],
+            "YouTube": stats!.spend["Last 2 Days"]!.youtube ?? [],
+            "Workshops": stats!.spend["Last 2 Days"]!.workshops ?? [],
+            "Webinar": stats!.spend["Last 2 Days"]!.webinar ?? [],
           },
           "Last 7 Days": {
             "Individual": stats!.spend["Last 7 Days"]!.individual ?? [],
@@ -79,12 +79,12 @@ class _StatisticsPageState extends State<StatisticsPage>
         };
 
         watchMap = {
-          "Last Day": {
-            "Individual": stats!.watch["Last Day"]!.individual ?? [],
-            "Own Courses": stats!.watch["Last Day"]!.ownCourses ?? [],
-            "YouTube": stats!.watch["Last Day"]!.youtube ?? [],
-            "Workshops": stats!.watch["Last Day"]!.workshops ?? [],
-            "Webinar": stats!.watch["Last Day"]!.webinar ?? [],
+          "Last 2 Days": {
+            "Individual": stats!.watch["Last 2 Days"]!.individual ?? [],
+            "Own Courses": stats!.watch["Last 2 Days"]!.ownCourses ?? [],
+            "YouTube": stats!.watch["Last 2 Days"]!.youtube ?? [],
+            "Workshops": stats!.watch["Last 2 Days"]!.workshops ?? [],
+            "Webinar": stats!.watch["Last 2 Days"]!.webinar ?? [],
           },
           "Last 7 Days": {
             "Individual": stats!.watch["Last 7 Days"]!.individual ?? [],
@@ -120,85 +120,6 @@ class _StatisticsPageState extends State<StatisticsPage>
     }
   }
 
-  /// 🧩 Capture screenshot for sharing
-  Future<void> _captureAndShare() async {
-    try {
-      RenderRepaintBoundary boundary =
-          repaintKey.currentContext!.findRenderObject()
-              as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData = await image.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      Uint8List pngBytes = byteData!.buffer.asUint8List();
-
-      final directory = await getTemporaryDirectory();
-      final file = File('${directory.path}/teaching_stats.png');
-      await file.writeAsBytes(pngBytes);
-
-      await Share.shareXFiles([
-        XFile(file.path),
-      ], text: "📊 Teaching Statistics Report");
-    } catch (e) {
-      debugPrint("Error sharing screenshot: $e");
-    }
-  }
-
-  Future<void> _downloadPDF() async {
-    try {
-      RenderRepaintBoundary boundary =
-          repaintKey.currentContext!.findRenderObject()
-              as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData = await image.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      Uint8List pngBytes = byteData!.buffer.asUint8List();
-
-      final pdf = pw.Document();
-      final imageWidget = pw.MemoryImage(pngBytes);
-      pdf.addPage(
-        pw.Page(
-          build: (pw.Context context) =>
-              pw.Center(child: pw.Image(imageWidget, fit: pw.BoxFit.contain)),
-        ),
-      );
-
-      Directory? baseDir;
-
-      if (Platform.isAndroid) {
-        // ✅ Use public Downloads directory
-        baseDir = Directory("/storage/emulated/0/Download/Teaching_Reports");
-      } else {
-        // Fallback for iOS / desktop
-        baseDir = await getApplicationDocumentsDirectory();
-        baseDir = Directory("${baseDir.path}/Teaching_Reports");
-      }
-
-      if (!(await baseDir.exists())) {
-        await baseDir.create(recursive: true);
-      }
-
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final file = File("${baseDir.path}/teaching_statistics_$timestamp.pdf");
-
-      await file.writeAsBytes(await pdf.save());
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("✅ PDF saved to: ${file.path}"),
-          duration: const Duration(seconds: 4),
-        ),
-      );
-
-      debugPrint("PDF saved at: ${file.path}");
-    } catch (e) {
-      debugPrint("Error generating PDF: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("❌ Failed to generate PDF")));
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

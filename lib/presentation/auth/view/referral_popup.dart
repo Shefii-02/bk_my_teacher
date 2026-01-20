@@ -6,11 +6,11 @@ import '../../widgets/show_success_alert.dart';
 
 class ReferralPopup extends StatefulWidget {
   final BuildContext parentContext;
-  final String? redirectionUrl;
+  final String redirectionUrl;
   const ReferralPopup({
     super.key,
     required this.parentContext,
-    this.redirectionUrl,
+    required this.redirectionUrl,
   });
 
   @override
@@ -67,9 +67,10 @@ class _ReferralPopupState extends State<ReferralPopup> {
         // Optional redirect after 1 sec
         Future.delayed(const Duration(seconds: 1), () {
           if (widget.redirectionUrl != null) {
-            // final redirectTo = widget.redirectionUrl ?? '/';
-            // context.go(redirectTo);
-            context.go('/');
+            print(widget.redirectionUrl);
+            final redirectTo = widget.redirectionUrl ?? '/';
+            context.go(redirectTo);
+            // context.go('/');
           }
         });
       } else {

@@ -169,15 +169,16 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          SizedBox(
-            height: 600,
-            width: double.infinity,
-            child: Image.asset(ImagePaths.topBarBg, fit: BoxFit.fitWidth),
+          Positioned.fill(
+            top: -140,
+            child: Image.asset(
+              ImagePaths.topBarBg,
+              fit: BoxFit.fitHeight,
+            ),
           ),
-          // Main Content with Rounded Container
           Column(
             children: [
-              const SizedBox(height: 60),
+              const SizedBox(height: 70),
               // Custom AppBar
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -185,8 +186,8 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: 30,
+                      height: 30,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white.withOpacity(0.8),
@@ -209,7 +210,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
+                            fontSize: 15.0,
                           ),
                         ),
                         SizedBox(height: 4),
@@ -218,14 +219,14 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.w500,
-                            fontSize: 14.0,
+                            fontSize: 12.0,
                           ),
                         ),
                       ],
                     ),
                     Container(
-                      width: 35,
-                      height: 35,
+                      width: 30,
+                      height: 30,
                       margin: const EdgeInsets.only(right: 14.0),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -236,7 +237,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                           Icons.question_mark_sharp,
                           color: Colors.black,
                         ),
-                        iconSize: 18,
+                        iconSize: 15,
                         padding: EdgeInsets.zero,
                         onPressed: () => _showTopPopup(context),
                       ),
@@ -247,27 +248,11 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
               const SizedBox(height: 20),
               // Scrollable Body with Rounded Top Corners
               Expanded(
-                // child: Container(
-                //   width: double.infinity,
-                //   decoration: const BoxDecoration(
-                //     color: Colors.white,
-                //     borderRadius: BorderRadius.only(
-                //       topLeft: Radius.circular(18),
-                //       topRight: Radius.circular(18),
-                //     ),
-                //     boxShadow: [
-                //       BoxShadow(
-                //         color: Colors.black12,
-                //         blurRadius: 10,
-                //         offset: Offset(0, -2),
-                //       ),
-                //     ],
-                //   ),
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.only(left: 24, right: 24),
+                  padding: const EdgeInsets.all(24),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: MediaQuery.of(context).size.height - 290,
+                      minHeight: MediaQuery.of(context).size.height - 430,
                     ),
                     child: Center(
                       child: Column(
@@ -295,7 +280,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                                             style: TextStyle(
                                               color: Colors.black,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 30,
+                                              fontSize: 24,
                                             ),
                                           ),
                                           const Text(
@@ -303,7 +288,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                                             style: TextStyle(
                                               color: Colors.green,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 30,
+                                              fontSize: 25,
                                             ),
                                           ),
                                           const Text(
@@ -311,7 +296,7 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                                             style: TextStyle(
                                               color: Colors.black,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 30,
+                                              fontSize: 24,
                                             ),
                                           ),
                                         ],
@@ -498,41 +483,6 @@ class _SignUpOtpScreenState extends ConsumerState<SignUpOtpScreen> {
                                   const SizedBox(height: 20),
                                   Center(
                                     child:
-                                        // SizedBox(
-                                        //   width: 150.0,
-                                        //   height: 40.0,
-                                        //   child: ElevatedButton(
-                                        //     onPressed: _isLoading
-                                        //         ? null
-                                        //         : _sendOtp,
-                                        //     style: ElevatedButton.styleFrom(
-                                        //       backgroundColor: Colors.green,
-                                        //       foregroundColor: Colors.white,
-                                        //       disabledBackgroundColor:
-                                        //           Colors.grey,
-                                        //     ),
-                                        //     child: _isLoading
-                                        //         ? const SizedBox(
-                                        //             width: 20,
-                                        //             height: 20,
-                                        //             child:
-                                        //                 CircularProgressIndicator(
-                                        //                   color: Colors.white,
-                                        //                   strokeWidth: 2,
-                                        //                 ),
-                                        //           )
-                                        //         : const Row(
-                                        //             mainAxisAlignment:
-                                        //                 MainAxisAlignment.center,
-                                        //             children: [
-                                        //               Text("Send OTP"),
-                                        //               Icon(
-                                        //                 Icons.play_arrow_sharp,
-                                        //               ),
-                                        //             ],
-                                        //           ),
-                                        //   ),
-                                        // ),
                                         SizedBox(
                                           width: 150.0,
                                           height: 40.0,

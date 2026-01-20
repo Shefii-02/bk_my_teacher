@@ -32,6 +32,7 @@ class _CoursesScreenState extends State<CoursesScreen>
   void initState() {
     super.initState();
     _fetchCourses();
+
   }
 
   Future<void> _fetchCourses() async {
@@ -53,17 +54,22 @@ class _CoursesScreenState extends State<CoursesScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => CourseDetailBottomSheet(course: course,  redirectTo: '/student-course-store'),
+      builder: (_) => CourseDetailBottomSheet(
+        course: course,
+        redirectTo: '/student-course-store',
+      ),
     );
   }
-
 
   void _showWebinarDetail(Map<String, dynamic> course) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => WebinarDetailBottomSheet(course: course,  redirectTo: '/student-course-store'),
+      builder: (_) => WebinarDetailBottomSheet(
+        course: course,
+        redirectTo: '/student-course-store',
+      ),
     );
   }
 
@@ -72,9 +78,13 @@ class _CoursesScreenState extends State<CoursesScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => WorkshopDetailBottomSheet(course: course,redirectTo : '/student-course-store'),
+      builder: (_) => WorkshopDetailBottomSheet(
+        course: course,
+        redirectTo: '/student-course-store',
+      ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -85,7 +95,6 @@ class _CoursesScreenState extends State<CoursesScreen>
       backgroundColor: Colors.grey[100],
       body: Stack(
         children: [
-
           Image.asset(
             ImagePaths.appBg,
             fit: BoxFit.contain,
@@ -179,6 +188,14 @@ class _CoursesScreenState extends State<CoursesScreen>
                     children: _categories.map((category) {
                       final courses = category['items'] as List<dynamic>;
 
+                      if (courses.isEmpty) {
+                        return _emptyState(
+                          title: 'No ${category['category']} Found',
+                          subtitle:
+                              'We are not Provide in any ${category['category'].toString().toLowerCase()} yet.',
+                        );
+                      }
+
                       return ListView.builder(
                         padding: const EdgeInsets.all(12),
                         itemCount: courses.length,
@@ -236,8 +253,33 @@ class _CoursesScreenState extends State<CoursesScreen>
       ),
     );
   }
-}
 
+  Widget _emptyState({required String title, required String subtitle}) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.school_outlined, size: 70, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class FullWidthIndicator extends Decoration {
   final Color color;
@@ -274,4 +316,3 @@ class _FullWidthIndicatorPainter extends BoxPainter {
     );
   }
 }
-

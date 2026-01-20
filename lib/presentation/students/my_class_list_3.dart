@@ -6,14 +6,14 @@ import '../../core/enums/app_config.dart';
 import '../components/shimmer_image.dart';
 import '../webinars/webinar_listing.dart';
 
-class MyClassList extends StatefulWidget {
-  const MyClassList({super.key});
+class MyClassList3 extends StatefulWidget {
+  const MyClassList3({super.key});
 
   @override
-  State<MyClassList> createState() => _MyClassListState();
+  State<MyClassList3> createState() => _MyClassList3State();
 }
 
-class _MyClassListState extends State<MyClassList>
+class _MyClassList3State extends State<MyClassList3>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
   bool _loading = true;

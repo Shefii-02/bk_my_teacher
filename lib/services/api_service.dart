@@ -340,12 +340,12 @@ class ApiService {
   // }
 
   Future<ApiResponse<Map<String, dynamic>>> userLoginEmail(
-    String idToken,
+    String idToken, String email
   ) async {
     try {
       final response = await _dio.post(
         Endpoints.signInWithGoogle,
-        data: json.encode({'idToken': idToken}),
+        data: json.encode({'idToken': idToken,'email' : email}),
       );
 
       final responseData = response.data;
@@ -368,14 +368,14 @@ class ApiService {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> verifyUserEmail(
-    String idToken,
+    String idToken, String email,
   ) async {
     try {
       await _loadAuth();
 
       final response = await _dio.post(
         Endpoints.verifyWithGoogle,
-        data: json.encode({'idToken': idToken}),
+        data: json.encode({'idToken': idToken,'email': email}),
       );
 
       final responseData = response.data;
@@ -443,6 +443,7 @@ class ApiService {
   Future<List<TopBanner>> fetchTopBanners() async {
     await _loadAuth();
     final res = await _dio.get('/top-banners');
+
     if (res.statusCode == 200) {
       final data = res.data['data'] as List;
       return data.map((e) => TopBanner.fromJson(e)).toList();
@@ -939,6 +940,14 @@ class ApiService {
     final res = await _dio.post('/my-classes');
     return res.data;
   }
+
+
+  Future<Map<String, dynamic>> fetchEnrolledCourses() async {
+    await _loadAuth();
+    final res = await _dio.post('/fetch-enrolled-courses');
+    return Map<String, dynamic>.from(res.data);
+  }
+
 
   // Future<Map<String, dynamic>?> requestTopBannerSection(String bannerId) async {
   //   try {

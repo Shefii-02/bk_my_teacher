@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:BookMyTeacher/core/constants/image_paths.dart';
 import 'package:BookMyTeacher/presentation/widgets/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,7 +54,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           // Background image
           Positioned.fill(
-            child: Image.network(AppConfig.bodyBg, fit: BoxFit.cover),
+            child: Image.asset(ImagePaths.appBg, fit: BoxFit.cover),
           ),
 
           // Foreground white container
@@ -73,7 +74,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ],
               ),
               child: ListView(
-                padding: const EdgeInsets.only(top: 100, left: 25, right: 25),
+                padding: const EdgeInsets.only(top: 150, left: 25, right: 25),
                 children: [
                   ProfileOptionTile(
                     icon: Icons.person_outline,
@@ -136,7 +137,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       : const AssetImage('assets/images/avatar.png')
                   as ImageProvider,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 25),
                 Text(
                   name,
                   style: Theme.of(context).textTheme.titleMedium!.copyWith(

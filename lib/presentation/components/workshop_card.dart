@@ -25,7 +25,7 @@ class WorkshopCard extends StatelessWidget {
         ).format(DateTime.parse(workshop['started_at']))
             : '',
         level: workshop['level'] ?? '',
-        badge: workshop['is_enrolled'] == true ? 'Registered' : '',
+        badge: workshop['is_enrolled'] == true ? 'Access Granted' : '',
         actualPrice: workshop['actual_price'],
         netPrice: workshop['net_price'],
       ),

@@ -5,6 +5,7 @@ import 'package:BookMyTeacher/services/api_service.dart';
 import 'package:BookMyTeacher/services/launch_status_service.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
@@ -502,13 +503,17 @@ class _TeacherDetailsPageState extends ConsumerState<TeacherDetailsPage> {
                         ),
                         const SizedBox(height: 10),
                         if (teacher['description'] != null)
-                          Text(
-                            teacher['description'],
-                            style: const TextStyle(
-                              fontSize: 14,
-                              height: 1.5,
-                              color: Colors.black87,
-                            ),
+                          Html(
+                            data:
+                                teacher['description'] ??
+                                'No description available for this course.',
+                            style: {
+                              "body": Style(
+                                fontSize: FontSize(14),
+                                lineHeight: LineHeight(1.5),
+                                color: Colors.black87,
+                              ),
+                            },
                           ),
                         const SizedBox(height: 20),
                         _detailRow("Ranking", "#${teacher['ranking'] ?? 1}"),

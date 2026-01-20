@@ -1,6 +1,7 @@
 // class_detail_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:BookMyTeacher/services/api_service.dart';
@@ -20,14 +21,18 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
   late TabController _tabController;
 
   // Use a ValueNotifier for countdowns to avoid rebuilding whole widget every second
-  final ValueNotifier<Map<String, Duration>> _countdownNotifier =
-  ValueNotifier({});
+  final ValueNotifier<Map<String, Duration>> _countdownNotifier = ValueNotifier(
+    {},
+  );
 
   Timer? _ticker;
 
   Map<String, dynamic>? _data;
   bool _isLoading = true;
   bool _isError = false;
+
+  Duration countdownThreshold = Duration(hours: 4);
+
 
   @override
   void initState() {
@@ -158,18 +163,21 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
     final source = (c['source'] ?? '').toString();
     if (status == 'ongoing') {
       if (joinLink != null && joinLink.isNotEmpty) {
-        if(source == 'gmeet') {
+        if (source == 'gmeet') {
           await _openUrl(joinLink);
-        }
-        else if(source == 'youtube'){
+        } else if (source == 'youtube') {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => RecordedVideoWithDoubt(title: title, videoUrl: joinLink, classId: c['id'], type: 'course',),
+              builder: (_) => RecordedVideoWithDoubt(
+                title: title,
+                videoUrl: joinLink,
+                classId: c['id'],
+                type: 'course',
+              ),
             ),
           );
-        }
-        else{
+        } else {
           _showSnack("Source link not available");
         }
       } else {
@@ -182,7 +190,12 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => RecordedVideoWithDoubt(title: title, videoUrl: recorded, classId: c['id'], type: 'webinar'),
+            builder: (_) => RecordedVideoWithDoubt(
+              title: title,
+              videoUrl: recorded,
+              classId: c['id'],
+              type: 'webinar',
+            ),
           ),
         );
       } else {
@@ -196,13 +209,13 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
   Widget _buildJoinButton(List<dynamic> classes) {
     // show first ongoing class join button (existing behavior preserved)
     final ongoing = classes.cast<Map<String, dynamic>?>().firstWhere(
-          (c) => c?['status'] == 'ongoing',
+      (c) => c?['status'] == 'ongoing',
       orElse: () => null,
     );
 
     if (ongoing == null) return const SizedBox.shrink();
 
-    return SizedBox(height: 10,);
+    return SizedBox(height: 10);
     // return Positioned(
     //   bottom: 16,
     //   left: 16,
@@ -301,10 +314,9 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
       automaticallyImplyLeading: false, // disable default back button
       flexibleSpace: Stack(
         children: [
-
           FlexibleSpaceBar(
             background: ShimmerImage(
-              imageUrl: info['thumbnail'] ?? '',
+              imageUrl: info['main_image'] ?? '',
               width: double.infinity,
               height: 220,
               borderRadius: 0,
@@ -316,7 +328,7 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
             left: 12,
             child: _circleButton(
               Icons.keyboard_arrow_left,
-                  () => Navigator.of(context).pop(),
+              () => Navigator.of(context).pop(),
             ),
           ),
         ],
@@ -356,7 +368,10 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -370,9 +385,15 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(teacher, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    teacher,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   if (level != null && level.toString().isNotEmpty)
-                    Text(level.toString(), style: const TextStyle(color: Colors.grey)),
+                    Text(
+                      level.toString(),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
                 ],
               ),
             ),
@@ -380,9 +401,15 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('$students students', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    '$students students',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   if (duration != null && duration.toString().isNotEmpty)
-                    Text(duration.toString(), style: const TextStyle(color: Colors.grey)),
+                    Text(
+                      duration.toString(),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
                 ],
               ),
           ],
@@ -393,30 +420,56 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _statChip(Icons.timer, duration ?? '—'),
-            _statChip(Icons.school, info['certificate'] == true ? 'Certificate' : 'No cert'),
-            _statChip(Icons.folder, (info['materials_count'] ?? materialsCount(info)).toString()),
+            _statChip(
+              Icons.school,
+              info['certificate'] == true ? 'Certificate' : 'No cert',
+            ),
+            _statChip(
+              Icons.folder,
+              (info['materials_count'] ?? materialsCount(info)).toString(),
+            ),
           ],
         ),
         const SizedBox(height: 18),
-        Text('About this course', style: TextStyle(fontSize: 16, color: Colors.grey.shade800)),
+        Text(
+          'About this course',
+          style: TextStyle(fontSize: 16, color: Colors.grey.shade800),
+        ),
         const SizedBox(height: 8),
-        Text(desc, style: const TextStyle(fontSize: 14, height: 1.4)),
+        Html(
+          data: desc,
+          style: {
+            "body": Style(
+              fontSize: FontSize(14),
+              lineHeight: LineHeight(1.4),
+              color: Colors.black,
+            ),
+          },
+        ),
         const SizedBox(height: 20),
 
         // Optional: What you'll learn (if present)
-        if (info['highlights'] is List && (info['highlights'] as List).isNotEmpty) ...[
-          const Text('What you’ll learn', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        if (info['highlights'] is List &&
+            (info['highlights'] as List).isNotEmpty) ...[
+          const Text(
+            'What you’ll learn',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
-          ...List<Widget>.from((info['highlights'] as List).map((h) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              children: [
-                Icon(Icons.check, size: 18, color: Colors.green.shade700),
-                const SizedBox(width: 8),
-                Expanded(child: Text(h.toString())),
-              ],
+          ...List<Widget>.from(
+            (info['highlights'] as List).map(
+              (h) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    Icon(Icons.check, size: 18, color: Colors.green.shade700),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(h.toString())),
+                  ],
+                ),
+              ),
             ),
-          ))),
+          ),
         ],
         const SizedBox(height: 24),
       ],
@@ -464,7 +517,16 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
             final status = (c['status'] ?? '').toString().toLowerCase();
             final id = c['id'].toString();
             final localRemaining = countdowns[id];
-            final dtStr = c['date_time'] ?? '-';
+            final dtStr = c['start_date_time'] ?? '-';
+            final startTime = DateTime.tryParse(c['start_date_time'] ?? '');
+            final endTime   = DateTime.tryParse(c['end_date_time'] ?? '');
+            final now = DateTime.now();
+
+            bool isUpcoming = startTime != null && now.isBefore(startTime);
+            bool isOngoing  = startTime != null && endTime != null &&
+                now.isAfter(startTime) && now.isBefore(endTime);
+            bool isCompleted = endTime != null && now.isAfter(endTime);
+
 
             return ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -473,10 +535,51 @@ class _WebinarDetailScreenState extends State<WebinarDetailScreen>
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (status == 'upcoming' && localRemaining != null)
-                    Text('Starts in: ${_humanDuration(localRemaining)}'),
-                  if (status != 'upcoming') Text('Date: ${_formatDateTime(c['date_time'])}'),
-                  if ((c['duration'] ?? '').toString().isNotEmpty) Text('Duration: ${c['duration']}'),
+                  // if (status == 'upcoming' && localRemaining != null)
+                  //   Text('Starts in: ${_humanDuration(localRemaining)}'),
+                  // if (status != 'upcoming') Text('Date: ${_formatDateTime(c['start_date_time'])}'),
+                  // if (status == 'upcoming' && localRemaining != null) ...[
+                  //   if (localRemaining <= countdownThreshold)
+                  //     Text('Starts in: ${_humanDuration(localRemaining)}')
+                  //   else
+                  //     Text('Date: ${_formatDateTime(c['start_date_time'])}'),
+                  // ] else ...[
+                  //   Text('Date: ${_formatDateTime(c['start_date_time'])}'),
+                  // ],
+                  // if ((c['duration'] ?? '').toString().isNotEmpty) Text('Duration: ${c['duration']}'),
+                  /// UPCOMING
+                  if (isUpcoming && localRemaining != null) ...[
+                    if (localRemaining <= countdownThreshold)
+                      Text('Starts in: ${_humanDuration(localRemaining)}')
+                    else
+                      Text('Date: ${_formatDateTime(c['start_date_time'])}'),
+                  ]
+
+                  /// ONGOING
+                  else if (isOngoing) ...[
+                    const Text(
+                      'Live now',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ]
+
+                  /// COMPLETED
+                  else if (isCompleted) ...[
+                      Text(
+                        'Completed on: ${_formatDateTime(c['end_date_time'])}',
+                      ),
+                    ]
+
+                    /// FALLBACK
+                    else ...[
+                        Text('Date: ${_formatDateTime(c['start_date_time'])}'),
+                      ],
+
+                  if ((c['duration'] ?? '').toString().isNotEmpty)
+                    Text('Duration: ${c['duration']}'),
                 ],
               ),
               trailing: ElevatedButton(
@@ -577,7 +680,11 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => _tabBar.preferredSize.height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 8),

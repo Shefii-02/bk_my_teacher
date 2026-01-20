@@ -168,7 +168,7 @@ class PersonalInfoView extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _circularButton(Icons.arrow_back,
-                  () => GoRouter.of(context).go('/teacher-dashboard')),
+                  () => GoRouter.of(context).pop()),
         ],
       ),
       const SizedBox(height: 30),

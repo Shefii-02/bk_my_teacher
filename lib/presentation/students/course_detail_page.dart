@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:BookMyTeacher/core/constants/endpoints.dart';
 import 'package:BookMyTeacher/core/enums/app_config.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/api_service.dart';
 import '../components/shimmer_image.dart';
@@ -30,8 +31,9 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
     setState(() => _isSubmitting = true);
 
     try {
-      final response =
-      await ApiService().requestCourseEnrollment(widget.course['id'].toString());
+      final response = await ApiService().requestCourseEnrollment(
+        widget.course['id'].toString(),
+      );
 
       if (response != null && response['status'] == true) {
         setState(() => _alreadySubmitted = true);
@@ -50,9 +52,9 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isSubmitting = false);
     }
@@ -66,7 +68,6 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-
     final course = widget.course;
     final bottomPadding = MediaQuery.of(context).padding.bottom + 16;
 
@@ -91,8 +92,8 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                           bottomRight: Radius.circular(30),
                         ),
                         child: ShimmerImage(
-                          imageUrl: course['main_image'] ??
-                              AppConfig.defaultBanner,
+                          imageUrl:
+                              course['main_image'] ?? AppConfig.defaultBanner,
                           width: double.infinity,
                           height: 300,
                           borderRadius: 0,
@@ -105,8 +106,10 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(30),
                             child: BackdropFilter(
-                              filter:
-                              ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+                              filter: ImageFilter.blur(
+                                sigmaX: 8.0,
+                                sigmaY: 8.0,
+                              ),
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.6),
@@ -149,14 +152,17 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                     height: 400,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        course['description'] ??
+                      child: Html(
+                        data:
+                            course['description'] ??
                             'No description available for this course.',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          height: 1.6,
-                          color: Colors.black54,
-                        ),
+                        style: {
+                          "body": Style(
+                            fontSize: FontSize(16),
+                            lineHeight: LineHeight(1.6),
+                            color: Colors.black54,
+                          ),
+                        },
                       ),
                     ),
                   ),
@@ -174,7 +180,11 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
               child: Container(
                 color: Colors.white,
                 padding: EdgeInsets.fromLTRB(
-                    20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
+                  20,
+                  12,
+                  20,
+                  MediaQuery.of(context).padding.bottom + 12,
+                ),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _alreadySubmitted
@@ -189,20 +199,20 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
                   onPressed: _isSubmitting ? null : _submitRequest,
                   child: _isSubmitting
                       ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.8,
-                      color: Colors.white,
-                    ),
-                  )
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.8,
+                            color: Colors.white,
+                          ),
+                        )
                       : Text(
-                    _alreadySubmitted ? 'Already Enrolled' : 'Enroll Now',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                          _alreadySubmitted ? 'Already Enrolled' : 'Enroll Now',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ),

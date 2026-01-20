@@ -4,23 +4,11 @@ description: "Complete Tuition App"
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 #publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
-version: 1.1.0+31
+version: 1.1.11+42    #ios
+#version: 1.1.07+38     #android
 
 environment:
   sdk: ^3.9.0
-
 
 
 # Dependencies specify other packages that your package needs in order to work.
@@ -90,6 +78,11 @@ dependencies:
 #  open_file: ^3.5.10
   flutter_local_notifications: ^19.5.0
   open_filex: ^4.7.0
+  flutter_html: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
+  in_app_purchase: ^3.2.3
+#  phonepe_payment_sdk: ^3.0.2
 #  zego_superboard: ^2.5.9+1
 #  zego_express_engine: ^3.22.0
 #  zego_uikit: ^2.28.27
@@ -105,6 +98,11 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
 
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/logo/splash.jpg
+  ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -125,6 +123,14 @@ flutter:
     - assets/images/logo/
     - assets/images/onboarding/
     - assets/images/background/
+
+flutter_icons:
+  ios: true
+  image_path: assets/images/logo/ios-icon.png
+  remove_alpha_ios: true
+
+
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -126,25 +126,26 @@ class SubjectCard extends StatelessWidget {
                     offset: const Offset(0, 4),
                   ),
                 ],
-                borderRadius: BorderRadius.circular(9),
+                borderRadius: BorderRadius.circular(5),
               ),
             ),
+            // Positioned(
+            //   left: 7,
+            //   top: 20,
+            //   width: 35.3,
+            //   height: 22.98,
+            //   child: Image.network(image, fit: BoxFit.contain),
+            // ),
             Positioned(
-              left: 7,
-              top: 20,
-              width: 35.3,
-              height: 22.98,
-              child: Image.network(image, fit: BoxFit.contain),
-            ),
-            Positioned(
-              left: 45,
+              // left: 45,
+              left: 17,
               top: 20,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    name.length > 8 ? "${name.substring(0, 8)}.." : name,
+                    name.length > 15 ? "${name.substring(0, 15)}.." : name,
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w700,

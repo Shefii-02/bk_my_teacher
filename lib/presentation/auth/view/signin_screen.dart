@@ -1,4 +1,7 @@
+import 'dart:io' show Platform;
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -28,7 +31,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _isInitialized = false;
-
 
   void _showTopPopup(BuildContext context) {
     showGeneralDialog(
@@ -84,7 +86,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       child: const LoginInstructionPage(),
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -190,18 +191,72 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       final authController = ref.read(authControllerProvider.notifier);
       authController.clearError();
 
-      // Start authentication flow
-      final GoogleSignInAccount account = await _googleSignIn.authenticate(
-        scopeHint: ['email'],
-      );
+      String? idToken;
+      String? email;
+
+      // 🌐 WEB LOGIN (Firebase Popup)
+      if (kIsWeb) {
+        final FirebaseAuth auth = FirebaseAuth.instance;
+
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider()
+          ..addScope('email')
+          ..addScope('profile');
+
+        final userCredential = await auth.signInWithPopup(googleProvider);
+
+        final user = userCredential.user;
+        if (user == null) {
+          throw Exception("Google login cancelled");
+        }
+
+        idToken = await user.getIdToken();
+        email = user.email ?? '';
+        print("*******");
+        print(email);print(idToken);
+        print("*******");
+      } else {
+        // Start authentication flow
+        final GoogleSignInAccount account = await _googleSignIn.authenticate(
+          scopeHint: ['email', 'profile'],
+        );
+        final tokens = account.authentication; // sync in v7
+        print("*******");
+        print(account);
+        print("*******");
+        print("tokens: $tokens");
+         idToken = tokens.idToken;
+        print("*******");
+         email = account.email;
+        print("----------");
+        print(email);
+        print("----------");
+      }
+
+      // 🌐 WEB
+      // if (kIsWeb) {
+      //   final FirebaseAuth auth = FirebaseAuth.instance;
+      //
+      //   GoogleAuthProvider googleProvider = GoogleAuthProvider();
+      //   await auth.signInWithPopup(googleProvider);
+      //   final token = await FirebaseAuth.instance.currentUser!.getIdToken();
+      //   print("--------*******-------");
+      //   print(token);
+      //   print("--------*******-------");
+      // }
 
       // Fetch tokens from the account
-      final tokens = account.authentication; // sync in v7
-      print("tokens: $tokens");
-      final idToken = tokens.idToken;
-      print("*******");
 
-      final verified = await authController.signInWithGoogleFirebase(idToken!);
+      if (idToken == null || email == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("error : Account Not Verified")));
+        return;
+      }
+
+      final verified = await authController.signInWithGoogleFirebase(
+        idToken,
+        email,
+      );
 
       print("****************************************");
       print(verified);
@@ -295,10 +350,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           // ),
           Positioned.fill(
             top: -140,
-            child: Image.asset(
-              ImagePaths.topBarBg,
-              fit: BoxFit.fitHeight,
-            ),
+            child: Image.asset(ImagePaths.topBarBg, fit: BoxFit.fitHeight),
           ),
           // Main Content with Rounded Container
           Column(
@@ -317,8 +369,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           'Login',
                           style: TextStyle(
                             color: Colors.black,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 18.0,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 15.0,
                           ),
                         ),
                         SizedBox(height: 4),
@@ -326,15 +378,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           'Let\'s get you started',
                           style: TextStyle(
                             color: Colors.black87,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 14.0,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12.0,
                           ),
                         ),
                       ],
                     ),
                     Container(
-                      width: 35,
-                      height: 35,
+                      width: 30,
+                      height: 30,
                       margin: const EdgeInsets.only(right: 14.0),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -345,7 +397,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           Icons.question_mark_sharp,
                           color: Colors.black,
                         ),
-                        iconSize: 18,
+                        iconSize: 15,
                         padding: EdgeInsets.zero,
                         onPressed: () => _showTopPopup(context),
                       ),
@@ -356,479 +408,402 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               const SizedBox(height: 20),
               // Scrollable Body with Rounded Top Corners
               Expanded(
-                child:
-                    // Container(
-                    //   width: double.infinity,
-                    //   decoration: const BoxDecoration(
-                    //     color: Colors.white,
-                    //     borderRadius: BorderRadius.only(
-                    //       topLeft: Radius.circular(18),
-                    //       topRight: Radius.circular(18),
-                    //     ),
-                    //     boxShadow: [
-                    //       BoxShadow(
-                    //         color: Colors.black12,
-                    //         blurRadius: 10,
-                    //         offset: Offset(0, -2),
-                    //       ),
-                    //     ],
-                    //   ),
-                    //   child:
-
-                    SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: MediaQuery.of(context).size.height - 350,
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 350,
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Center(
-                                        child: Column(
-                                          children: [
-                                            const Text(
-                                              'Welcome to',
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height - 350,
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 350,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Center(
+                                    child: Column(
+                                      children: [
+                                        const Text(
+                                          'Welcome to',
+                                          style: TextStyle(
+                                            color: Colors.black45,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        const Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: const [
+                                            Text(
+                                              'Book',
                                               style: TextStyle(
-                                                color: Colors.black45,
+                                                color: Colors.black,
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 22,
+                                                fontSize: 24,
+                                                // fontFamily: 'PetrovSans',
                                               ),
                                             ),
-                                            const SizedBox(height: 1),
-                                            const Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              children: const [
-                                                Text(
-                                                  'Book',
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 25,
-                                                    // fontFamily: 'PetrovSans',
-                                                  ),
-                                                ),
-                                                Text(
-                                                  'My',
-                                                  style: TextStyle(
-                                                    color: Colors.green,
-                                                    fontWeight: FontWeight.bold,
-                                                    // fontFamily: 'PetrovSans',
-                                                    fontSize: 25,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  'Teacher',
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.bold,
-                                                    // fontFamily: 'PetrovSans',
-                                                    fontSize: 25,
-                                                  ),
-                                                ),
-                                              ],
+                                            Text(
+                                              'My',
+                                              style: TextStyle(
+                                                color: Colors.green,
+                                                fontWeight: FontWeight.bold,
+                                                // fontFamily: 'PetrovSans',
+                                                fontSize: 25,
+                                              ),
                                             ),
-                                            SizedBox(
-                                              width: 180,
-                                              height: 3,
-                                              child: DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.green[900],
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                ),
+                                            Text(
+                                              'Teacher',
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                                // fontFamily: 'PetrovSans',
+                                                fontSize: 24,
                                               ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                      SizedBox(height: 65),
-                                      Center(
-                                        child: SizedBox(
-                                          width: 400.0,
-                                          height: 50.0,
-                                          child: ElevatedButton(
-                                            onPressed: () =>
-                                                _handleGoogleLogin(context),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.white,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Image.asset(
-                                                  'assets/images/icons/icon-google.png',
-                                                ),
-                                                const SizedBox(
-                                                  width: 15,
-                                                  height: 30,
-                                                ),
-                                                const Text(
-                                                  "    Sign in with Google",
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 16,
-                                                    letterSpacing: 1.1,
-                                                    fontWeight: FontWeight.w800,
-                                                  ),
-                                                ),
-                                              ],
+                                        SizedBox(
+                                          width: 180,
+                                          height: 3,
+                                          child: DecoratedBox(
+                                            decoration: BoxDecoration(
+                                              color: Colors.green[900],
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                             ),
                                           ),
                                         ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 65),
+                                  if (Platform.isAndroid) ...[
+                                  // if (!kIsWeb) ...[
+                                    Center(
+                                      child: SizedBox(
+                                        width: 400.0,
+                                        height: 50.0,
+                                        child: ElevatedButton(
+                                          onPressed: () =>
+                                              _handleGoogleLogin(context),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.white,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Image.asset(
+                                                'assets/images/icons/icon-google.png',
+                                              ),
+                                              const SizedBox(
+                                                width: 15,
+                                                height: 30,
+                                              ),
+                                              const Text(
+                                                "        Sign in with Google",
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 14,
+                                                  letterSpacing: 1.1,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-
-                                      const SizedBox(height: 30.0),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                    ),
+                                    const SizedBox(height: 15.0),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Divider(
+                                            thickness: 0.7,
+                                            color: Colors.grey.withOpacity(0.5),
+                                          ),
+                                        ),
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                          ),
+                                          child: Text(
+                                            'Or',
+                                            style: TextStyle(
+                                              color: Colors.black45,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Divider(
+                                            thickness: 0.7,
+                                            color: Colors.grey.withOpacity(0.5),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 15.0),
+                                  ],
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors
+                                            .white, // Background color of the container
+                                        borderRadius: BorderRadius.circular(
+                                          25,
+                                        ), // Optional: rounded corners
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black12, // Shadow color
+                                            spreadRadius:
+                                                0.5, // Extent of the shadow spread
+                                            blurRadius:
+                                                0.5, // Blurriness of the shadow
+                                            offset: Offset(
+                                              0,
+                                              2,
+                                            ), // Offset of the shadow (x, y)
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
                                         children: [
-                                          Expanded(
-                                            child: Divider(
-                                              thickness: 0.7,
-                                              color: Colors.grey.withOpacity(
-                                                0.5,
+                                          // Country code dropdown
+                                          Container(
+                                            height: 48,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                            ),
+                                            decoration: const BoxDecoration(
+                                              // border: Border(
+                                              //   top: const BorderSide(
+                                              //     color: Colors.grey,
+                                              //     width: 0,
+                                              //   ),
+                                              //   left: const BorderSide(
+                                              //     color: Colors.grey,
+                                              //     width: 0,
+                                              //   ),
+                                              //   right: const BorderSide(
+                                              //     color: Colors.orangeAccent,
+                                              //     width: 1,
+                                              //   ),
+                                              //   bottom: const BorderSide(
+                                              //     color: Colors.grey,
+                                              //     width: 0,
+                                              //   ),
+                                              // ),
+                                              borderRadius:
+                                                  const BorderRadius.only(
+                                                    topLeft: Radius.circular(
+                                                      20.0,
+                                                    ),
+                                                    bottomLeft: Radius.circular(
+                                                      20.0,
+                                                    ),
+                                                  ),
+                                            ),
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButton<String>(
+                                                value: _selectedCode,
+                                                icon: const Icon(
+                                                  Icons.arrow_drop_down,
+                                                ),
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.black,
+                                                ),
+                                                items: const [
+                                                  DropdownMenuItem(
+                                                    value: "+91",
+                                                    child: Text(" 🇮🇳 +91"),
+                                                  ),
+                                                ],
+                                                onChanged: (value) {
+                                                  if (value != null) {
+                                                    setState(
+                                                      () =>
+                                                          _selectedCode = value,
+                                                    );
+                                                  }
+                                                },
                                               ),
                                             ),
                                           ),
-                                          const Padding(
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                            ),
-                                            child: Text(
-                                              'Or',
-                                              style: TextStyle(
-                                                color: Colors.black45,
-                                              ),
-                                            ),
-                                          ),
+                                          // Phone number input
                                           Expanded(
-                                            child: Divider(
-                                              thickness: 0.7,
-                                              color: Colors.grey.withOpacity(
-                                                0.5,
+                                            child: SizedBox(
+                                              height: 55,
+                                              child: TextField(
+                                                controller: _phoneController,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter
+                                                      .digitsOnly,
+                                                  LengthLimitingTextInputFormatter(
+                                                    10,
+                                                  ),
+                                                ],
+                                                decoration: const InputDecoration(
+                                                  hintText:
+                                                      "Enter Mobile Number",
+                                                  hintStyle: TextStyle(
+                                                    color: Colors.black45,
+                                                    fontSize: 14,
+                                                  ),
+
+                                                  contentPadding:
+                                                      EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                      ),
+                                                  // border: ,
+                                                  enabledBorder: OutlineInputBorder(
+                                                    borderSide: BorderSide.none,
+                                                    borderRadius:
+                                                        BorderRadius.only(
+                                                          topRight:
+                                                              Radius.circular(
+                                                                20.0,
+                                                              ),
+                                                          bottomRight:
+                                                              Radius.circular(
+                                                                20.0,
+                                                              ),
+                                                        ),
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 30.0),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 30),
+                                  Center(
+                                    child: SizedBox(
+                                      width: 150.0,
+                                      height: 40.0,
+                                      child: ElevatedButton(
+                                        onPressed: _isLoading
+                                            ? null
+                                            : _sendOtp, // 🔒 Disabled when loading
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green,
+                                          foregroundColor: Colors.white,
+                                          disabledBackgroundColor: Colors.grey,
                                         ),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors
-                                                .white, // Background color of the container
-                                            borderRadius: BorderRadius.circular(
-                                              25,
-                                            ), // Optional: rounded corners
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors
-                                                    .black12, // Shadow color
-                                                spreadRadius:
-                                                    0.5, // Extent of the shadow spread
-                                                blurRadius:
-                                                    0.5, // Blurriness of the shadow
-                                                offset: Offset(
-                                                  0,
-                                                  2,
-                                                ), // Offset of the shadow (x, y)
+                                        child: _isLoading
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: Colors.white,
+                                                      strokeWidth: 2,
+                                                    ),
+                                              )
+                                            : const Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text("Send OTP"),
+                                                  Icon(Icons.play_arrow_sharp),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // Country code dropdown
-                                              Container(
-                                                height: 48,
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                    ),
-                                                decoration: const BoxDecoration(
-                                                  // border: Border(
-                                                  //   top: const BorderSide(
-                                                  //     color: Colors.grey,
-                                                  //     width: 0,
-                                                  //   ),
-                                                  //   left: const BorderSide(
-                                                  //     color: Colors.grey,
-                                                  //     width: 0,
-                                                  //   ),
-                                                  //   right: const BorderSide(
-                                                  //     color: Colors.orangeAccent,
-                                                  //     width: 1,
-                                                  //   ),
-                                                  //   bottom: const BorderSide(
-                                                  //     color: Colors.grey,
-                                                  //     width: 0,
-                                                  //   ),
-                                                  // ),
-                                                  borderRadius:
-                                                      const BorderRadius.only(
-                                                        topLeft:
-                                                            Radius.circular(
-                                                              20.0,
-                                                            ),
-                                                        bottomLeft:
-                                                            Radius.circular(
-                                                              20.0,
-                                                            ),
-                                                      ),
-                                                ),
-                                                child: DropdownButtonHideUnderline(
-                                                  child: DropdownButton<String>(
-                                                    value: _selectedCode,
-                                                    icon: const Icon(
-                                                      Icons.arrow_drop_down,
-                                                    ),
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      color: Colors.black,
-                                                    ),
-                                                    items: const [
-                                                      DropdownMenuItem(
-                                                        value: "+91",
-                                                        child: Text(
-                                                          " 🇮🇳 +91",
-                                                        ),
-                                                      ),
-                                                    ],
-                                                    onChanged: (value) {
-                                                      if (value != null) {
-                                                        setState(
-                                                          () => _selectedCode =
-                                                              value,
-                                                        );
-                                                      }
-                                                    },
-                                                  ),
-                                                ),
-                                              ),
-                                              // Phone number input
-                                              Expanded(
-                                                child: SizedBox(
-                                                  height: 55,
-                                                  child: TextField(
-                                                    controller:
-                                                        _phoneController,
-                                                    keyboardType:
-                                                        TextInputType.number,
-                                                    inputFormatters: [
-                                                      FilteringTextInputFormatter
-                                                          .digitsOnly,
-                                                      LengthLimitingTextInputFormatter(
-                                                        10,
-                                                      ),
-                                                    ],
-                                                    decoration: const InputDecoration(
-                                                      hintText:
-                                                          "Enter Mobile Number",
-                                                      contentPadding:
-                                                          EdgeInsets.symmetric(
-                                                            horizontal: 7,
-                                                          ),
-                                                      // border: ,
-                                                      enabledBorder: OutlineInputBorder(
-                                                        borderSide:
-                                                            BorderSide.none,
-                                                        borderRadius:
-                                                            BorderRadius.only(
-                                                              topRight:
-                                                                  Radius.circular(
-                                                                    20.0,
-                                                                  ),
-                                                              bottomRight:
-                                                                  Radius.circular(
-                                                                    20.0,
-                                                                  ),
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
                                       ),
-                                      const SizedBox(height: 20),
-                                      // Row(
-                                      //   children: [
-                                      // Checkbox(
-                                      //   value: _isChecked,
-                                      //   onChanged: (bool? newValue) {
-                                      //     setState(() {
-                                      //       _isChecked = newValue ?? false;
-                                      //     });
-                                      //   },
-                                      // ),
-                                      // Expanded(
-                                      //   child: Row(
-                                      //     children: [
-                                      //       Text('I agree to ',
-                                      //         style: TextStyle(
-                                      //           color: Colors.green,
-                                      //         ),
-                                      //       ),
-                                      //       GestureDetector(
-                                      //         onTap: _launchTerms,
-                                      //         child: const Text.rich(
-                                      //           TextSpan(
-                                      //             children: [
-                                      //               TextSpan(
-                                      //                 text:
-                                      //                     'Terms and Conditions',
-                                      //                 style: TextStyle(
-                                      //                   color: Colors.black,
-                                      //                   fontWeight:
-                                      //                       FontWeight.bold,
-                                      //                   decoration:
-                                      //                       TextDecoration.none,
-                                      //                 ),
-                                      //               ),
-                                      //             ],
-                                      //           ),
-                                      //         ),
-                                      //       ),
-                                      //     ],
-                                      //   ),
-                                      // ),
-                                      // ],
-                                      // ),
-                                      const SizedBox(height: 20),
-                                      Center(
-                                        child: SizedBox(
-                                          width: 150.0,
-                                          height: 40.0,
-                                          child: ElevatedButton(
-                                            onPressed: _isLoading
-                                                ? null
-                                                : _sendOtp, // 🔒 Disabled when loading
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.green,
-                                              foregroundColor: Colors.white,
-                                              disabledBackgroundColor:
-                                                  Colors.grey,
-                                            ),
-                                            child: _isLoading
-                                                ? const SizedBox(
-                                                    width: 20,
-                                                    height: 20,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          color: Colors.white,
-                                                          strokeWidth: 2,
-                                                        ),
-                                                  )
-                                                : const Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      Text("Send OTP"),
-                                                      Icon(
-                                                        Icons.play_arrow_sharp,
-                                                      ),
-                                                    ],
-                                                  ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 30),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Divider(
+                                  thickness: 0.7,
+                                  color: Colors.grey.withOpacity(0.5),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                                child: Text(
+                                  'Sign up with single click',
+                                  style: TextStyle(color: Colors.green[400]),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(
+                                  thickness: 0.7,
+                                  color: Colors.grey.withOpacity(0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          ///////
+                          const SizedBox(height: 20.0),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Don\'t have an account? ',
+                                style: TextStyle(color: Colors.black45),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  context.go('/signup-otp-screen');
+                                  // context.go('/signup-stepper');
+                                },
+                                child: Text(
+                                  'Sign up',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.green,
                                   ),
                                 ),
                               ),
-                              SizedBox(height: 30),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Divider(
-                                      thickness: 0.7,
-                                      color: Colors.grey.withOpacity(0.5),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                    ),
-                                    child: Text(
-                                      'Sign up with single click',
-                                      style: TextStyle(
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Divider(
-                                      thickness: 0.7,
-                                      color: Colors.grey.withOpacity(0.5),
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              ///////
-                              const SizedBox(height: 20.0),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Don\'t have an account? ',
-                                    style: TextStyle(color: Colors.black45),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      context.go('/signup-otp-screen');
-                                      // context.go('/signup-stepper');
-                                    },
-                                    child: Text(
-                                      'Sign up',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green[900],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 30),
                             ],
                           ),
-                        ),
+                          const SizedBox(height: 30),
+                        ],
                       ),
                     ),
+                  ),
+                ),
                 //   ),
               ),
             ],

@@ -14,54 +14,52 @@ import '../widgets/show_success_alert.dart';
 class InviteFriendsCard extends StatelessWidget {
   const InviteFriendsCard({super.key});
 
-
-
   @override
   Widget build(BuildContext context) {
-        return Card(
-          color: Colors.white,
-          elevation: 4,
-          margin: const EdgeInsets.all(12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(14.0),
-            child: Row(
-              children: [
-                Image.network(
-                  "${Endpoints.domain}/assets/mobile-app/icons/gift-box.png",
-                  width: 70,
-                  height: 70,
-                ),
-                const SizedBox(width: 14),
-                const Expanded(
-                  child: Text(
-                    "Invite Friends & Earn Rewards!",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () => _openInviteSheet(context),
-                  icon: const Icon(Icons.share, color: Colors.white, size: 20),
-                  label: const Text(
-                    'Refer Now',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ],
+    return Card(
+      color: Colors.white,
+      elevation: 4,
+      margin: const EdgeInsets.all(12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          children: [
+            Image.network(
+              "${Endpoints.domain}/assets/mobile-app/icons/gift-box.png",
+              width: 45,
+              height: 45,
             ),
-          ),
-        );
+            const SizedBox(width: 2),
+            const Expanded(
+              child: Text(
+                "Invite Friends & Earn Rewards!",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => _openInviteSheet(context),
+              icon: const Icon(Icons.share, color: Colors.white, size: 10),
+              label: const Text(
+                'Refer Now',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _openInviteSheet(BuildContext context) {

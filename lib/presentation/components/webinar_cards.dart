@@ -22,7 +22,7 @@ class WebinarCards extends StatelessWidget {
               ).format(DateTime.parse(webinar['started_at']))
             : '',
         level: webinar['level'] ?? '',
-        badge: webinar['is_enrolled'] == true ? 'Registered' : '',
+        badge: webinar['is_enrolled'] == true ? 'Access Granted' : '',
         actualPrice: webinar['actual_price'],
         netPrice: webinar['net_price'],
       ),

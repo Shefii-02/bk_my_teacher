@@ -1,6 +1,8 @@
 import 'package:BookMyTeacher/presentation/auth/view/sign_up_guest.dart';
 import 'package:BookMyTeacher/presentation/guest/guest_dashboard.dart';
 import 'package:BookMyTeacher/presentation/students/my_class_list.dart';
+import 'package:BookMyTeacher/presentation/students/my_class_list_1.dart';
+import 'package:BookMyTeacher/presentation/students/student_personal_info.dart';
 import 'package:BookMyTeacher/presentation/widgets/personal_info_view.dart';
 import 'package:BookMyTeacher/services/upload_sample.dart';
 import 'package:go_router/go_router.dart';
@@ -83,6 +85,21 @@ final GoRouter appRouter = GoRouter(
         return PersonalInfoView(); // ✅ correct syntax
       },
     ),
+
+    GoRoute(
+      path: '/student-personal-info',
+      builder: (context, state) {
+        return StudentPersonalInfo(); // ✅ correct syntax
+      },
+    ),
+    GoRoute(
+      path: '/student-personal/view',
+      builder: (context, state) {
+        final teacherData = state.extra as Map<String, dynamic>?;
+        return PersonalInfoView(); // ✅ correct syntax
+      },
+    ),
+
 
     GoRoute(
       path: AppRoutes.teachingDetails,
@@ -327,6 +344,7 @@ final GoRouter appRouter = GoRouter(
         return MyClassList();
       },
     ),
+
     GoRoute(
       path: '/webinars/:id',
       builder: (context, state) {

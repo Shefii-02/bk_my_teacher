@@ -13,7 +13,6 @@ class CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(course);
     return InkWell(
       onTap: onTap,
       child: BaseCard(
@@ -26,7 +25,7 @@ class CourseCard extends StatelessWidget {
         ).format(DateTime.parse(course['started_at']))
             : '',
         level: course['level'] ?? '',
-        badge: course['is_enrolled'] == true ? 'Registered' : '',
+        badge: course['is_enrolled'] == true ? 'Access Granted' : '',
         actualPrice: course['actual_price'],
         netPrice: course['net_price'],
       ),

@@ -2,17 +2,14 @@ import 'package:BookMyTeacher/presentation/teachers/quick_action/statistics_shee
 import 'package:BookMyTeacher/presentation/teachers/schedule_page.dart';
 import 'package:BookMyTeacher/presentation/teachers/statistics_page.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../providers/user_provider.dart';
-import '../../services/launch_status_service.dart';
-import '../../services/teacher_api_service.dart';
-import '../../services/user_check_service.dart';
-import 'students_list.dart';
+import '../widgets/verify_account_popup.dart';
 import 'teacher_courses_screen.dart';
 import 'dashboard_home.dart';
-import 'my_class_list.dart';
 import 'profile_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class TeacherDashboard extends ConsumerStatefulWidget {
   const TeacherDashboard({super.key});
@@ -29,7 +26,8 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
   @override
   void initState() {
     super.initState();
-
+    requestPermissions();
+    _initialize();
     _screens = [
       DashboardHome(),
       SchedulePage(),
@@ -39,8 +37,56 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
     ];
   }
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  bool _isInitialized = false;
+
+  Future<void> _initialize() async {
+    if (_isInitialized) return;
+    try {
+      await _googleSignIn.initialize();
+      _isInitialized = true;
+    } catch (e) {
+      print("Google Sign-In init failed: $e");
+    }
+  }
+
+  Future<void> requestPermissions() async {
+    // Permission.camera, Permission.microphone, Permission.contacts,
+    await [Permission.manageExternalStorage, Permission.storage].request();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final teacherAsync = ref.watch(userProvider);
+    return teacherAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (error, stack) =>
+          Scaffold(body: Center(child: Text("Error: $error"))),
+      data: (teacher) {
+        if (teacher == null) {
+          return const Scaffold(
+            body: Center(child: Text("No teacher data found")),
+          );
+        }
+
+        // Convert teacher model to JSON map for easy use
+        final teacherData = teacher.toJson();
+
+
+        print("------------");
+        print(teacherData);
+        print("------------");
+
+        // If email not verified → show popup
+        if (teacherData['email_verified_at'] == null ||
+            teacherData['email_verified_at'] == '') {
+          return VerifyAccountPopup(
+            onVerified: () async {
+              await ref.read(userProvider.notifier).loadUser();
+            },
+          );
+        }
         return Scaffold(
           body: _screens[_currentIndex],
           bottomNavigationBar: BottomNavigationBar(
@@ -75,6 +121,7 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
             ],
           ),
         );
-
+      },
+    );
   }
 }

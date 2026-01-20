@@ -1,14 +1,14 @@
 class Endpoints {
   //Domain
-  static const domain = "https://bookmyteacher.cloud";
+  // static const domain = "https://bookmyteacher.cloud";
   //
-  // static const domain = "https://stage.bookmyteacher.cloud";
+  static const domain = "https://stage.bookmyteacher.cloud";
 
   // Base
   // static const base = "https://dashboard.bookmyteacher.co.in/api";
   static const base = "$domain/api";
 
-  // /check-server
+  // check-server
 
   static const checkServer = "/check-server";
 
@@ -84,4 +84,7 @@ class Endpoints {
   static const teacherUpdatePersonal = "/teacher-update-personal";
   static const teacherUpdateTeachingDetails = "/teacher-update-teaching-detail";
   static const teacherUpdateCv = "/teacher-update-cv";
+
+  static const studentUpdatePersonal = "/student-update-personal";
+
 }

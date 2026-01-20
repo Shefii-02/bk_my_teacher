@@ -1,16 +1,21 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../services/api_service.dart';
 import '../widgets/show_failed_alert.dart';
 import '../widgets/show_success_alert.dart';
 
-
-
 class CourseDetailBottomSheet extends StatefulWidget {
   final Map<String, dynamic> course;
   final redirectTo;
-  const CourseDetailBottomSheet({super.key, required this.course, required  this.redirectTo});
+  const CourseDetailBottomSheet({
+    super.key,
+    required this.course,
+    required this.redirectTo,
+  });
 
   @override
   State<CourseDetailBottomSheet> createState() =>
@@ -22,7 +27,6 @@ class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
   bool _enrolled = false;
   String get redirectTo => widget.redirectTo;
 
-
   Future<void> _enrollCourse() async {
     setState(() => _submitting = true);
     try {
@@ -33,7 +37,14 @@ class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
       if (response?['status'] == true) {
         setState(() => _enrolled = true);
 
-        showSuccessAlert(context, title: 'Success', subtitle: response?['message'], timer: 3, color: Colors.green,showButton:false);
+        showSuccessAlert(
+          context,
+          title: 'Success',
+          subtitle: response?['message'],
+          timer: 3,
+          color: Colors.green,
+          showButton: false,
+        );
         // context.go(redirectTo);
         Future.delayed(const Duration(seconds: 2), () {
           // Redirect to landing page
@@ -42,9 +53,15 @@ class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
         // ScaffoldMessenger.of(context).showSnackBar(
         //   SnackBar(content: Text(response?['message'] ?? 'Enrolled!')),
         // );
-      }
-      else{
-        showFailedAlert(context, title: 'Failed', subtitle: response?['message'], timer: 3, color: Colors.red,showButton:false);
+      } else {
+        showFailedAlert(
+          context,
+          title: 'Failed',
+          subtitle: response?['message'],
+          timer: 3,
+          color: Colors.red,
+          showButton: false,
+        );
       }
     } finally {
       setState(() => _submitting = false);
@@ -104,15 +121,16 @@ class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
                   const SizedBox(height: 10),
 
                   // 🔥 DESCRIPTION
-                  Text(
-                    course['description'] ?? '',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey.shade700,
-                      height: 1.6,
-                    ),
+                  Html(
+                    data: course['description'] ?? '',
+                    style: {
+                      "body": Style(
+                        fontSize: FontSize(15),
+                        color: Colors.grey.shade700,
+                        lineHeight: LineHeight(1.5),
+                      ),
+                    },
                   ),
-
                   const SizedBox(height: 20),
                   const Divider(),
 
@@ -165,69 +183,71 @@ class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
         onTap: _submitting
             ? null
             : () {
-          if (_enrolled) {
-            _redirectToEnrolledCourse();
-          } else {
-            _enrollCourse();
-          }
-        },
+                if (_enrolled) {
+                  _redirectToEnrolledCourse();
+                } else {
+                  _enrollCourse();
+                }
+              },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
           decoration: BoxDecoration(
             gradient: _enrolled
                 ? null
                 : const LinearGradient(
-              colors: [Color(0xff16a34a), Color(0xff22c55e)],
-            ),
+                    colors: [Color(0xff16a34a), Color(0xff22c55e)],
+                  ),
             color: _enrolled ? Colors.grey.shade200 : null,
             borderRadius: BorderRadius.circular(16),
           ),
           child: _submitting
               ? const Center(
-            child: SizedBox(
-              height: 22,
-              width: 22,
-              child: CircularProgressIndicator(color: Colors.white),
-            ),
-          )
+                  child: SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                )
               : AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: _enrolled
-                ? Row(
-              key: const ValueKey("enrolled"),
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.lock_rounded, color: Colors.green),
-                SizedBox(width: 8),
-                Text(
-                  "Enrolled",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
+                  duration: const Duration(milliseconds: 300),
+                  child: _enrolled
+                      ? Row(
+                          key: const ValueKey("enrolled"),
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('🔐', style: TextStyle(fontSize: 30)),
+                            const SizedBox(width: 8),
+                            Text(
+                              Platform.isAndroid ? "Enrolled - Explore Now" : "Access Granted",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          key: const ValueKey("buy"),
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (Platform.isAndroid)
+                              priceView(
+                                actualPrice: course['actual_price'],
+                                netPrice: course['net_price'],
+                              ),
+                            Icon(Icons.lock_open_outlined, color: Colors.green),
+                            Text(
+                              Platform.isAndroid ? "Enroll Now" : "Access Restricted",
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
-              ],
-            )
-                : Row(
-              key: const ValueKey("buy"),
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                priceView(
-                  actualPrice: course['actual_price'],
-                  netPrice: course['net_price'],
-                ),
-                const Text(
-                  "Enroll Now",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ),
       ),
     );

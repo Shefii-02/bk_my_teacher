@@ -307,6 +307,7 @@ class TeacherApiService {
   Future<CourseSummary> fetchTeacherCourses() async {
     await _loadAuth();
     final res = await _dio.post('/teacher/courses');
+    print(res);
     return CourseSummary.fromJson(res.data);
   }
 

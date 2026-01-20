@@ -3,6 +3,9 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/api_service.dart';
+import '../components/course_detail_bottom_sheet.dart';
+import '../components/webinar_detail_bottom_sheet.dart';
+import '../components/workshop_detail_bottom_sheet.dart';
 import 'course_detail_page.dart';
 
 class CourseSections extends StatefulWidget {
@@ -52,24 +55,38 @@ class _CourseSectionsState extends State<CourseSections> {
         itemCount: courses.length,
         itemBuilder: (context, index, realIndex) {
           final course = courses[index];
-
           return GestureDetector(
+
             onTap: () {
-              // ✅ Navigate to single course details page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CourseDetailPage(course: course),
-                ),
-              );
+              switch (course['type']) {
+                case 'webinar':
+                  _showWebinarDetail(context, course);
+                  break;
+
+                case 'workshop':
+                  _showWorkshopDetail(context, course);
+                  break;
+
+                case 'course':
+                  _showCourseDetail(context, course);
+                  break;
+
+                default:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CourseDetailPage(course: course),
+                    ),
+                  );
+              }
             },
-            child: Container(
+            child: course['thumb'] != '' ? Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 image: DecorationImage(
-                  image: NetworkImage(course['main_image'] ?? ''),
-                  fit: BoxFit.cover,
+                  image: NetworkImage(course['thumb'] ?? ''),
+                  fit: BoxFit.fitWidth,
                 ),
               ),
               child: Container(
@@ -78,7 +95,7 @@ class _CourseSectionsState extends State<CourseSections> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   gradient: LinearGradient(
-                    colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+                    colors: [Colors.green.withOpacity(0.2), Colors.transparent],
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                   ),
@@ -92,16 +109,56 @@ class _CourseSectionsState extends State<CourseSections> {
                 //   ),
                 // ),
               ),
-            ),
+            ) : SizedBox(),
           );
         },
         options: CarouselOptions(
-          height: 150,
+          height: 180,
           enlargeCenterPage: true,
-          viewportFraction: 0.8,
+          viewportFraction: 0.75,
           enableInfiniteScroll: true,
           autoPlay: true,
         ),
+      ),
+    );
+  }
+
+
+  // ================= Bottom Sheets =================
+
+  void _showCourseDetail(BuildContext context, course) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => CourseDetailBottomSheet(
+        course: course['type_details'],
+        redirectTo: '/student-course-store',
+      ),
+    );
+  }
+
+  void _showWebinarDetail(BuildContext context, course) {
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => WebinarDetailBottomSheet(
+        course: course['type_details'],
+        redirectTo: '/student-course-store',
+      ),
+    );
+  }
+
+  void _showWorkshopDetail(BuildContext context, course) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => WorkshopDetailBottomSheet(
+        course: course['type_details'],
+        redirectTo: '/student-course-store',
       ),
     );
   }

@@ -1,8 +1,11 @@
-import 'dart:io';
+// import 'dart:io';
+import 'dart:io' show Platform;
+
 
 import 'package:BookMyTeacher/firebase_options.dart';
 import 'package:BookMyTeacher/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 
 import './routes/router.dart';
@@ -19,12 +22,31 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   // 🔔 Android Notification Settings
-  await AppNotificationService.initialize();
+  // await AppNotificationService.initialize();
+  // 🚫 Web must NEVER touch mobile notification code
+  if (!kIsWeb) {
+    await AppNotificationService.initialize();
+  }
 
-  if (Platform.isAndroid || Platform.isIOS) {
-    // Setting web contents debugging for InAppWebView (used by the YouTube player)
+  // InAppWebView debugging → Android only
+  if (!kIsWeb && Platform.isAndroid) {
     await InAppWebViewController.setWebContentsDebuggingEnabled(true);
   }
+  // if (Platform.isAndroid) {
+  //   // Setting web contents debugging for InAppWebView (used by the YouTube player)
+  //   await InAppWebViewController.setWebContentsDebuggingEnabled(true);
+  // }
+
+  // if (kIsWeb) {
+  //   // Web-specific logic
+  // } else if (Platform.isAndroid) {
+  //   await InAppWebViewController.setWebContentsDebuggingEnabled(true);
+  //
+  //   // Android logic
+  // } else if (Platform.isIOS) {
+  //   // iOS logic
+  // }
+
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

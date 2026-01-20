@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:BookMyTeacher/core/constants/endpoints.dart';
 import 'package:BookMyTeacher/routes/app_router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
@@ -70,7 +71,7 @@ class _TopBannerDetailPageState extends ConsumerState<TopBannerDetailPage> {
       body: bannersAsync.when(
         data: (banners) {
           final banner = banners.firstWhere(
-                (b) => b.id.toString() == widget.bannerId,
+            (b) => b.id.toString() == widget.bannerId,
             orElse: () => throw Exception('Banner not found'),
           );
 
@@ -107,8 +108,10 @@ class _TopBannerDetailPageState extends ConsumerState<TopBannerDetailPage> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(30),
                             child: BackdropFilter(
-                              filter:
-                              ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+                              filter: ImageFilter.blur(
+                                sigmaX: 8.0,
+                                sigmaY: 8.0,
+                              ),
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.5),
@@ -135,13 +138,15 @@ class _TopBannerDetailPageState extends ConsumerState<TopBannerDetailPage> {
                     // 🔹 Title
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Text(
-                        banner.title,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      child: Html(
+                        data: banner.title,
+                        style: {
+                          "body": Style(
+                            fontSize: FontSize(22),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        },
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -154,22 +159,23 @@ class _TopBannerDetailPageState extends ConsumerState<TopBannerDetailPage> {
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Column(
                             children: [
-                              SizedBox(height: 10,),
-                              Text(
-                                banner.description ?? '',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  height: 1.5,
-                                  color: Colors.black54,
-                                ),
+                              SizedBox(height: 10),
+                              Html(
+                                data: banner.description ?? '',
+                                style: {
+                                  "body": Style(
+                                    fontSize: FontSize(16),
+                                    height: Height(1.5),
+                                    color: Colors.black54,
+                                  ),
+                                },
                               ),
-                              SizedBox(height: 30,)
+                              SizedBox(height: 30),
                             ],
                           ),
                         ),
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -197,24 +203,24 @@ class _TopBannerDetailPageState extends ConsumerState<TopBannerDetailPage> {
                         : () => _submitRequest(widget.bannerId),
                     child: _isSubmitting
                         ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.8,
-                        color: Colors.white,
-                      ),
-                    )
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.8,
+                              color: Colors.white,
+                            ),
+                          )
                         : Text(
-                      _alreadySubmitted
-                          ? 'Already Submitted'
-                          : (banner.ctaLabel.isNotEmpty
-                          ? banner.ctaLabel
-                          : 'Join Now'),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                            _alreadySubmitted
+                                ? 'Already Submitted'
+                                : (banner.ctaLabel.isNotEmpty
+                                      ? banner.ctaLabel
+                                      : 'Join Now'),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ),

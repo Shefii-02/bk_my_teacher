@@ -21,7 +21,6 @@ class RecordedVideoWithDoubt extends StatelessWidget {
   Widget build(BuildContext context) {
     String? videoId;
     videoId = VideoUtils.getYouTubeId(videoUrl);
-print(type);
     return Scaffold(
       appBar: AppBar(
         title: Text(title),

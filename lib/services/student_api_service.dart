@@ -137,4 +137,65 @@ class StudentApiService {
       throw Exception(e.response?.data ?? "Error fetching student data");
     }
   }
+
+
+
+
+  Future<Map<String, dynamic>> updateStudentPersonal({
+    required String name,
+    required String email,
+    required String address,
+    required String city,
+    required String postalCode,
+    required String district,
+    required String state,
+    required String country,
+    PlatformFile? avatar,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        "name": name,
+        "email": email,
+        "address": address,
+        "city": city,
+        "postal_code": postalCode,
+        "district": district,
+        "state": state,
+        "country": country,
+      });
+
+      // ✅ Avatar handling
+      if (avatar != null) {
+        if (kIsWeb) {
+          formData.files.add(
+            MapEntry(
+              "avatar",
+              MultipartFile.fromBytes(avatar.bytes!, filename: avatar.name),
+            ),
+          );
+        } else {
+          formData.files.add(
+            MapEntry(
+              "avatar",
+              await MultipartFile.fromFile(avatar.path!, filename: avatar.name),
+            ),
+          );
+        }
+      }
+
+      // final box = await Hive.openBox('app_storage');
+      // final token = box.get('auth_token') ?? '';
+      // if (token.isNotEmpty) setAuthToken(token);
+      await _loadAuth();
+      final response = await _dio.post(
+        Endpoints.studentUpdatePersonal,
+        data: formData,
+      );
+
+      return response.data;
+    } on DioException catch (e) {
+      throw Exception(e.response?.data ?? "Updating Failed");
+    }
+  }
+
 }

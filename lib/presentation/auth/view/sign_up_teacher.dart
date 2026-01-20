@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/image_paths.dart';
 import '../../../services/api_service.dart';
 import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
@@ -373,69 +374,76 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
       backgroundColor: const Color(0xFFFFFFFF), // Light green/teal background
       body: Stack(
         children: [
-          Container(
-            width: double.infinity,
-            height: 300,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-            // decoration: const BoxDecoration(
-            //   gradient: LinearGradient(
-            //     begin: Alignment.topLeft,
-            //     end: Alignment.bottomRight,
-            //     colors: [
-            //       // Color(0xFF6CC57D),
-            //       Color(0xFF388E3C),
-            //       // Color(0xFF2E7D32),
-            //       // Color(0xFF1B5E20),
-            //       // Color(0xFF6CCFBA),
-            //       // Color(0xFF1D6FA3), // soft blue
-            //       Color(0xFF48C6EF), // light blue-green
-            //     ],
-            //     // stops: [0.0, 0.3, 0.7,0.9],
-            //   ),
-            // ),
-            // decoration: BoxDecoration(
-            //   borderRadius: BorderRadius.circular(15),
-            //   boxShadow: [
-            //     BoxShadow(
-            //       color: Colors.black.withOpacity(0.1),
-            //       blurRadius: 10,
-            //       offset: Offset(0, 5),
-            //     ),
-            //   ],
-            //   gradient: LinearGradient( // THIS IS THE GRADIENT FOR THE ICON BACKGROUND
-            //     begin: Alignment.topLeft,
-            //     end: Alignment.bottomRight,
-            //     colors: [
-            //       Color(0xFF6CC57D),
-            //       Color(0xFF48C6EF),
-            //       Color(0xFF48C6EF),
-            //       Color(0xFF1B5E20),
-            //     ],
-            //     stops: [0.0, 0.3, 0.7, 1.0],
-            //   ),
-            // ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  Color(0xFF114887), // A vibrant blue
-                  Color(0xFF6DE899), // A soft green
-                ],
-                stops: [
-                  0.0,
-                  1.0,
-                ], // Blue at the bottom-left (0%), Green at the top-right (100%)
-              ),
-            ),
-          ),
-          // Background "blur" effect if you want to mimic the image exactly
-          // You might need a more complex setup for a true blur or use an asset image
           Positioned.fill(
-            child: Container(
-              color: Colors.white.withOpacity(0.0), // Start with transparent
+            top: -140,
+            child: Image.asset(
+              ImagePaths.topBarBg,
+              fit: BoxFit.fitHeight,
             ),
           ),
+          // Container(
+          //   width: double.infinity,
+          //   height: 300,
+          //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+          //   // decoration: const BoxDecoration(
+          //   //   gradient: LinearGradient(
+          //   //     begin: Alignment.topLeft,
+          //   //     end: Alignment.bottomRight,
+          //   //     colors: [
+          //   //       // Color(0xFF6CC57D),
+          //   //       Color(0xFF388E3C),
+          //   //       // Color(0xFF2E7D32),
+          //   //       // Color(0xFF1B5E20),
+          //   //       // Color(0xFF6CCFBA),
+          //   //       // Color(0xFF1D6FA3), // soft blue
+          //   //       Color(0xFF48C6EF), // light blue-green
+          //   //     ],
+          //   //     // stops: [0.0, 0.3, 0.7,0.9],
+          //   //   ),
+          //   // ),
+          //   // decoration: BoxDecoration(
+          //   //   borderRadius: BorderRadius.circular(15),
+          //   //   boxShadow: [
+          //   //     BoxShadow(
+          //   //       color: Colors.black.withOpacity(0.1),
+          //   //       blurRadius: 10,
+          //   //       offset: Offset(0, 5),
+          //   //     ),
+          //   //   ],
+          //   //   gradient: LinearGradient( // THIS IS THE GRADIENT FOR THE ICON BACKGROUND
+          //   //     begin: Alignment.topLeft,
+          //   //     end: Alignment.bottomRight,
+          //   //     colors: [
+          //   //       Color(0xFF6CC57D),
+          //   //       Color(0xFF48C6EF),
+          //   //       Color(0xFF48C6EF),
+          //   //       Color(0xFF1B5E20),
+          //   //     ],
+          //   //     stops: [0.0, 0.3, 0.7, 1.0],
+          //   //   ),
+          //   // ),
+          //   decoration: BoxDecoration(
+          //     gradient: LinearGradient(
+          //       begin: Alignment.topLeft,
+          //       end: Alignment.centerRight,
+          //       colors: [
+          //         Color(0xFF114887), // A vibrant blue
+          //         Color(0xFF6DE899), // A soft green
+          //       ],
+          //       stops: [
+          //         0.0,
+          //         1.0,
+          //       ], // Blue at the bottom-left (0%), Green at the top-right (100%)
+          //     ),
+          //   ),
+          // ),
+          // // Background "blur" effect if you want to mimic the image exactly
+          // // You might need a more complex setup for a true blur or use an asset image
+          // Positioned.fill(
+          //   child: Container(
+          //     color: Colors.white.withOpacity(0.0), // Start with transparent
+          //   ),
+          // ),
           // Main content
           SafeArea(
             child: Column(
@@ -462,7 +470,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                     child: SingleChildScrollView(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 15.0,
+                        horizontal: 10.0,
                         vertical: 30.0,
                       ),
                       child: Column(
@@ -511,28 +519,28 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
               Text(
                 "I'm a Teacher",
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
+                  color: Colors.black,
+                  fontSize: 25,
                   fontWeight: FontWeight.w900,
                 ),
               ),
               SizedBox(height: 4),
               Text(
                 "Please fill your personal details",
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: Colors.black, fontSize: 13),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        // const SizedBox(height: 10),
       ],
     );
   }
 
   Widget _circularButton(IconData icon, VoidCallback onPressed) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 30,
+      height: 30,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white60,
@@ -546,7 +554,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
       ),
       child: IconButton(
         icon: Icon(icon, color: Colors.black87, fontWeight: FontWeight.bold),
-        iconSize: 20,
+        iconSize: 18,
         padding: EdgeInsets.zero,
         onPressed: onPressed,
       ),
@@ -706,7 +714,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             ),
           ),
           SizedBox(height: 10),
-          Text('click to Upload Profile Pic'),
+          Text('Click to Upload Profile Pic',style: TextStyle(fontSize: 11),),
 
           const SizedBox(height: 20),
           _buildTwoColumnTextFields(
@@ -748,7 +756,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Form(
             key: _fStep2,
             child: Column(
@@ -1162,7 +1170,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
         const SizedBox(height: 20),
         // Your CV upload area
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Form(
             key: _fStep3,
             child: Column(
@@ -1292,7 +1300,15 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: const TextStyle(
+          fontSize: 11, // 👈 decrease hint text size
+          color: Colors.grey,
+        ),
         hintText: label, // Use hintText for a cleaner look when not focused
+        hintStyle: const TextStyle(
+          fontSize: 9, // 👈 decrease hint text size
+          color: Colors.grey,
+        ),
         alignLabelWithHint: true,
         floatingLabelBehavior:
             FloatingLabelBehavior.never, // Label stays as hint
@@ -1322,8 +1338,8 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
           borderSide: const BorderSide(color: Colors.red, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+          horizontal: 10,
+          vertical: 10,
         ),
       ),
     );

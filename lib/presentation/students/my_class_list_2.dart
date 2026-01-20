@@ -3,15 +3,15 @@ import 'package:go_router/go_router.dart';
 import '../../services/student_api_service.dart';
 import '../webinars/webinar_listing.dart';
 
-class MyClassList extends StatefulWidget {
+class MyClassList2 extends StatefulWidget {
   final String studentId;
-  const MyClassList({super.key, required this.studentId});
+  const MyClassList2({super.key, required this.studentId});
 
   @override
-  State<MyClassList> createState() => _MyClassListState();
+  State<MyClassList2> createState() => _MyClassList2State();
 }
 
-class _MyClassListState extends State<MyClassList> {
+class _MyClassList2State extends State<MyClassList2> {
   late Future<Map<String, dynamic>> _studentDataFuture;
 
   @override

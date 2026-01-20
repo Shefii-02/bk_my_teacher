@@ -58,6 +58,14 @@ class _StudentAccountManagePageState
       ),
       body: ListView(
         children: [
+          const _SectionHeader(title: "Profile"),
+          _AccountOptionTile(
+            icon: Icons.person_outline,
+            title: "Profile Manage",
+            subtitle: "Edit your personal details",
+            onTap: () => _openBottomSheet(context, "Profile Manage"),
+          ),
+          const Divider(),
           const _SectionHeader(title: "Social & Communication"),
           _SwitchOptionTile(
             icon: Icons.chat_outlined,
@@ -105,8 +113,7 @@ class _StudentAccountManagePageState
                     right: 20,
                     top: 25,
                   ),
-                  child:
-                  DraggableScrollableSheet(
+                  child: DraggableScrollableSheet(
                     initialChildSize: 0.9,
                     expand: false,
                     builder: (context, scrollController) {
@@ -115,7 +122,6 @@ class _StudentAccountManagePageState
                   ),
                 );
               },
-
             ),
           ),
 
@@ -164,6 +170,60 @@ class _StudentAccountManagePageState
           const SizedBox(height: 30),
         ],
       ),
+    );
+  }
+
+  /// BottomSheet for managing selected section
+  void _openBottomSheet(BuildContext context, String type) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Wrap(
+            children: [
+              Center(
+                child: Text(
+                  type == "profile" ? "Profile Manage" : "",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              /// VIEW
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text("View details"),
+                onTap: () {
+                  Navigator.pop(context);
+                  if (type == "Profile Manage") context.push("/student-personal/view");
+                },
+              ),
+
+              /// EDIT
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text("Edit settings"),
+                onTap: () {
+                  Navigator.pop(context);
+                  if (type == "Profile Manage") context.push("/student-personal-info");
+                },
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/constants/image_paths.dart';
 import '../../../core/enums/app_config.dart';
 
 class SignUpStepper extends StatefulWidget {
@@ -49,14 +50,14 @@ class _SignUpStepperState extends State<SignUpStepper> {
         child: Row(
           children: [
             CircleAvatar(
-              radius: 25,
+              radius: 18,
               backgroundColor: isSelected
                   ? Colors.white
                   : Colors.green.shade100,
               child: Icon(
                 icon,
                 color: isSelected ? Colors.green.shade700 : Colors.green,
-                size: 28,
+                size: 24,
               ),
             ),
             const SizedBox(width: 20),
@@ -64,7 +65,7 @@ class _SignUpStepperState extends State<SignUpStepper> {
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: isSelected ? Colors.white : Colors.black87,
                 ),
@@ -89,12 +90,13 @@ class _SignUpStepperState extends State<SignUpStepper> {
       body: Stack(
         children: [
           // Background Image for AppBar section
-          SizedBox(
-            height: 600,
-            width: double.infinity,
-            child: Image.network(AppConfig.headerTop, fit: BoxFit.fitWidth),
+          Positioned.fill(
+            top: -140,
+            child: Image.asset(
+              ImagePaths.topBarBg,
+              fit: BoxFit.fitHeight,
+            ),
           ),
-
           // Main Content with Rounded Container
           Column(
             children: [
@@ -113,7 +115,7 @@ class _SignUpStepperState extends State<SignUpStepper> {
                           style: TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
-                            fontSize: 18.0,
+                            fontSize: 15.0,
                           ),
                         ),
                         SizedBox(height: 4),
@@ -177,7 +179,7 @@ class _SignUpStepperState extends State<SignUpStepper> {
 
                           // 🔹 Submit button
                           SizedBox(
-                            width: double.infinity,
+                            width: 200,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
@@ -198,13 +200,21 @@ class _SignUpStepperState extends State<SignUpStepper> {
                                   context.go('/signup-guest');
                                 }
                               },
-                              child: const Text(
-                                "Continue",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text(
+                                    "Continue",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4,),
+                                  Icon(Icons.arrow_forward_ios,color: Colors.white,)
+                                ],
                               ),
                             ),
                           ),

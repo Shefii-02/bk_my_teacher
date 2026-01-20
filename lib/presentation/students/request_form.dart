@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:neopop/widgets/buttons/neopop_tilted_button/neopop_tilted_button.dart';
 import '../../model/grade_board_subject_model.dart';
 import '../../services/api_service.dart';
@@ -82,10 +83,10 @@ class _RequestFormState extends State<RequestForm> {
       return;
     }
 
-    if (noteCtrl.text.trim().isEmpty) {
-      _showError("Please enter your note or message.");
-      return;
-    }
+    // if (noteCtrl.text.trim().isEmpty) {
+    //   _showError("Please enter your note or message.");
+    //   return;
+    // }
 
     setState(() => _submitting = true); // 🔹 show overlay loader
 
@@ -105,18 +106,24 @@ class _RequestFormState extends State<RequestForm> {
 
     setState(() => _submitting = false); // 🔹 hide loader
 
-    showSuccessAlert(
+    await showSuccessAlert(
       context,
       title: res?['status'] == true ? "Success!" : "failed",
       subtitle: res?['message'] ?? 'Submission complete',
-      timer: 6,
+      timer: 2,
       color: res?['status'] == true ? Colors.green : Colors.red,
       showButton: false, // 👈 hide/show button easily
     );
 
     if (res?['status'] == true) {
       _resetForm();
+      Timer(Duration(seconds: 2), () {
+        if (mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      });
     }
+
 
     // ScaffoldMessenger.of(context).showSnackBar(
     //   SnackBar(

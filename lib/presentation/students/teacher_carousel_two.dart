@@ -2,7 +2,6 @@ import 'package:BookMyTeacher/presentation/students/teacher_details_page.dart';
 import 'package:BookMyTeacher/services/api_service.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-
 import '../widgets/teacher_profile_card.dart';
 
 // 2 rows x 2 columns carousel (keep original style)
@@ -119,7 +118,7 @@ class _TeacherCarouselTwoRowsState extends State<TeacherCarouselTwoRows> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                      TeacherDetailsPage(teacher: chunk[i]),
+                                      TeacherDetailsPage(teacher: chunk[i + 2]),
                                 ),
                               );
                             },

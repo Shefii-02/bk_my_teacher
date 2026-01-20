@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, Uint8List;
 import 'package:file_picker/file_picker.dart';
+import '../../../core/constants/image_paths.dart';
 import '../../../core/enums/app_config.dart';
 import '../../../services/launch_status_service.dart';
 import '../controller/auth_controller.dart';
@@ -592,10 +593,10 @@ class _SignUpStudentState extends State<SignUpStudent> {
       backgroundColor: const Color(0xFFFFFFFF), // Light green/teal background
       body: Stack(
         children: [
-          Container(
-            width: double.infinity,
-            height: 300,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+          // Container(
+          //   width: double.infinity,
+          //   height: 300,
+          //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             // decoration: const BoxDecoration(
             //   gradient: LinearGradient(
             //     begin: Alignment.topLeft,
@@ -633,19 +634,26 @@ class _SignUpStudentState extends State<SignUpStudent> {
             //     stops: [0.0, 0.3, 0.7, 1.0],
             //   ),
             // ),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  Color(0xFF114887), // A vibrant blue
-                  Color(0xFF6DE899), // A soft green
-                ],
-                stops: [
-                  0.0,
-                  1.0,
-                ], // Blue at the bottom-left (0%), Green at the top-right (100%)
-              ),
+            // decoration: BoxDecoration(
+            //   gradient: LinearGradient(
+            //     begin: Alignment.topLeft,
+            //     end: Alignment.centerRight,
+            //     colors: [
+            //       Color(0xFF114887), // A vibrant blue
+            //       Color(0xFF6DE899), // A soft green
+            //     ],
+            //     stops: [
+            //       0.0,
+            //       1.0,
+            //     ], // Blue at the bottom-left (0%), Green at the top-right (100%)
+            //   ),
+            // ),
+          // ),
+          Positioned.fill(
+            top: -140,
+            child: Image.asset(
+              ImagePaths.topBarBg,
+              fit: BoxFit.fitHeight,
             ),
           ),
           // Background "blur" effect if you want to mimic the image exactly
@@ -681,7 +689,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
                     child: SingleChildScrollView(
                       controller: _scrollController,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 15.0,
+                        horizontal: 10.0,
                         vertical: 30.0,
                       ),
                       child: Column(
@@ -900,15 +908,15 @@ class _SignUpStudentState extends State<SignUpStudent> {
               Text(
                 "I'm a Student",
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
+                  color: Colors.black,
+                  fontSize: 25,
                   fontWeight: FontWeight.w900,
                 ),
               ),
               SizedBox(height: 4),
               Text(
                 "Please fill your personal details",
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: Colors.black, fontSize: 13),
               ),
             ],
           ),
@@ -920,8 +928,8 @@ class _SignUpStudentState extends State<SignUpStudent> {
 
   Widget _circularButton(IconData icon, VoidCallback onPressed) {
     return Container(
-      width: 40,
-      height: 40,
+      width: 30,
+      height: 30,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white60,
@@ -935,7 +943,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
       ),
       child: IconButton(
         icon: Icon(icon, color: Colors.black87, fontWeight: FontWeight.bold),
-        iconSize: 20,
+        iconSize: 18,
         padding: EdgeInsets.zero,
         onPressed: onPressed,
       ),
@@ -945,7 +953,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
   // -------- STEP 1 UI --------
   Widget _step1Personal() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Form(
         key: _fStep1,
         child: Column(
@@ -975,6 +983,9 @@ class _SignUpStudentState extends State<SignUpStudent> {
                 ),
               ),
             ),
+            SizedBox(height: 10),
+            Text('Click to Upload Profile Pic',style: TextStyle(fontSize: 11),),
+
             const SizedBox(height: 20),
 
             _tf(_studentNameCtrl, 'Student Name', validator: _req),
@@ -1024,7 +1035,7 @@ class _SignUpStudentState extends State<SignUpStudent> {
   // -------- STEP 2 UI --------
   Widget _step2Study() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Form(
         key: _fStep2,
         child: Column(
@@ -1237,7 +1248,15 @@ class _SignUpStudentState extends State<SignUpStudent> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: const TextStyle(
+          fontSize: 11, // 👈 decrease hint text size
+          color: Colors.grey,
+        ),
         hintText: label, // Use hintText for a cleaner look when not focused
+        hintStyle: const TextStyle(
+          fontSize: 9, // 👈 decrease hint text size
+          color: Colors.grey,
+        ),
         alignLabelWithHint: true,
         floatingLabelBehavior:
             FloatingLabelBehavior.never, // Label stays as hint

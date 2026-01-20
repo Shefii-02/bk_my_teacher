@@ -266,12 +266,18 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
       body: Stack(
         children: [
           // Background Image for AppBar section
-          SizedBox(
-            height: 600,
-            width: double.infinity,
-            child: Image.asset(ImagePaths.topBarBg, fit: BoxFit.fitWidth),
+          // SizedBox(
+          //   height: 600,
+          //   width: double.infinity,
+          //   child: Image.asset(ImagePaths.topBarBg, fit: BoxFit.fitWidth),
+          // ),
+          Positioned.fill(
+            top: -140,
+            child: Image.asset(
+              ImagePaths.topBarBg,
+              fit: BoxFit.fitHeight,
+            ),
           ),
-
           // Main Content with Rounded Container
           Column(
             children: [
@@ -284,8 +290,8 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
                   children: [
                     // Back button
                     Container(
-                      width: 40,
-                      height: 40,
+                      width: 30,
+                      height: 30,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.white.withOpacity(0.8),
@@ -326,8 +332,8 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
                     ),
                     // Help button
                     Container(
-                      width: 35,
-                      height: 35,
+                      width: 30,
+                      height: 30,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.grey, width: 0.8),
@@ -338,7 +344,7 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
                           Icons.question_mark_sharp,
                           color: Colors.black,
                         ),
-                        iconSize: 18,
+                        iconSize: 15,
                         padding: EdgeInsets.zero,
                         onPressed: () => _showTopPopup(context),
                       ),
@@ -384,7 +390,7 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
                             const Text(
                               "Verification code",
                               style: TextStyle(
-                                fontSize: 25,
+                                fontSize: 23,
                                 fontWeight: FontWeight.bold,
                               ),
                               textAlign: TextAlign.center,
@@ -395,14 +401,14 @@ class _SignUpVerificationScreenState extends ConsumerState<SignUpVerificationScr
                               child: const Text(
                                 'We have sent OTP code verification to your mobile no',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            const SizedBox(height: 30),
+                            const SizedBox(height: 20),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
