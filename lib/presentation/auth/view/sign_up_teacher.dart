@@ -73,6 +73,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   ];
   final List<String> _selectedDays = [];
   final List<String> _hours = [
+    "05.00-06.00 AM",
     "06.00-07.00 AM",
     "07.00-08.00 AM",
     "08.00-09.00 AM",

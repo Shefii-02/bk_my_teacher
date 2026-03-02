@@ -1,17 +1,17 @@
 class CourseSummary {
-  final List<CourseItem> upcomingOngoing;
+  final List<CourseItem> upcoming_ongoing;
   // final List<CourseItem> ongoing;
   final List<CourseItem> completed;
 
   CourseSummary({
-    required this.upcomingOngoing,
+    required this.upcoming_ongoing,
     // required this.ongoing,
     required this.completed,
   });
 
   factory CourseSummary.fromJson(Map<String, dynamic> json) {
     return CourseSummary(
-      upcomingOngoing: (json['upcoming_ongoing'] as List)
+      upcoming_ongoing: (json['upcoming_ongoing'] as List)
           .map((e) => CourseItem.fromJson(e))
           .toList(),
       // ongoing: (json['ongoing'] as List)
@@ -30,6 +30,7 @@ class CourseItem {
   final String thumbnailUrl;
   final String startDate;
   final String startTime;
+  final String endTime;
   final int duration;
   final String type;
   final int totalClasses;
@@ -42,6 +43,7 @@ class CourseItem {
     required this.type,
     required this.startDate,
     required this.startTime,
+    required this.endTime,
     required this.duration,
     required this.totalClasses,
     required this.completedClasses,
@@ -55,6 +57,7 @@ class CourseItem {
       type: json['type'] ?? 'webinar',
       startDate: json['start_date'] ?? '',
       startTime: json['start_time'] ?? '',
+      endTime: json['end_time'] ?? '',
       duration: json['duration'] ?? 0,
       totalClasses: json['total_classes'] ?? 0,
       completedClasses: json['completed_classes'] ?? 0,

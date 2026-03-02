@@ -64,6 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '276832274178',
     projectId: 'bktmobileapp-642da',
     storageBucket: 'bktmobileapp-642da.firebasestorage.app',
+    androidClientId: '276832274178-0tgjd2a1633qpg6sphbnpsre7ojidlj4.apps.googleusercontent.com',
     iosClientId: '276832274178-ibgc9tg4ct3mi03p6ujmhlc389imc45o.apps.googleusercontent.com',
     iosBundleId: 'coin.bookmyteacher.app',
   );
@@ -74,6 +75,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '276832274178',
     projectId: 'bktmobileapp-642da',
     storageBucket: 'bktmobileapp-642da.firebasestorage.app',
+    androidClientId: '276832274178-0tgjd2a1633qpg6sphbnpsre7ojidlj4.apps.googleusercontent.com',
     iosClientId: '276832274178-o968dmtqq2roq56gajr77c3u28032k98.apps.googleusercontent.com',
     iosBundleId: 'com.example.app',
   );
@@ -87,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'bktmobileapp-642da.firebasestorage.app',
     measurementId: 'G-XGYLSFNC35',
   );
+
 }

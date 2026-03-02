@@ -7,21 +7,21 @@ import 'package:open_filex/open_filex.dart';
 // import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../model/course_details_model.dart';
 import 'package:dio/dio.dart';
 
+import '../../../model/webinar_details_model.dart';
 import '../../students/recorded_video_with_doubt.dart';
 
-class CourseDetailsContent extends StatefulWidget {
-  final CourseDetails course;
+class WebinarDetailsContent extends StatefulWidget {
+  final WebinarDetailsModel course;
 
-  const CourseDetailsContent({super.key, required this.course});
+  const WebinarDetailsContent({super.key, required this.course});
 
   @override
-  State<CourseDetailsContent> createState() => _CourseDetailsContentState();
+  State<WebinarDetailsContent> createState() => _WebinarDetailsContentState();
 }
 
-class _CourseDetailsContentState extends State<CourseDetailsContent>
+class _WebinarDetailsContentState extends State<WebinarDetailsContent>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ValueNotifier<Map<String, Duration>> _countdownNotifier = ValueNotifier(
@@ -87,7 +87,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
   }
 
   // ABOUT TAB
-  Widget _aboutTab(CourseInfo c) {
+  Widget _aboutTab(WebinarCourseInfo c) {
     final title = c.title ?? 'Untitled Class';
     final desc = c.description ?? '';
     final level = c.level ?? '';
@@ -132,7 +132,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
   }
 
   // CLASSES TAB
-  Widget _classesTab(ClassGroups cls) {
+  Widget _classesTab(WebinarClassGroups cls) {
     return DefaultTabController(
       length: 2,
       child: Column(
@@ -150,8 +150,10 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
           Expanded(
             child: TabBarView(
               children: [
+
                 _buildClassList(cls.ongoing_upcoming),
                 _buildClassList(cls.completed),
+
               ],
             ),
           ),
@@ -182,7 +184,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
   //   );
   // }
   //////////////////////////////////////////////////////////
-  Widget _buildClassList(List<ClassItem> classes) {
+  Widget _buildClassList(List<WebinarClassItem> classes) {
     if (classes.isEmpty) {
       return const Center(child: Text("No classes available"));
     }
@@ -286,60 +288,59 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
         );
       },
     );
-    return SizedBox();
   }
 
-  Future<void> _onClassAction(ClassItem c) async {
-    final status = (c.classStatus ?? '').toString().toLowerCase();
-    final joinLink = c.joinLink?.toString();
-    final recorded = c.recordedVideo?.toString();
-    final title = (c.title ?? '').toString();
-    final source = (c.source ?? '').toString();
-
-    if (status == 'ongoing') {
-      if (joinLink != null && joinLink.isNotEmpty) {
-        if (source == 'gmeet') {
-          await _openUrl(joinLink);
-        } else if (source == 'youtube') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => RecordedVideoWithDoubt(
-                title: title,
-                videoUrl: joinLink,
-                classId: c.id,
-                type: 'course',
-              ),
-            ),
-          );
-        } else {
-          _showSnack("Source link not available");
-        }
-      } else {
-        _showSnack("Join link not available");
-      }
-    } else if (status == 'upcoming') {
-      _showSnack("Class not started yet");
-    } else if (status == 'completed') {
-      if (recorded != null && recorded.isNotEmpty) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RecordedVideoWithDoubt(
-              title: title,
-              videoUrl: recorded,
-              classId: c.id,
-              type: 'course',
-            ),
-          ),
-        );
-      } else {
-        _showSnack("Recording not available");
-      }
-    } else {
-      _showSnack("Action not available");
-    }
-  }
+  // Future<void> _onClassAction(WebinarClassItem c) async {
+  //   final status = (c.classStatus ?? '').toString().toLowerCase();
+  //   final joinLink = c.joinLink?.toString();
+  //   final recorded = c.recordedVideo?.toString();
+  //   final title = (c.title ?? '').toString();
+  //   final source = (c.source ?? '').toString();
+  //
+  //   if (status == 'ongoing') {
+  //     if (joinLink != null && joinLink.isNotEmpty) {
+  //       if (source == 'gmeet') {
+  //         await _openUrl(joinLink);
+  //       } else if (source == 'youtube') {
+  //         Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (_) => RecordedVideoWithDoubt(
+  //               title: title,
+  //               videoUrl: joinLink,
+  //               classId: c.id,
+  //               type: 'course',
+  //             ),
+  //           ),
+  //         );
+  //       } else {
+  //         _showSnack("Source link not available");
+  //       }
+  //     } else {
+  //       _showSnack("Join link not available");
+  //     }
+  //   } else if (status == 'upcoming') {
+  //     _showSnack("Class not started yet");
+  //   } else if (status == 'completed') {
+  //     if (recorded != null && recorded.isNotEmpty) {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (_) => RecordedVideoWithDoubt(
+  //             title: title,
+  //             videoUrl: recorded,
+  //             classId: c.id,
+  //             type: 'course',
+  //           ),
+  //         ),
+  //       );
+  //     } else {
+  //       _showSnack("Recording not available");
+  //     }
+  //   } else {
+  //     _showSnack("Action not available");
+  //   }
+  // }
 
   Widget _buildJoinButton(List<dynamic> classes) {
     // show first ongoing class join button (existing behavior preserved)
@@ -393,7 +394,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
 
   //////////////////////////////////////////////////////////
   // MATERIALS TAB
-  Widget _materialsTab(List<MaterialItem> materials) {
+  Widget _materialsTab(List<WebinarMaterialItem> materials) {
     return ListView.builder(
       padding: const EdgeInsets.all(15),
       itemCount: materials.length,
@@ -428,7 +429,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
   TextStyle get _titleStyle =>
       const TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
 
-  Future<void> _openMaterial(MaterialItem item) async {
+  Future<void> _openMaterial(WebinarMaterialItem item) async {
     if (item.fileType == "video") {
       // open video in browser
       await OpenFilex.open(item.fileUrl);
@@ -445,7 +446,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
     );
   }
 
-  Future<void> _downloadMaterial(MaterialItem item) async {
+  Future<void> _downloadMaterial(WebinarMaterialItem item) async {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final savePath = "${dir.path}/${item.title}.${item.fileType}";
@@ -500,4 +501,57 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
     final s = (d.inSeconds % 60).toString().padLeft(2, '0');
     return "$h:$m:$s";
   }
+
+  Future<void> _onClassAction(WebinarClassItem c) async {
+    final status = (c.classStatus ?? '').toString().toLowerCase();
+    final joinLink = c.joinLink?.toString();
+    final recorded = c.recordedVideo?.toString();
+    final title = (c.title ?? '').toString();
+    final source = (c.source ?? '').toString();
+
+    if (status == 'ongoing') {
+      if (joinLink != null && joinLink.isNotEmpty) {
+        if (source == 'gmeet') {
+          await _openUrl(joinLink);
+        } else if (source == 'youtube') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RecordedVideoWithDoubt(
+                title: title,
+                videoUrl: joinLink,
+                classId: c.id.toString(),
+                type: 'course',
+              ),
+            ),
+          );
+        } else {
+          _showSnack("Source link not available");
+        }
+      } else {
+        _showSnack("Join link not available");
+      }
+    } else if (status == 'upcoming') {
+      _showSnack("Class not started yet");
+    } else if (status == 'completed') {
+      if (recorded != null && recorded.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RecordedVideoWithDoubt(
+              title: title,
+              videoUrl: recorded,
+              classId: c.id.toString(),
+              type: 'course',
+            ),
+          ),
+        );
+      } else {
+        _showSnack("Recording not available");
+      }
+    } else {
+      _showSnack("Action not available");
+    }
+  }
+
 }

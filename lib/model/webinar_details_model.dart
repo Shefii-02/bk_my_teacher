@@ -1,26 +1,26 @@
-class CourseDetails {
-  final CourseInfo course;
-  final ClassGroups classes;
-  final List<MaterialItem> materials;
+class WebinarDetailsModel {
+  final WebinarCourseInfo course;
+  final WebinarClassGroups classes;
+  final List<WebinarMaterialItem> materials;
 
-  CourseDetails({
+  WebinarDetailsModel({
     required this.course,
     required this.classes,
     required this.materials,
   });
 
-  factory CourseDetails.fromJson(Map<String, dynamic> json) {
-    return CourseDetails(
-      course: CourseInfo.fromJson(json['course']),
-      classes: ClassGroups.fromJson(json['classes']),
+  factory WebinarDetailsModel.fromJson(Map<String, dynamic> json) {
+    return WebinarDetailsModel(
+      course: WebinarCourseInfo.fromJson(json['course']),
+      classes: WebinarClassGroups.fromJson(json['classes']),
       materials: (json['materials'] as List)
-          .map((e) => MaterialItem.fromJson(e))
+          .map((e) => WebinarMaterialItem.fromJson(e))
           .toList(),
     );
   }
 }
 
-class CourseInfo {
+class WebinarCourseInfo {
   final int id;
   final String title;
   final String thumbnailUrl;
@@ -32,7 +32,7 @@ class CourseInfo {
   final int totalClasses;
   final int completedClasses;
 
-  CourseInfo({
+  WebinarCourseInfo({
     required this.id,
     required this.title,
     required this.thumbnailUrl,
@@ -45,8 +45,8 @@ class CourseInfo {
     required this.completedClasses,
   });
 
-  factory CourseInfo.fromJson(Map<String, dynamic> json) {
-    return CourseInfo(
+  factory WebinarCourseInfo.fromJson(Map<String, dynamic> json) {
+    return WebinarCourseInfo(
       id: json['id'],
       title: json['title'],
       thumbnailUrl: json['thumbnail_url'],
@@ -61,28 +61,28 @@ class CourseInfo {
   }
 }
 
-class ClassGroups {
-  final List<ClassItem> ongoing_upcoming;
-  final List<ClassItem> completed;
+class WebinarClassGroups {
+  final List<WebinarClassItem> ongoing_upcoming;
+  final List<WebinarClassItem> completed;
 
-  ClassGroups({
+  WebinarClassGroups({
     required this.ongoing_upcoming,
     required this.completed,
   });
 
-  factory ClassGroups.fromJson(Map<String, dynamic> json) {
-    return ClassGroups(
+  factory WebinarClassGroups.fromJson(Map<String, dynamic> json) {
+    return WebinarClassGroups(
       ongoing_upcoming:
-      (json['ongoing_upcoming'] as List).map((e) => ClassItem.fromJson(e)).toList(),
+      (json['ongoing_upcoming'] as List).map((e) => WebinarClassItem.fromJson(e)).toList(),
       completed: (json['completed'] as List)
-          .map((e) => ClassItem.fromJson(e))
+          .map((e) => WebinarClassItem.fromJson(e))
           .toList(),
     );
   }
 }
 
-class ClassItem {
-  final String id;
+class WebinarClassItem {
+  final int id;
   final String title;
   final String date;
   final String timeStart;
@@ -93,7 +93,7 @@ class ClassItem {
   final String? recordedVideo;
 
 
-  ClassItem({
+  WebinarClassItem({
     required this.id,
     required this.title,
     required this.date,
@@ -105,8 +105,8 @@ class ClassItem {
     required this.recordedVideo,
   });
 
-  factory ClassItem.fromJson(Map<String, dynamic> json) {
-    return ClassItem(
+  factory WebinarClassItem.fromJson(Map<String, dynamic> json) {
+    return WebinarClassItem(
       id: json['id'],
       title: json['title'],
       date: json['date_time'],
@@ -120,21 +120,21 @@ class ClassItem {
   }
 }
 
-class MaterialItem {
+class WebinarMaterialItem {
   final int id;
   final String title;
   final String fileUrl;
   final String fileType;
 
-  MaterialItem({
+  WebinarMaterialItem({
     required this.id,
     required this.title,
     required this.fileUrl,
     required this.fileType,
   });
 
-  factory MaterialItem.fromJson(Map<String, dynamic> json) {
-    return MaterialItem(
+  factory WebinarMaterialItem.fromJson(Map<String, dynamic> json) {
+    return WebinarMaterialItem(
       id: json['id'],
       title: json['title'],
       fileUrl: json['file_url'],

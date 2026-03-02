@@ -497,22 +497,35 @@ class _RequestFormState extends State<RequestForm> {
               Expanded(
                 child: ListView(
                   children: options.map((v) {
+                    // return RadioListTile<String>(
+                    //   title: Text(v),
+                    //   value: v,
+                    //   groupValue: temp,
+                    //   onChanged: (val) => setStateModal(() => temp = val),
+                    // );
                     return RadioListTile<String>(
                       title: Text(v),
                       value: v,
                       groupValue: temp,
-                      onChanged: (val) => setStateModal(() => temp = val),
+                      onChanged: (val) {
+                        setStateModal(() => temp = val);
+
+                        if (val != null) {
+                          onSelect(val); // 🔥 callback immediately
+                          Navigator.pop(context); // 🔥 close modal
+                        }
+                      },
                     );
                   }).toList(),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  if (temp != null) onSelect(temp!);
-                  Navigator.pop(context);
-                },
-                child: const Text("Select"),
-              ),
+              // ElevatedButton(
+              //   onPressed: () {
+              //     if (temp != null) onSelect(temp!);
+              //     Navigator.pop(context);
+              //   },
+              //   child: const Text("Select"),
+              // ),
               const SizedBox(height: 12),
             ],
           ),

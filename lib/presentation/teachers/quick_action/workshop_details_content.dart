@@ -7,21 +7,21 @@ import 'package:open_filex/open_filex.dart';
 // import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../model/course_details_model.dart';
 import 'package:dio/dio.dart';
 
+import '../../../model/workshop_details_model.dart';
 import '../../students/recorded_video_with_doubt.dart';
 
-class CourseDetailsContent extends StatefulWidget {
-  final CourseDetails course;
+class WorkshopDetailsContent extends StatefulWidget {
+  final WorkshopDetailsModel workshop;
 
-  const CourseDetailsContent({super.key, required this.course});
+  const WorkshopDetailsContent({super.key, required this.workshop});
 
   @override
-  State<CourseDetailsContent> createState() => _CourseDetailsContentState();
+  State<WorkshopDetailsContent> createState() => _WorkshopDetailsContentState();
 }
 
-class _CourseDetailsContentState extends State<CourseDetailsContent>
+class _WorkshopDetailsContentState extends State<WorkshopDetailsContent>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ValueNotifier<Map<String, Duration>> _countdownNotifier = ValueNotifier(
@@ -40,9 +40,9 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
 
   @override
   Widget build(BuildContext context) {
-    final info = widget.course.course;
-    final classes = widget.course.classes;
-    final materials = widget.course.materials;
+    final info = widget.workshop.workshop;
+    final classes = widget.workshop.classes;
+    final materials = widget.workshop.materials;
 
     return Column(
       children: [
@@ -87,7 +87,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
   }
 
   // ABOUT TAB
-  Widget _aboutTab(CourseInfo c) {
+  Widget _aboutTab(WorkshopCourseInfo c) {
     final title = c.title ?? 'Untitled Class';
     final desc = c.description ?? '';
     final level = c.level ?? '';
@@ -132,7 +132,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
   }
 
   // CLASSES TAB
-  Widget _classesTab(ClassGroups cls) {
+  Widget _classesTab(WorkshopClassGroups cls) {
     return DefaultTabController(
       length: 2,
       child: Column(
@@ -182,7 +182,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
   //   );
   // }
   //////////////////////////////////////////////////////////
-  Widget _buildClassList(List<ClassItem> classes) {
+  Widget _buildClassList(List<WorkshopClassItem> classes) {
     if (classes.isEmpty) {
       return const Center(child: Text("No classes available"));
     }
@@ -289,7 +289,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
     return SizedBox();
   }
 
-  Future<void> _onClassAction(ClassItem c) async {
+  Future<void> _onClassAction(WorkshopClassItem c) async {
     final status = (c.classStatus ?? '').toString().toLowerCase();
     final joinLink = c.joinLink?.toString();
     final recorded = c.recordedVideo?.toString();
@@ -307,7 +307,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
               builder: (_) => RecordedVideoWithDoubt(
                 title: title,
                 videoUrl: joinLink,
-                classId: c.id,
+                classId: c.id.toString(),
                 type: 'course',
               ),
             ),
@@ -328,7 +328,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
             builder: (_) => RecordedVideoWithDoubt(
               title: title,
               videoUrl: recorded,
-              classId: c.id,
+              classId: c.id.toString(),
               type: 'course',
             ),
           ),
@@ -393,7 +393,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
 
   //////////////////////////////////////////////////////////
   // MATERIALS TAB
-  Widget _materialsTab(List<MaterialItem> materials) {
+  Widget _materialsTab(List<WorkshopMaterialItem> materials) {
     return ListView.builder(
       padding: const EdgeInsets.all(15),
       itemCount: materials.length,
@@ -428,7 +428,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
   TextStyle get _titleStyle =>
       const TextStyle(fontSize: 18, fontWeight: FontWeight.bold);
 
-  Future<void> _openMaterial(MaterialItem item) async {
+  Future<void> _openMaterial(WorkshopMaterialItem item) async {
     if (item.fileType == "video") {
       // open video in browser
       await OpenFilex.open(item.fileUrl);
@@ -445,7 +445,7 @@ class _CourseDetailsContentState extends State<CourseDetailsContent>
     );
   }
 
-  Future<void> _downloadMaterial(MaterialItem item) async {
+  Future<void> _downloadMaterial(WorkshopMaterialItem item) async {
     try {
       final dir = await getApplicationDocumentsDirectory();
       final savePath = "${dir.path}/${item.title}.${item.fileType}";

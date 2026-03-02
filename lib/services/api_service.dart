@@ -1041,6 +1041,14 @@ class ApiService {
     return _submitFormRequest('/request-form/submit', formData);
   }
 
+
+  // 🔹 General Request Form (Form data)
+  Future<Map<String, dynamic>?> findingRequestingTeacher(
+      Map<String, dynamic> formData,
+      ) async {
+    return _submitFormRequest('/finding-teacher-request-form/submit', formData);
+  }
+
   Future<Map<String, dynamic>?> submitTeacherClassRequest(
     Map<String, dynamic> formData,
   ) async {
@@ -1190,7 +1198,13 @@ class ApiService {
         return {'status': false, 'message': 'Token not Matched'};
       }
 
-      final response = await _dio.post(endpoint, data: data);
+      final response = await _dio.post(endpoint,
+          data: jsonEncode(formData), // ✅ SEND JSON
+          options: Options(
+            headers: {
+              "Content-Type": "application/json",
+            },
+          ));
 
       if (response.statusCode == 200) {
         return response.data;

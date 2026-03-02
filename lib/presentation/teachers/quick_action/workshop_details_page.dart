@@ -1,31 +1,32 @@
+import 'package:BookMyTeacher/presentation/teachers/quick_action/workshop_details_content.dart';
 import 'package:flutter/material.dart';
 import '../../../model/course_details_model.dart';
+import '../../../model/workshop_details_model.dart';
 import '../../../services/teacher_api_service.dart';
 import 'course_details_content.dart';
 
-class CourseDetailsPage extends StatefulWidget {
+class WorkshopDetailsPage extends StatefulWidget {
   final int courseId;
 
-  const CourseDetailsPage({super.key, required this.courseId});
+  const WorkshopDetailsPage({super.key, required this.courseId});
 
   @override
-  State<CourseDetailsPage> createState() => _CourseDetailsPageState();
+  State<WorkshopDetailsPage> createState() => _WorkshopDetailsPageState();
 }
 
-class _CourseDetailsPageState extends State<CourseDetailsPage> {
-  late Future<CourseDetails> futureDetails;
+class _WorkshopDetailsPageState extends State<WorkshopDetailsPage> {
+  late Future<WorkshopDetailsModel> futureDetails;
 
   @override
   void initState() {
     super.initState();
-    futureDetails = TeacherApiService().fetchTeacherCourseSummary(widget.courseId);
-
+    futureDetails = TeacherApiService().fetchTeacherWorkshopSummary(widget.courseId);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<CourseDetails>(
+      body: FutureBuilder<WorkshopDetailsModel>(
         future: futureDetails,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -40,9 +41,9 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
 
           return Scaffold(
             appBar: AppBar(
-              title: Text(details.course.title),
+              title: Text(details.workshop.title),
             ),
-            body: CourseDetailsContent(course: details),
+            body: WorkshopDetailsContent(workshop: details,),
           );
         },
       ),

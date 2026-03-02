@@ -11,7 +11,7 @@ import 'package:BookMyTeacher/presentation/teachers/teacher_quick_actions.dart';
 import 'package:BookMyTeacher/presentation/teachers/watch_time_card.dart';
 import 'package:BookMyTeacher/presentation/widgets/social_media_icons.dart';
 import 'package:dio/dio.dart';
-
+import '../widgets/merchant_app_phonepe.dart';
 import '../../presentation/students/invite_friends_card.dart';
 import 'package:BookMyTeacher/presentation/teachers/signIn_with_google.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,6 +27,7 @@ import '../../services/teacher_api_service.dart';
 import '../widgets/bodyBg.dart';
 import '../widgets/connect_with_team_whatsapp.dart';
 import '../widgets/notification_bell.dart';
+import '../widgets/unified_payment_page.dart';
 import '../widgets/verify_account_popup.dart';
 import '../widgets/wallet_section.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -262,7 +263,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "Student Reviews",
+                                        "The Results Speak for Themselves",
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -293,6 +294,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                   ),
                                 ),
                                 SizedBox(height: 10),
+
                                 StudentReviewsScrollSection(),
                                 SizedBox(height: 10),
                                 StudentAchievementCardSection(),
@@ -301,6 +303,35 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                 const SizedBox(height: 30),
                                 SocialMediaIcons(),
                                 const SizedBox(height: 20),
+                                // InkWell(
+                                //   onTap: () {
+                                //     Navigator.push(
+                                //       context,
+                                //       MaterialPageRoute(
+                                //         builder: (_) =>
+                                //             // const UnifiedPaymentPage(),
+                                //         const CheckoutPage(),
+                                //       ),
+                                //     );
+                                //   },
+                                //   child: Container(
+                                //     width: 150,
+                                //     height: 50,
+                                //     decoration: BoxDecoration(
+                                //       color: Colors.green,
+                                //       borderRadius: BorderRadius.circular(12),
+                                //     ),
+                                //     child: const Center(
+                                //       child: Text(
+                                //         "Pay ₹20",
+                                //         style: TextStyle(
+                                //           fontSize: 24,
+                                //           color: Colors.white,
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ),
                               ],
                             ),
                           ),

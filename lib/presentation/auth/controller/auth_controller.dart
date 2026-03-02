@@ -232,13 +232,15 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   //signIn googleAccount
-  Future<bool> signInWithGoogleFirebase(String idToken,String email) async {
+  Future<bool> signInWithGoogleFirebase(String idToken, String email) async {
     await _initialize();
     try {
       state = state.copyWith(isLoading: true, error: null);
 
-      final response = await apiService.userLoginEmail(idToken,email);
-
+      final response = await apiService.userLoginEmail(idToken, email);
+      print("-------****----------");
+      print(response.success);
+      print("-------****----------");
       if (response.success) {
         final token =
             response.data?['token'] ?? response.data?['data']?['token'];
@@ -251,7 +253,6 @@ class AuthController extends StateNotifier<AuthState> {
           userData: user,
         );
         return true;
-
       } else {
         state = state.copyWith(isLoading: false, error: response.message);
         return false;
@@ -263,7 +264,7 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   //Verify googleAccount
-  Future<bool> verifyWithGoogleFirebase(String idToken,String email) async {
+  Future<bool> verifyWithGoogleFirebase(String idToken, String email) async {
     await _initialize();
     try {
       state = state.copyWith(isLoading: true, error: null);
@@ -284,7 +285,6 @@ class AuthController extends StateNotifier<AuthState> {
       return false;
     }
   }
-
 
   // Get user data
   Future<bool> getUserData() async {

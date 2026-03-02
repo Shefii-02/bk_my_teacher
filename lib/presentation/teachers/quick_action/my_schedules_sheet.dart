@@ -1,7 +1,10 @@
 // schedules_sheet.dart
 import 'dart:collection';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/webinar_details_page.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/workshop_details_page.dart';
 import 'package:BookMyTeacher/services/teacher_api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../../model/schedule_model.dart';
@@ -9,7 +12,6 @@ import 'class_details_screen.dart';
 import 'course_details_page.dart';
 
 class SchedulesSheet extends StatefulWidget {
-
   const SchedulesSheet({super.key});
 
   @override
@@ -22,7 +24,6 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
   bool _loading = false;
   DateTime _firstDay = DateTime.now();
   DateTime _lastDay = DateTime.now();
-
 
   // Map with DateTime.utc(day) keys and list of ScheduleEvent values
   Map<DateTime, List<ScheduleEvent>> _events = {};
@@ -45,7 +46,8 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
 
   Future<void> _loadMonthlyEvents(DateTime month) async {
     setState(() => _loading = true);
-    final monthStr = "${month.year.toString().padLeft(4, '0')}-${month.month.toString().padLeft(2, '0')}";
+    final monthStr =
+        "${month.year.toString().padLeft(4, '0')}-${month.month.toString().padLeft(2, '0')}";
     try {
       final resp = await TeacherApiService().fetchTeacherSchedule();
 
@@ -61,13 +63,12 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
         _lastDay = resp.lastDay;
         _focusedDay = DateTime(month.year, month.month, 1);
       });
-
     } catch (e) {
       // handle error (toast/snackbar)
       debugPrint('Failed to load schedule: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load schedule: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load schedule: $e')));
     } finally {
       setState(() => _loading = false);
     }
@@ -101,7 +102,7 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
-                  )
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -149,8 +150,7 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
 
               const SizedBox(height: 16),
 
-              if (_loading)
-                const Center(child: CircularProgressIndicator()),
+              if (_loading) const Center(child: CircularProgressIndicator()),
               if (!_loading && _selectedDay == null)
                 const Center(child: Text("Select a date to see your schedule")),
               const SizedBox(height: 8),
@@ -162,11 +162,7 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
                     child: Center(
                       child: Column(
                         children: const [
-                          Icon(
-                            Icons.event_busy,
-                            size: 42,
-                            color: Colors.grey,
-                          ),
+                          Icon(Icons.event_busy, size: 42, color: Colors.grey),
                           SizedBox(height: 10),
                           Text(
                             "No classes scheduled yet.\nCheck back later.",
@@ -183,53 +179,85 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
                   )
                 else
                   ..._getEventsForDay(_selectedDay!).map((event) {
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                      child: ListTile(
-                        leading: event.thumbnailUrl != null
-                            ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            event.thumbnailUrl!,
-                            width: 56,
-                            height: 56,
-                            fit: BoxFit.cover,
-                            errorBuilder: (c, e, st) =>
-                            const CircleAvatar(child: Icon(Icons.event)),
-                          ),
-                        )
-                            : _buildIcon(event.type),
-                        title: Text(event.topic),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "${event.timeStart} - ${event.timeEnd} • ${event.subjectName}",
+                    return GestureDetector(
+                      onTap: () {
+                        if (event.type == "course") {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  CourseDetailsPage(courseId: event.courseId!.toInt()),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              event.description,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
+                          );
+                        } else if (event.type == "webinar") {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  WebinarDetailsPage(courseId: event.id),
                             ),
-                            _statusChip(event.classStatus),
-                          ],
+                          );
+                        } else if (event.type == "workshop") {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  WorkshopDetailsPage(courseId: event.id),
+                            ),
+                          );
+                        } else {}
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 6,
+                          horizontal: 8,
                         ),
-                        isThreeLine: true,
-                        trailing: IconButton(
-                          icon: const Icon(Icons.info_outline),
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    CourseDetailsPage(courseId: event.id),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                        child: ListTile(
+                          leading: event.thumbnailUrl != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    event.thumbnailUrl!,
+                                    width: 56,
+                                    height: 56,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (c, e, st) =>
+                                        const CircleAvatar(
+                                          child: Icon(Icons.event),
+                                        ),
+                                  ),
+                                )
+                              : _buildIcon(event.type),
+                          title: Text(event.topic),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Start :${event.timeStart}\nEnd :${event.timeEnd}",
                               ),
-                            );
-                          },
+                              const SizedBox(height: 4),
+                              Html(
+                                data: event.description,
+                                style: {
+                                  "body": Style(
+                                    fontSize: FontSize(13),
+                                    lineHeight: LineHeight(1),
+                                    color: Colors.grey[700],
+                                    maxLines: 1,
+                                  ),
+                                },
+                              ),
+                              Row(
+                                children: [
+                                  _typeChip(event.type),
+                                  const SizedBox(width: 4),
+                                  _statusChip(event.classStatus),
+                                ],
+                              ),
+                            ],
+                          ),
+                          isThreeLine: true,
                         ),
                       ),
                     );
@@ -286,7 +314,31 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
         bg = Colors.green;
     }
     return Chip(
-      label: Text(status.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10)),
+      label: Text(
+        status.toUpperCase(),
+        style: const TextStyle(color: Colors.white, fontSize: 10),
+      ),
+      backgroundColor: bg,
+    );
+  }
+
+  Widget _typeChip(String type) {
+    Color bg;
+    switch (type) {
+      case 'webinar':
+        bg = Colors.purple;
+        break;
+      case 'workshop':
+        bg = Colors.blueGrey;
+        break;
+      default:
+        bg = Colors.teal;
+    }
+    return Chip(
+      label: Text(
+        type.toUpperCase(),
+        style: const TextStyle(color: Colors.white, fontSize: 10),
+      ),
       backgroundColor: bg,
     );
   }

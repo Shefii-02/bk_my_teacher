@@ -1,4 +1,6 @@
 import 'dart:io' show File; // Only for mobile/desktop
+import 'package:BookMyTeacher/model/webinar_details_model.dart';
+import 'package:BookMyTeacher/model/workshop_details_model.dart';
 import 'package:BookMyTeacher/services/launch_status_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart'; // for kIsWeb
@@ -307,7 +309,6 @@ class TeacherApiService {
   Future<CourseSummary> fetchTeacherCourses() async {
     await _loadAuth();
     final res = await _dio.post('/teacher/courses');
-    print(res);
     return CourseSummary.fromJson(res.data);
   }
 
@@ -316,6 +317,20 @@ class TeacherApiService {
     final res = await _dio.post('/teacher/course-details', data: {"id": id});
     return CourseDetails.fromJson(res.data);
   }
+
+  Future<WebinarDetailsModel> fetchTeacherWebinarSummary(int id) async {
+    await _loadAuth();
+    final res = await _dio.post('/teacher/webinar-details', data: {"id": id});
+
+    return WebinarDetailsModel.fromJson(res.data);
+  }
+
+  Future<WorkshopDetailsModel> fetchTeacherWorkshopSummary(int id) async {
+    await _loadAuth();
+    final res = await _dio.post('/teacher/workshop-details', data: {"id": id});
+    return WorkshopDetailsModel.fromJson(res.data);
+  }
+
 
   Future<StatisticsModel> fetchStatistics() async {
     try {
@@ -418,7 +433,7 @@ class TeacherApiService {
   Future<List<StudentReviewMain>> fetchMainReviews() async {
     try {
       await _loadAuth();
-      final response = await _dio.post("/teacher/student-reviews");
+      final response = await _dio.post("/student-reviews");
 
       if (response.statusCode == 200) {
         List list = response.data["reviews"] ?? [];

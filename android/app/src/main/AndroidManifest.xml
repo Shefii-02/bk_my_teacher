@@ -23,7 +23,9 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
-
+    <queries>
+        <package android:name="com.phonepe.app" />
+    </queries>
     <!-- ✅ All queries combined in ONE block -->
     <queries>
         <!-- To detect WhatsApp installation -->

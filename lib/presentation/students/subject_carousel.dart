@@ -6,7 +6,7 @@ import '../../services/api_service.dart';
 
 // -------------------- Subject Carousel 3x3 --------------------
 class SubjectCarousel extends StatefulWidget {
-  SubjectCarousel({super.key});
+  const SubjectCarousel({super.key});
 
   @override
   State<SubjectCarousel> createState() => _SubjectCarouselState();
@@ -110,7 +110,7 @@ class SubjectCard extends StatelessWidget {
         );
       },
       child: Container(
-        width: 128,
+        width: 110,
         height: 50,
         margin: const EdgeInsets.all(2),
         child: Stack(

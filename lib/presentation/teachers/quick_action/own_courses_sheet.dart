@@ -1,3 +1,5 @@
+import 'package:BookMyTeacher/presentation/teachers/quick_action/webinar_details_page.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/workshop_details_page.dart';
 import 'package:flutter/material.dart';
 import '../../../model/course_details_model.dart';
 import '../../../model/course_model.dart';
@@ -37,9 +39,8 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
       setState(() => loading = true);
 
       summary = await TeacherApiService().fetchTeacherCourses();
-
       // courses["Ongoing"] = summary!.ongoing;
-      courses["Upcoming_Ongoing"] = summary!.upcomingOngoing;
+      courses["Upcoming_Ongoing"] = summary!.upcoming_ongoing;
       courses["Completed"] = summary!.completed;
 
       setState(() {
@@ -78,15 +79,12 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
               // LOADING
               if (loading)
                 const Expanded(
-                    child: Center(child: CircularProgressIndicator())),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
 
               // ERROR
               if (!loading && error)
-                Expanded(
-                  child: Center(
-                    child: Text("Failed to load courses"),
-                  ),
-                ),
+                Expanded(child: Center(child: Text("Failed to load courses"))),
 
               // SUCCESS
               if (!loading && !error) ...[
@@ -95,7 +93,9 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
                   labelColor: Colors.blueAccent,
                   unselectedLabelColor: Colors.grey,
                   indicatorColor: Colors.blueAccent,
-                  tabs: courses.keys.map((e) => Tab(text: e.replaceAll('_',' '))).toList(),
+                  tabs: courses.keys
+                      .map((e) => Tab(text: e.replaceAll('_', ' ')))
+                      .toList(),
                 ),
                 Expanded(
                   child: TabBarView(
@@ -116,16 +116,37 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
                           final course = list[index];
                           return Card(
                             margin: const EdgeInsets.symmetric(
-                                vertical: 6, horizontal: 12),
+                              vertical: 6,
+                              horizontal: 12,
+                            ),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             child: GestureDetector(
-                              onTap : () =>  Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => CourseDetailsPage(courseId: course.id),
-                                ),
-                              ),
+                              onTap: () {
+                                Widget page;
+
+                                if (course.type == "course") {
+                                  page = CourseDetailsPage(courseId: course.id);
+                                } else if (course.type == "webinar") {
+                                  page = WebinarDetailsPage(
+                                    courseId: course.id,
+                                  );
+                                } else if (course.type == "workshop") {
+                                  page = WorkshopDetailsPage(
+                                    courseId: course.id,
+                                  );
+                                } else {
+                                  print(course.type);
+                                  return; // safety fallback
+                                }
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => page),
+                                );
+                              },
+
                               child: ListTile(
                                 leading: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
@@ -136,21 +157,53 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
                                     fit: BoxFit.cover,
                                   ),
                                 ),
-                                title: Text(course.title),
-                                subtitle: Text(
-                                  "${course.startDate} | ${course.startTime}",
+                                title: Text(
+                                  course.title,
+                                  style: TextStyle(fontWeight: FontWeight.w900),
+                                ),
+                                subtitle: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(height: 5),
+                                    Text(
+                                      "Start: ${course.startTime} \nEnd: ${course.endTime}",
+                                    ),
+                                  ],
                                 ),
                                 trailing: SizedBox(
                                   child: Column(
                                     children: [
-                                      Text(course.type,style: TextStyle(color: Colors.green,fontSize: 16,fontWeight: FontWeight.bold),), const SizedBox(height: 4),
-                                      const Icon(Icons.play_circle,color: Colors.redAccent,),
-
-                                      ])
-                                )
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors
+                                              .blueGrey
+                                              .shade200, // Color must be inside BoxDecoration when decoration is used
+                                          borderRadius: BorderRadius.circular(
+                                            9,
+                                          ), // Applies a 20px radius to all corners
+                                        ),
+                                        padding: const EdgeInsets.all(4),
+                                        child: Text(
+                                          course.type.toUpperCase(),
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      const Icon(
+                                        Icons.play_circle,
+                                        color: Colors.green,
+                                        size: 25,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            )
-
+                            ),
                           );
                         },
                       );
@@ -360,5 +413,4 @@ class _OwnCoursesSheetState extends State<OwnCoursesSheet>
   //     }).toList(),
   //   );
   // }
-
 }

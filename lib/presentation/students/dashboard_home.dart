@@ -19,12 +19,16 @@ import '../../core/constants/image_paths.dart';
 import '../../firebase_options.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/user_provider.dart';
+import '../components/rotating_hint_text.dart';
+import '../teachers/student_reviews_scroll_section.dart';
 import '../widgets/merchant_app_phonepe.dart';
 import '../widgets/notification_bell.dart';
 import '../widgets/top_banner_carousel.dart';
 
 import '../widgets/verify_account_popup.dart';
 import '../widgets/wallet_section.dart';
+import 'course_search_tab.dart';
+import 'find_teacher_form.dart';
 import 'invite_friends_card.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -130,44 +134,112 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                             horizontal: 16,
                             vertical: 0,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Row(
+                              Column(
                                 children: [
-                                  CircleAvatar(
-                                    radius: 20,
-                                    backgroundColor: Colors.grey[200],
-                                    backgroundImage:
-                                        (avatar != null && avatar.isNotEmpty)
-                                        ? NetworkImage(avatar)
-                                        : null, // no background image when avatar is null or empty
-                                    child: (avatar == null || avatar.isEmpty)
-                                        ? Icon(
-                                            Icons.person,
-                                            size: 25,
-                                            color: Colors.grey[500],
-                                          )
-                                        : null, // show icon only when no image
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Welcome back',
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20.0,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20.0,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    name,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15.0,
-                                    ),
-                                  ),
+                                  SizedBox(height: 20),
+                                  // CircleAvatar(
+                                  //   radius: 20,
+                                  //   backgroundColor: Colors.grey[200],
+                                  //   backgroundImage:
+                                  //   (avatar != null && avatar.isNotEmpty)
+                                  //       ? NetworkImage(avatar)
+                                  //       : null, // no background image when avatar is null or empty
+                                  //   child: (avatar == null || avatar.isEmpty)
+                                  //       ? Icon(
+                                  //     Icons.person,
+                                  //     size: 25,
+                                  //     color: Colors.grey[500],
+                                  //   )
+                                  //       : null, // show icon only when no image
+                                  // ),
                                 ],
                               ),
-                              NotificationBell(
-                                onTap: () =>
-                                    showNotificationsSheet(context, ref),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        shape: const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(16),
+                                          ),
+                                        ),
+                                        builder: (context) {
+                                          return const FindTeacherBottomSheet();
+                                        },
+                                      );
+                                    },
+                                    child: Container(
+                                      height: 50,
+                                      // margin: const EdgeInsets.symmetric(horizontal: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.search,
+                                            color: Colors.black87,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          SizedBox(
+                                            width: 290,
+                                            child: RotatingHintText(
+                                              hints: [
+                                                "Search Maths teacher",
+                                                "Search online class",
+                                                "Search home tutor",
+                                                "Search English mentor",
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  NotificationBell(
+                                    onTap: () =>
+                                        showNotificationsSheet(context, ref),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
+
                         // const SizedBox(height: 10),
                         TopBannerCarousel(),
                         const SizedBox(height: 20),
@@ -236,32 +308,31 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                               // ---------- Request Class Section ----------
                               // RequestForm(),
                               const SizedBox(height: 20),
-                              InviteFriendsCard(),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 12.0,
+                                  right: 12.0,
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0x52B0FFDF),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.green.withOpacity(0.2),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 25,
+                                  ),
+                                  child: WalletSection(),
+                                ),
+                              ),
                               const SizedBox(height: 20),
-
-                              // Padding(
-                              //   padding: const EdgeInsets.only(
-                              //     left: 12.0,
-                              //     right: 12.0,
-                              //   ),
-                              //   child: Container(
-                              //     decoration: BoxDecoration(
-                              //       color: const Color(0x52B0FFDF),
-                              //       borderRadius: BorderRadius.circular(20),
-                              //       boxShadow: [
-                              //         BoxShadow(
-                              //           color: Colors.green.withOpacity(
-                              //               0.2),
-                              //           blurRadius: 12,
-                              //           offset: const Offset(0, 6),
-                              //         ),
-                              //       ],
-                              //     ),
-                              //     padding: const EdgeInsets.symmetric(
-                              //         vertical: 25),
-                              //     child: WalletSection(),
-                              //   ),
-                              // ),
+                              InviteFriendsCard(),
                               const SizedBox(height: 20),
                               // ---------- Top Teachers ----------
                               const Text(
@@ -283,6 +354,16 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                               const SizedBox(height: 20),
                               // ---------- Providing Subjects ----------
                               SubjectCarousel(),
+                              const SizedBox(height: 35),
+                              // ---------- Student Reviews ----------
+                              const Text(
+                                'The Results Speak for Themselves',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              StudentReviewsScrollSection(),
                               const SizedBox(height: 40),
                               // ---------- Providing Courses ----------
                               const Text(
@@ -299,35 +380,6 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                               const SizedBox(height: 40),
                               ConnectWithTeam(),
                               const SizedBox(height: 20),
-                              // InkWell(
-                              //   onTap: () {
-                              //     Navigator.push(
-                              //       context,
-                              //       MaterialPageRoute(
-                              //         builder: (_) =>
-                              //             // const UnifiedPaymentPage(),
-                              //         const MerchantApp(),
-                              //       ),
-                              //     );
-                              //   },
-                              //   child: Container(
-                              //     width: 200,
-                              //     height: 200,
-                              //     decoration: BoxDecoration(
-                              //       color: Colors.blue,
-                              //       borderRadius: BorderRadius.circular(12),
-                              //     ),
-                              //     child: const Center(
-                              //       child: Text(
-                              //         "Pay ₹20",
-                              //         style: TextStyle(
-                              //           fontSize: 24,
-                              //           color: Colors.white,
-                              //         ),
-                              //       ),
-                              //     ),
-                              //   ),
-                              // ),
                             ],
                           ),
                         ),
@@ -545,6 +597,59 @@ class RequestFormBottomSheet extends StatelessWidget {
             const SizedBox(height: 16),
 
             const RequestForm(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FindTeacherBottomSheet extends StatelessWidget {
+  const FindTeacherBottomSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade400,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            const TabBar(
+              labelColor: Colors.black,
+              tabs: [
+                Tab(text: "Find a Teacher"),
+                Tab(text: "Search Course"),
+              ],
+            ),
+
+            const Expanded(
+              child: TabBarView(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 16, right: 16),
+                    child: FindTeacherForm(),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 16, right: 16),
+                    child: CourseSearchTab(),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

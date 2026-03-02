@@ -1,26 +1,26 @@
-class CourseDetails {
-  final CourseInfo course;
-  final ClassGroups classes;
-  final List<MaterialItem> materials;
+class WorkshopDetailsModel {
+  final WorkshopCourseInfo workshop;
+  final WorkshopClassGroups classes;
+  final List<WorkshopMaterialItem> materials;
 
-  CourseDetails({
-    required this.course,
+  WorkshopDetailsModel({
+    required this.workshop,
     required this.classes,
     required this.materials,
   });
 
-  factory CourseDetails.fromJson(Map<String, dynamic> json) {
-    return CourseDetails(
-      course: CourseInfo.fromJson(json['course']),
-      classes: ClassGroups.fromJson(json['classes']),
+  factory WorkshopDetailsModel.fromJson(Map<String, dynamic> json) {
+    return WorkshopDetailsModel(
+      workshop: WorkshopCourseInfo.fromJson(json['course']),
+      classes: WorkshopClassGroups.fromJson(json['classes']),
       materials: (json['materials'] as List)
-          .map((e) => MaterialItem.fromJson(e))
+          .map((e) => WorkshopMaterialItem.fromJson(e))
           .toList(),
     );
   }
 }
 
-class CourseInfo {
+class WorkshopCourseInfo {
   final int id;
   final String title;
   final String thumbnailUrl;
@@ -32,7 +32,7 @@ class CourseInfo {
   final int totalClasses;
   final int completedClasses;
 
-  CourseInfo({
+  WorkshopCourseInfo({
     required this.id,
     required this.title,
     required this.thumbnailUrl,
@@ -45,8 +45,8 @@ class CourseInfo {
     required this.completedClasses,
   });
 
-  factory CourseInfo.fromJson(Map<String, dynamic> json) {
-    return CourseInfo(
+  factory WorkshopCourseInfo.fromJson(Map<String, dynamic> json) {
+    return WorkshopCourseInfo(
       id: json['id'],
       title: json['title'],
       thumbnailUrl: json['thumbnail_url'],
@@ -61,28 +61,28 @@ class CourseInfo {
   }
 }
 
-class ClassGroups {
-  final List<ClassItem> ongoing_upcoming;
-  final List<ClassItem> completed;
+class WorkshopClassGroups {
+  final List<WorkshopClassItem> ongoing_upcoming;
+  final List<WorkshopClassItem> completed;
 
-  ClassGroups({
+  WorkshopClassGroups({
     required this.ongoing_upcoming,
     required this.completed,
   });
 
-  factory ClassGroups.fromJson(Map<String, dynamic> json) {
-    return ClassGroups(
+  factory WorkshopClassGroups.fromJson(Map<String, dynamic> json) {
+    return WorkshopClassGroups(
       ongoing_upcoming:
-      (json['ongoing_upcoming'] as List).map((e) => ClassItem.fromJson(e)).toList(),
+      (json['ongoing_upcoming'] as List).map((e) => WorkshopClassItem.fromJson(e)).toList(),
       completed: (json['completed'] as List)
-          .map((e) => ClassItem.fromJson(e))
+          .map((e) => WorkshopClassItem.fromJson(e))
           .toList(),
     );
   }
 }
 
-class ClassItem {
-  final String id;
+class WorkshopClassItem {
+  final int id;
   final String title;
   final String date;
   final String timeStart;
@@ -93,7 +93,7 @@ class ClassItem {
   final String? recordedVideo;
 
 
-  ClassItem({
+  WorkshopClassItem({
     required this.id,
     required this.title,
     required this.date,
@@ -105,8 +105,8 @@ class ClassItem {
     required this.recordedVideo,
   });
 
-  factory ClassItem.fromJson(Map<String, dynamic> json) {
-    return ClassItem(
+  factory WorkshopClassItem.fromJson(Map<String, dynamic> json) {
+    return WorkshopClassItem(
       id: json['id'],
       title: json['title'],
       date: json['date_time'],
@@ -120,21 +120,21 @@ class ClassItem {
   }
 }
 
-class MaterialItem {
+class WorkshopMaterialItem {
   final int id;
   final String title;
   final String fileUrl;
   final String fileType;
 
-  MaterialItem({
+  WorkshopMaterialItem({
     required this.id,
     required this.title,
     required this.fileUrl,
     required this.fileType,
   });
 
-  factory MaterialItem.fromJson(Map<String, dynamic> json) {
-    return MaterialItem(
+  factory WorkshopMaterialItem.fromJson(Map<String, dynamic> json) {
+    return WorkshopMaterialItem(
       id: json['id'],
       title: json['title'],
       fileUrl: json['file_url'],
