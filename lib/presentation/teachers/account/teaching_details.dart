@@ -387,92 +387,92 @@ print(formData);
                                     ],
                                   ),
 
-                                  const SizedBox(height: 20),
-                                  const Text(
-                                    "Teaching Grade",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  Wrap(
-                                    spacing: 8,
-                                    children: listingGrades.map((grade) {
-                                      final id = grade['id'].toString();
-                                      final name = grade['name'].toString();
-                                      final value = grade["value"].toString();
-
-                                      final selected = _selectedGrades.contains(
-                                        value,
-                                      );
-                                      return FilterChip(
-                                        label: Text(name),
-                                        selected: selected,
-                                        onSelected: (v) {
-                                          setState(() {
-                                            v
-                                                ? _selectedGrades.add(value)
-                                                : _selectedGrades.remove(value);
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  const Text(
-                                    "Teaching Subjects",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Wrap(
-                                    spacing: 8.0,
-                                    children: listingSubjects.map((subject) {
-                                      final id = subject["id"].toString();
-                                      final name = subject["name"].toString();
-                                      final value = subject["value"].toString();
-
-                                      return FilterChip(
-                                        label: Text(name),
-                                        selected: id == "other"
-                                            ? _other // 👈 special case
-                                            : _selectedSubjects.contains(value),
-                                        onSelected: (v) {
-                                          setState(() {
-                                            if (id == "other") {
-                                              _other = v;
-                                              if (!v) _otherSubjectCtrl.clear();
-                                            } else {
-                                              v
-                                                  ? _selectedSubjects.add(value)
-                                                  : _selectedSubjects.remove(
-                                                      value,
-                                                    );
-                                            }
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  ),
-                                  if (_other) ...[
-                                    const SizedBox(height: 20),
-                                    const Text(
-                                      "Enter except above other subject",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    _tf(
-                                      _otherSubjectCtrl,
-                                      "Enter other subject",
-                                      validator: (v) => _other ? _req(v) : null,
-                                    ),
-                                  ],
-                                  const SizedBox(height: 20),
+                                  // const SizedBox(height: 20),
+                                  // const Text(
+                                  //   "Teaching Grade",
+                                  //   style: TextStyle(
+                                  //     fontSize: 16,
+                                  //     fontWeight: FontWeight.bold,
+                                  //   ),
+                                  // ),
+                                  //
+                                  // Wrap(
+                                  //   spacing: 8,
+                                  //   children: listingGrades.map((grade) {
+                                  //     final id = grade['id'].toString();
+                                  //     final name = grade['name'].toString();
+                                  //     final value = grade["value"].toString();
+                                  //
+                                  //     final selected = _selectedGrades.contains(
+                                  //       value,
+                                  //     );
+                                  //     return FilterChip(
+                                  //       label: Text(name),
+                                  //       selected: selected,
+                                  //       onSelected: (v) {
+                                  //         setState(() {
+                                  //           v
+                                  //               ? _selectedGrades.add(value)
+                                  //               : _selectedGrades.remove(value);
+                                  //         });
+                                  //       },
+                                  //     );
+                                  //   }).toList(),
+                                  // ),
+                                  // const SizedBox(height: 20),
+                                  // const Text(
+                                  //   "Teaching Subjects",
+                                  //   style: TextStyle(
+                                  //     fontSize: 16,
+                                  //     fontWeight: FontWeight.bold,
+                                  //   ),
+                                  // ),
+                                  // Wrap(
+                                  //   spacing: 8.0,
+                                  //   children: listingSubjects.map((subject) {
+                                  //     final id = subject["id"].toString();
+                                  //     final name = subject["name"].toString();
+                                  //     final value = subject["value"].toString();
+                                  //
+                                  //     return FilterChip(
+                                  //       label: Text(name),
+                                  //       selected: id == "other"
+                                  //           ? _other // 👈 special case
+                                  //           : _selectedSubjects.contains(value),
+                                  //       onSelected: (v) {
+                                  //         setState(() {
+                                  //           if (id == "other") {
+                                  //             _other = v;
+                                  //             if (!v) _otherSubjectCtrl.clear();
+                                  //           } else {
+                                  //             v
+                                  //                 ? _selectedSubjects.add(value)
+                                  //                 : _selectedSubjects.remove(
+                                  //                     value,
+                                  //                   );
+                                  //           }
+                                  //         });
+                                  //       },
+                                  //     );
+                                  //   }).toList(),
+                                  // ),
+                                  // if (_other) ...[
+                                  //   const SizedBox(height: 20),
+                                  //   const Text(
+                                  //     "Enter except above other subject",
+                                  //     style: TextStyle(
+                                  //       fontSize: 16,
+                                  //       fontWeight: FontWeight.bold,
+                                  //     ),
+                                  //   ),
+                                  //   const SizedBox(height: 10),
+                                  //   _tf(
+                                  //     _otherSubjectCtrl,
+                                  //     "Enter other subject",
+                                  //     validator: (v) => _other ? _req(v) : null,
+                                  //   ),
+                                  // ],
+                                  // const SizedBox(height: 20),
                                   // Experience
                                   Column(
                                     crossAxisAlignment:
@@ -632,64 +632,64 @@ print(formData);
                                   ),
 
                                   const SizedBox(height: 16),
-                                  const Text(
-                                    "Preferable Working Days",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Wrap(
-                                    spacing: 10,
-                                    runSpacing: 8,
-                                    children: _days.map((day) {
-                                      final selected = _selectedDays.contains(
-                                        day,
-                                      );
-                                      return FilterChip(
-                                        label: Text(day),
-                                        selected: selected,
-                                        onSelected: (v) {
-                                          setState(() {
-                                            v
-                                                ? _selectedDays.add(day)
-                                                : _selectedDays.remove(day);
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  ),
-
-                                  const SizedBox(height: 16),
-                                  const Text(
-                                    "Preferable Working Hours",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Wrap(
-                                    spacing: 10,
-                                    runSpacing: 8,
-                                    children: _hours.map((time) {
-                                      final selected = _selectedHours.contains(
-                                        time,
-                                      );
-                                      return FilterChip(
-                                        label: Text(time),
-                                        selected: selected,
-                                        onSelected: (v) {
-                                          setState(() {
-                                            v
-                                                ? _selectedHours.add(time)
-                                                : _selectedHours.remove(time);
-                                          });
-                                        },
-                                      );
-                                    }).toList(),
-                                  ),
+                                  // const Text(
+                                  //   "Preferable Working Days",
+                                  //   style: TextStyle(
+                                  //     fontSize: 16,
+                                  //     fontWeight: FontWeight.bold,
+                                  //   ),
+                                  // ),
+                                  // const SizedBox(height: 8),
+                                  // Wrap(
+                                  //   spacing: 10,
+                                  //   runSpacing: 8,
+                                  //   children: _days.map((day) {
+                                  //     final selected = _selectedDays.contains(
+                                  //       day,
+                                  //     );
+                                  //     return FilterChip(
+                                  //       label: Text(day),
+                                  //       selected: selected,
+                                  //       onSelected: (v) {
+                                  //         setState(() {
+                                  //           v
+                                  //               ? _selectedDays.add(day)
+                                  //               : _selectedDays.remove(day);
+                                  //         });
+                                  //       },
+                                  //     );
+                                  //   }).toList(),
+                                  // ),
+                                  //
+                                  // const SizedBox(height: 16),
+                                  // const Text(
+                                  //   "Preferable Working Hours",
+                                  //   style: TextStyle(
+                                  //     fontSize: 16,
+                                  //     fontWeight: FontWeight.bold,
+                                  //   ),
+                                  // ),
+                                  // const SizedBox(height: 8),
+                                  // Wrap(
+                                  //   spacing: 10,
+                                  //   runSpacing: 8,
+                                  //   children: _hours.map((time) {
+                                  //     final selected = _selectedHours.contains(
+                                  //       time,
+                                  //     );
+                                  //     return FilterChip(
+                                  //       label: Text(time),
+                                  //       selected: selected,
+                                  //       onSelected: (v) {
+                                  //         setState(() {
+                                  //           v
+                                  //               ? _selectedHours.add(time)
+                                  //               : _selectedHours.remove(time);
+                                  //         });
+                                  //       },
+                                  //     );
+                                  //   }).toList(),
+                                  // ),
                                   const SizedBox(height: 30),
                                   _submitButton()
                                 ],

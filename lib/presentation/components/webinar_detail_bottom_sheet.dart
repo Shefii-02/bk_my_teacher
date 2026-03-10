@@ -69,7 +69,7 @@ class WebinarDetailBottomSheetState extends State<WebinarDetailBottomSheet> {
 
   void _redirectToEnrolledCourse() {
     Navigator.of(context).pop(); // close bottom sheet
-    context.push('/webinar-detail', extra: widget.course['id'].toString());
+    context.push('/webinar-detail', extra: widget.course['id']);
   }
 
   @override

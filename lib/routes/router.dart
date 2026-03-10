@@ -1,8 +1,11 @@
+import 'dart:ffi';
+
 import 'package:BookMyTeacher/presentation/auth/view/sign_up_guest.dart';
 import 'package:BookMyTeacher/presentation/guest/guest_dashboard.dart';
 import 'package:BookMyTeacher/presentation/students/my_class_list.dart';
 import 'package:BookMyTeacher/presentation/students/my_class_list_1.dart';
 import 'package:BookMyTeacher/presentation/students/student_personal_info.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/course_details_page.dart';
 import 'package:BookMyTeacher/presentation/widgets/personal_info_view.dart';
 import 'package:BookMyTeacher/services/upload_sample.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +25,11 @@ import '../presentation/errror/no_network_screen.dart';
 import '../presentation/onboarding/onboarding_screen.dart';
 import '../presentation/one_on_one/one_on_one_call_page.dart';
 import '../presentation/splash/splash_screen.dart';
+import '../presentation/students/quick_action/student_course_details_page.dart';
+import '../presentation/students/quick_action/student_webinar_details_page.dart';
+import '../presentation/students/quick_action/student_workshop_details_page.dart';
+import '../presentation/teachers/quick_action/webinar_details_page.dart';
+import '../presentation/teachers/quick_action/workshop_details_page.dart';
 import '../presentation/widgets/class_detail_screen.dart';
 import '../presentation/students/courses_screen.dart';
 import '../presentation/students/student_dashboard.dart';
@@ -99,7 +107,6 @@ final GoRouter appRouter = GoRouter(
         return PersonalInfoView(); // ✅ correct syntax
       },
     ),
-
 
     GoRoute(
       path: AppRoutes.teachingDetails,
@@ -216,36 +223,61 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-
-
+    //////////////////////////////////
     GoRoute(
-      path: '/class-detail',
+      path: '/student/class-detail',
       builder: (context, state) {
-        final classId = state.extra as String; // ✅ String ID
-        return ClassDetailScreen(classId: classId);
+        final classId = (state.extra as int?) ?? 0; // ✅ String ID
+        // return ClassDetailScreen(classId: classId);
+        return StudentCourseDetailsPage(courseId: classId.toInt());
       },
     ),
 
+    GoRoute(
+      path: '/student/workshop-detail',
+      builder: (context, state) {
+        final classId = (state.extra as int?) ?? 0; // ✅ String ID
+        // return WorkshopDetailScreen(classId: classId);
+        return StudentWorkshopDetailsPage(courseId: classId.toInt());
+      },
+    ),
+
+    GoRoute(
+      path: '/student/webinar-detail',
+      builder: (context, state) {
+        final classId = (state.extra as int?) ?? 0; // ✅ String ID
+        // return WebinarDetailScreen(classId: classId);
+        return StudentWebinarDetailsPage(courseId: classId.toInt());
+      },
+    ),
+
+    ///////////////////////////////////
+    GoRoute(
+      path: '/class-detail',
+      builder: (context, state) {
+        final classId = (state.extra as int?) ?? 0; // ✅ String ID
+        // return ClassDetailScreen(classId: classId);
+        return CourseDetailsPage(courseId: classId.toInt());
+      },
+    ),
 
     GoRoute(
       path: '/workshop-detail',
       builder: (context, state) {
-        final classId = state.extra as String; // ✅ String ID
-        return WorkshopDetailScreen(classId: classId);
+        final classId = (state.extra as int?) ?? 0; // ✅ String ID
+        // return WorkshopDetailScreen(classId: classId);
+        return WorkshopDetailsPage(courseId: classId.toInt());
       },
     ),
 
     GoRoute(
       path: '/webinar-detail',
       builder: (context, state) {
-        final classId = state.extra as String; // ✅ String ID
-        return WebinarDetailScreen(classId: classId);
+        final classId = (state.extra as int?) ?? 0; // ✅ String ID
+        // return WebinarDetailScreen(classId: classId);
+        return WebinarDetailsPage(courseId: classId.toInt());
       },
     ),
-
-
-
-
 
     // GoRoute(
     //   path: '/audience',
@@ -264,7 +296,6 @@ final GoRouter appRouter = GoRouter(
     //     );
     //   },
     // ),
-
     GoRoute(
       path: '/live',
       builder: (context, state) {
@@ -337,7 +368,6 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-
     GoRoute(
       path: AppRoutes.myClassList,
       builder: (context, state) {
@@ -357,7 +387,7 @@ final GoRouter appRouter = GoRouter(
       path: '/webinars/:id/stream',
       builder: (context, state) {
         final liveData = state.extra as Map<String, dynamic>;
-        return WebinarStreamPage(streamData: liveData,);
+        return WebinarStreamPage(streamData: liveData);
       },
     ),
 
@@ -395,6 +425,5 @@ final GoRouter appRouter = GoRouter(
       path: AppRoutes.noNetwork,
       builder: (context, state) => const NoNetworkScreen(),
     ),
-
   ],
 );

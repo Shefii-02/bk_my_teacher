@@ -179,8 +179,10 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
                   )
                 else
                   ..._getEventsForDay(_selectedDay!).map((event) {
+
                     return GestureDetector(
                       onTap: () {
+
                         if (event.type == "course") {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -199,7 +201,7 @@ class _SchedulesSheetState extends State<SchedulesSheet> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) =>
-                                  WorkshopDetailsPage(courseId: event.id),
+                                  WorkshopDetailsPage(courseId: event.courseId!.toInt()),
                             ),
                           );
                         } else {}

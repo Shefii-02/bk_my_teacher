@@ -7,6 +7,7 @@ import 'package:BookMyTeacher/presentation/students/teacher_carousel_two.dart';
 
 import 'package:BookMyTeacher/presentation/widgets/connect_with_team.dart';
 import 'package:BookMyTeacher/presentation/widgets/social_media_icons.dart';
+import 'package:BookMyTeacher/presentation/widgets/today_classes_section.dart';
 import 'package:BookMyTeacher/presentation/widgets/unified_payment_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -19,6 +20,8 @@ import '../../core/constants/image_paths.dart';
 import '../../firebase_options.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/user_provider.dart';
+import '../chat/screens/chat_home_screen.dart';
+import '../chat/screens/chat_home_screen_dummy.dart';
 import '../components/rotating_hint_text.dart';
 import '../teachers/student_reviews_scroll_section.dart';
 import '../widgets/merchant_app_phonepe.dart';
@@ -50,6 +53,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _isInitialized = false;
+  int unreadCount = 0;
 
   Future<void> _initialize() async {
     if (_isInitialized) return;
@@ -141,22 +145,110 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                               Column(
                                 children: [
                                   Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        'Welcome back',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20.0,
+                                      Container(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Welcome Back',
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20.0,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              name.length > 15
+                                                  ? "${name.substring(0, 15)}.."
+                                                  : name,
+
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 20.0,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      const SizedBox(width: 5),
-                                      Text(
-                                        name,
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20.0,
+
+                                      // dynamic value from API
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ChatHomeScreenDummy(),
+                                              // ChatHomeScreen(),
+                                            ),
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: Colors.black,
+                                          elevation: 1,
+                                          side: BorderSide(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 12,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text("Chat"),
+                                            SizedBox(width: 8),
+
+                                            /// ICON + BADGE
+                                            Stack(
+                                              clipBehavior: Clip.none,
+                                              children: [
+                                                Icon(Icons.chat_outlined),
+                                                if (unreadCount > 0)
+                                                  Positioned(
+                                                    right: -10,
+                                                    top: -15,
+                                                    child: Container(
+                                                      padding: EdgeInsets.all(
+                                                        4,
+                                                      ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      constraints:
+                                                          BoxConstraints(
+                                                            minWidth: 18,
+                                                            minHeight: 18,
+                                                          ),
+                                                      child: Text(
+                                                        unreadCount > 99
+                                                            ? "99+"
+                                                            : unreadCount
+                                                                  .toString(),
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -179,6 +271,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                   // ),
                                 ],
                               ),
+                              SizedBox(height: 5,),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -216,7 +309,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                           ),
                                           const SizedBox(width: 8),
                                           SizedBox(
-                                            width: 290,
+                                            width: 260,
                                             child: RotatingHintText(
                                               hints: [
                                                 "Search Maths teacher",
@@ -236,12 +329,16 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                   ),
                                 ],
                               ),
+                              SizedBox(height: 15,),
                             ],
                           ),
                         ),
 
                         // const SizedBox(height: 10),
                         TopBannerCarousel(),
+                        const SizedBox(height: 20),
+                        // ---------- Today's Classes Section ----------
+                        TodayClassesSection(),
                         const SizedBox(height: 20),
                         Container(
                           width: double.infinity,

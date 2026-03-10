@@ -257,7 +257,8 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
     }
 
     final info = _data!['class_detail'] as Map<String, dynamic>? ?? {};
-    final classes = (_data!['classes'] as List?) ?? [];
+    final classes = (_data!['up_coming_classes'] as List?) ?? [];
+    final completedClasses = (_data!['completed_classes'] as List?) ?? [];
     final materials = (_data!['materials'] as List?) ?? [];
 
     return Scaffold(
@@ -275,7 +276,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
                 controller: _tabController,
                 children: [
                   _buildAboutTab(info),
-                  _buildClassesTab(classes),
+                  _classesTab(classes,completedClasses),
                   _buildMaterialsTab(materials),
                 ],
               ),
@@ -284,6 +285,34 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
 
           // Join button overlay
           _buildJoinButton(classes),
+        ],
+      ),
+    );
+  }
+
+  Widget _classesTab(cls,completedClasses) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          // Inner Tab Bar
+          const TabBar(
+            labelColor: Colors.blue,
+            unselectedLabelColor: Colors.grey,
+            tabs: [
+              Tab(text: "Ongoing & Upcoming"),
+              Tab(text: "Completed"),
+            ],
+          ),
+
+          Expanded(
+            child: TabBarView(
+              children: [
+                _buildClassesTab(cls),
+                _buildClassesTab(completedClasses),
+              ],
+            ),
+          ),
         ],
       ),
     );

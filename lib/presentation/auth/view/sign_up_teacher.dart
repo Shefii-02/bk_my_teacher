@@ -56,6 +56,10 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   final _onlineExpCtrl = TextEditingController(text: "0");
   final _homeExpCtrl = TextEditingController(text: "0");
 
+  /// gradeId → boardId → subjectId → {online: bool, offline: bool}
+  Map<String, Map<String, Map<String, Map<String, bool>>>>
+  selectedTeachingData = {};
+
   bool _allSubjects = false;
   bool _other = false;
   final _otherSubjectCtrl = TextEditingController();
@@ -71,7 +75,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     'Saturday',
     'Sunday',
   ];
-  final List<String> _selectedDays = [];
+  // final List<String> _selectedDays = [];
   final List<String> _hours = [
     "05.00-06.00 AM",
     "06.00-07.00 AM",
@@ -92,15 +96,19 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     "09.00-10.00 PM",
     "10.00-11.00 PM",
   ];
-  final List<String> _selectedHours = [];
+  // final List<String> _selectedHours = [];
+
+  Map<String, List<String>> selectedAvailability = {};
 
   // API data
   List<Map<String, dynamic>> listingGrades = [];
   List<Map<String, dynamic>> listingSubjects = [];
-  List<String> _selectedGrades = [];
-  List<String> _selectedSubjects = [];
+  // List<String> _selectedGrades = [];
+  // List<String> _selectedSubjects = [];
+  bool hasSelection = false;
+  bool hasAvailability = false;
 
- final String autoFilledRefCode = '';
+  final String autoFilledRefCode = '';
 
   @override
   void initState() {
@@ -139,8 +147,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     }
   }
 
-
-  Future<String> _loadRefCode() async{
+  Future<String> _loadRefCode() async {
     return await LaunchStatusService.getReferralCode();
   }
 
@@ -214,24 +221,51 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
   bool _validateStep2() {
     final ok = _fStep2.currentState?.validate() ?? false;
     if (!ok) return false;
-    if (_selectedGrades.isEmpty) {
-      _toast('Select at least one grade');
+    // if (_selectedGrades.isEmpty) {
+    //   _toast('Select at least one grade');
+    //   return false;
+    // }
+    // if (_selectedSubjects.isEmpty && !_other) {
+    //   _toast('Select at least one subject');
+    //   return false;
+    // }
+    // if (_other && _otherSubjectCtrl.text.trim().isEmpty) {
+    //   _toast('Enter other subject');
+    //   return false;
+    // }
+
+    selectedTeachingData.forEach((gradeId, boards) {
+      boards.forEach((boardId, subjects) {
+        subjects.forEach((subjectId, modes) {
+          if (modes["online"] == true || modes["offline"] == true) {
+            hasSelection = true;
+          }
+        });
+      });
+    });
+
+    if (!hasSelection) {
+      _toast("Select at least one subject with mode");
       return false;
     }
-    if (_selectedSubjects.isEmpty && !_other) {
-      _toast('Select at least one subject');
-      return false;
-    }
-    if (_other && _otherSubjectCtrl.text.trim().isEmpty) {
-      _toast('Enter other subject');
-      return false;
-    }
-    if (_selectedDays.isEmpty) {
-      _toast('Select at least one working day');
-      return false;
-    }
-    if (_selectedHours.isEmpty) {
-      _toast('Select at least one working hour');
+
+    // if (_selectedDays.isEmpty) {
+    //   _toast('Select at least one working day');
+    //   return false;
+    // }
+    // if (_selectedHours.isEmpty) {
+    //   _toast('Select at least one working hour');
+    //   return false;
+    // }
+
+    selectedAvailability.forEach((day, times) {
+      if (times.isNotEmpty) {
+        hasAvailability = true;
+      }
+    });
+
+    if (!hasAvailability) {
+      _toast("Select at least one day with time");
       return false;
     }
     return true;
@@ -273,7 +307,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
     }
   }
 
-
   // ---------- Submit ----------
   Future<void> _submitForm() async {
     final experience =
@@ -307,16 +340,20 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
       "experience": experience,
       "profession": _profession,
       "readyToWork": _readyToWork,
-      "selectedDays": _selectedDays,
-      "selectedHours": _selectedHours,
-      "teachingGrades": _selectedGrades,
-      "teachingSubjects": [
-        ..._selectedSubjects,
-        if (_other && _otherSubjectCtrl.text.trim().isNotEmpty)
-          _otherSubjectCtrl.text.trim(),
-      ],
+      "availability": selectedAvailability,
+      // "selectedDays": _selectedDays,
+      // "selectedHours": _selectedHours,
+      // "teachingGrades": _selectedGrades,
+      // "teachingSubjects": [
+      //   ..._selectedSubjects,
+      //   if (_other && _otherSubjectCtrl.text.trim().isNotEmpty)
+      //     _otherSubjectCtrl.text.trim(),
+      // ],
+      "teachingData": selectedTeachingData,
       "cvFile": cvFile,
     };
+
+    print(formData);
 
     setState(() => _isLoading = true);
 
@@ -334,7 +371,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
       final userRole = response['user']?['acc_type'] ?? 'teacher';
       final user = response['user'];
 
-
       if (user != null) {
         await LaunchStatusService.saveUserData(user);
         await LaunchStatusService.setUserRole(userRole);
@@ -344,13 +380,12 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
         // context.go('/teacher-dashboard', extra: {'teacherId': userId});
       }
     } catch (e) {
-
+      print("❌ Error: $e");
       _toast("❌ Error: $e");
     } finally {
       setState(() => _isLoading = false);
     }
   }
-
 
   @override
   void dispose() {
@@ -377,10 +412,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
         children: [
           Positioned.fill(
             top: -140,
-            child: Image.asset(
-              ImagePaths.topBarBg,
-              fit: BoxFit.fitHeight,
-            ),
+            child: Image.asset(ImagePaths.topBarBg, fit: BoxFit.fitHeight),
           ),
           // Container(
           //   width: double.infinity,
@@ -715,7 +747,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
             ),
           ),
           SizedBox(height: 10),
-          Text('Click to Upload Profile Pic',style: TextStyle(fontSize: 11),),
+          Text('Click to Upload Profile Pic', style: TextStyle(fontSize: 11)),
 
           const SizedBox(height: 20),
           _buildTwoColumnTextFields(
@@ -807,6 +839,7 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                   "Teaching Grade",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
+
                 // Wrap(
                 //   spacing: 8,
                 //   children: [
@@ -837,72 +870,74 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                 //     ),
                 //   ],
                 // ),
-                Wrap(
-                  spacing: 8,
-                  children: listingGrades.map((grade) {
-                    final id = grade['id'].toString();
-                    final name = grade['name'].toString();
-                    final value = grade["value"].toString();
+                // Wrap(
+                //   spacing: 8,
+                //   children: listingGrades.map((grade) {
+                //     final id = grade['id'].toString();
+                //     final name = grade['name'].toString();
+                //     final value = grade["value"].toString();
+                //
+                //     final selected = _selectedGrades.contains(value);
+                //     return FilterChip(
+                //       label: Text(name),
+                //       selected: selected,
+                //       onSelected: (v) {
+                //         setState(() {
+                //           v
+                //               ? _selectedGrades.add(value)
+                //               : _selectedGrades.remove(value);
+                //         });
+                //       },
+                //     );
+                //   }).toList(),
+                // ),
+                _buildGradeBoardSelection(),
 
-                    final selected = _selectedGrades.contains(value);
-                    return FilterChip(
-                      label: Text(name),
-                      selected: selected,
-                      onSelected: (v) {
-                        setState(() {
-                          v
-                              ? _selectedGrades.add(value)
-                              : _selectedGrades.remove(value);
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Teaching Subjects",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Wrap(
-                  spacing: 8.0,
-                  children: listingSubjects.map((subject) {
-                    final id = subject["id"].toString();
-                    final name = subject["name"].toString();
-                    final value = subject["value"].toString();
-
-                    return FilterChip(
-                      label: Text(name),
-                      selected: id == "other"
-                          ? _other // 👈 special case
-                          : _selectedSubjects.contains(value),
-                      onSelected: (v) {
-                        setState(() {
-                          if (id == "other") {
-                            _other = v;
-                            if (!v) _otherSubjectCtrl.clear();
-                          } else {
-                            v
-                                ? _selectedSubjects.add(value)
-                                : _selectedSubjects.remove(value);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-                if (_other) ...[
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Enter except above other subject",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  _tf(
-                    _otherSubjectCtrl,
-                    "Enter other subject",
-                    validator: (v) => _other ? _req(v) : null,
-                  ),
-                ],
+                // const SizedBox(height: 20),
+                // const Text(
+                //   "Teaching Subjects",
+                //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                // ),
+                // Wrap(
+                //   spacing: 8.0,
+                //   children: listingSubjects.map((subject) {
+                //     final id = subject["id"].toString();
+                //     final name = subject["name"].toString();
+                //     final value = subject["value"].toString();
+                //
+                //     return FilterChip(
+                //       label: Text(name),
+                //       selected: id == "other"
+                //           ? _other // 👈 special case
+                //           : _selectedSubjects.contains(value),
+                //       onSelected: (v) {
+                //         setState(() {
+                //           if (id == "other") {
+                //             _other = v;
+                //             if (!v) _otherSubjectCtrl.clear();
+                //           } else {
+                //             v
+                //                 ? _selectedSubjects.add(value)
+                //                 : _selectedSubjects.remove(value);
+                //           }
+                //         });
+                //       },
+                //     );
+                //   }).toList(),
+                // ),
+                // if (_other) ...[
+                //   const SizedBox(height: 20),
+                //   const Text(
+                //     "Enter except above other subject",
+                //     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                //   ),
+                //   const SizedBox(height: 10),
+                //   _tf(
+                //     _otherSubjectCtrl,
+                //     "Enter other subject",
+                //     validator: (v) => _other ? _req(v) : null,
+                //   ),
+                // ],
 
                 // Wrap(
                 //   spacing: 8,
@@ -952,7 +987,6 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                 //     validator: (v) => _other ? _req(v) : null,
                 //   ),
                 // ],
-
                 const SizedBox(height: 20),
                 // Experience
                 Column(
@@ -1098,55 +1132,56 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
                   ],
                 ),
 
-                const SizedBox(height: 16),
-                const Text(
-                  "Preferable Working Days",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 8,
-                  children: _days.map((day) {
-                    final selected = _selectedDays.contains(day);
-                    return FilterChip(
-                      label: Text(day),
-                      selected: selected,
-                      onSelected: (v) {
-                        setState(() {
-                          v
-                              ? _selectedDays.add(day)
-                              : _selectedDays.remove(day);
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 16),
-                const Text(
-                  "Preferable Working Hours",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 8,
-                  children: _hours.map((time) {
-                    final selected = _selectedHours.contains(time);
-                    return FilterChip(
-                      label: Text(time),
-                      selected: selected,
-                      onSelected: (v) {
-                        setState(() {
-                          v
-                              ? _selectedHours.add(time)
-                              : _selectedHours.remove(time);
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
+                // const SizedBox(height: 16),
+                // const Text(
+                //   "Preferable Working Days",
+                //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                // ),
+                // const SizedBox(height: 8),
+                // Wrap(
+                //   spacing: 10,
+                //   runSpacing: 8,
+                //   children: _days.map((day) {
+                //     final selected = _selectedDays.contains(day);
+                //     return FilterChip(
+                //       label: Text(day),
+                //       selected: selected,
+                //       onSelected: (v) {
+                //         setState(() {
+                //           v
+                //               ? _selectedDays.add(day)
+                //               : _selectedDays.remove(day);
+                //         });
+                //       },
+                //     );
+                //   }).toList(),
+                // ),
+                //
+                // const SizedBox(height: 16),
+                // const Text(
+                //   "Preferable Working Hours",
+                //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                // ),
+                // const SizedBox(height: 8),
+                // Wrap(
+                //   spacing: 10,
+                //   runSpacing: 8,
+                //   children: _hours.map((time) {
+                //     final selected = _selectedHours.contains(time);
+                //     return FilterChip(
+                //       label: Text(time),
+                //       selected: selected,
+                //       onSelected: (v) {
+                //         setState(() {
+                //           v
+                //               ? _selectedHours.add(time)
+                //               : _selectedHours.remove(time);
+                //         });
+                //       },
+                //     );
+                //   }).toList(),
+                // ),
+                _buildDayTimeSelection(),
               ],
             ),
           ),
@@ -1354,9 +1389,202 @@ class _SignUpTeacherState extends State<SignUpTeacher> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) {
-        return ReferralPopup(parentContext: context,
-            redirectionUrl: '/teacher-dashboard');
+        return ReferralPopup(
+          parentContext: context,
+          redirectionUrl: '/teacher-dashboard',
+        );
       },
+    );
+  }
+
+  Widget _buildGradeBoardSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: listingGrades.map((grade) {
+        final gradeId = grade['id'].toString();
+        final boards = grade['boards'] ?? [];
+
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          child: ExpansionTile(
+            title: Text(
+              grade['name'],
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            children: boards.map<Widget>((board) {
+              final boardId = board['id'].toString();
+              final subjects = board['subjects'] ?? [];
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: ExpansionTile(
+                  title: Text(
+                    board['name'],
+                    style: const TextStyle(color: Colors.blue),
+                  ),
+                  children: subjects.map<Widget>((subject) {
+                    final subjectId = subject['id'].toString();
+
+                    selectedTeachingData.putIfAbsent(gradeId, () => {});
+                    selectedTeachingData[gradeId]!.putIfAbsent(
+                      boardId,
+                      () => {},
+                    );
+                    selectedTeachingData[gradeId]![boardId]!.putIfAbsent(
+                      subjectId,
+                      () {
+                        return {"online": false, "offline": false};
+                      },
+                    );
+
+                    final subjectData =
+                        selectedTeachingData[gradeId]![boardId]![subjectId]!;
+
+                    final isSelected =
+                        subjectData["online"]! || subjectData["offline"]!;
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: isSelected,
+                                    onChanged: (v) {
+                                      setState(() {
+                                        subjectData["online"] = v!;
+                                        subjectData["offline"] = v;
+                                      });
+                                    },
+                                  ),
+                                  Text(subject['name']),
+                                ],
+                              ),
+                            ],
+                          ),
+
+                          /// Mode selection
+                          if (isSelected)
+                            Row(
+                              children: [
+                                Row(
+                                  children: [
+                                    Checkbox(
+                                      value: subjectData["online"],
+                                      onChanged: (v) {
+                                        setState(() {
+                                          subjectData["online"] = v!;
+                                        });
+                                      },
+                                    ),
+                                    const Text(
+                                      "Online",
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Checkbox(
+                                      value: subjectData["offline"],
+                                      onChanged: (v) {
+                                        setState(() {
+                                          subjectData["offline"] = v!;
+                                        });
+                                      },
+                                    ),
+                                    const Text(
+                                      "Offline",
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildDayTimeSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: _days.map((day) {
+        selectedAvailability.putIfAbsent(day, () => []);
+
+        final isDaySelected = selectedAvailability[day]!.isNotEmpty;
+
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          child: ExpansionTile(
+            initiallyExpanded: isDaySelected,
+            title: Row(
+              children: [
+                Checkbox(
+                  value: isDaySelected,
+                  onChanged: (v) {
+                    setState(() {
+                      if (v == true) {
+                        selectedAvailability[day] = [];
+                      } else {
+                        selectedAvailability.remove(day);
+                      }
+                    });
+                  },
+                ),
+                Text(day, style: const TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  children: _hours.map((time) {
+                    final isSelected =
+                        selectedAvailability[day]?.contains(time) ?? false;
+
+                    return FilterChip(
+                      label: Text(time),
+                      selected: isSelected,
+                      onSelected: (v) {
+                        setState(() {
+                          if (!selectedAvailability.containsKey(day)) return;
+
+                          if (v) {
+                            selectedAvailability[day]!.add(time);
+                          } else {
+                            selectedAvailability[day]!.remove(time);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }

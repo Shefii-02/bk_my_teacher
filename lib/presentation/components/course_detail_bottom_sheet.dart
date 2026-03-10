@@ -70,7 +70,7 @@ class CourseDetailBottomSheetState extends State<CourseDetailBottomSheet> {
 
   void _redirectToEnrolledCourse() {
     Navigator.of(context).pop(); // close bottom sheet
-    context.push('/class-detail', extra: widget.course['id'].toString());
+    context.push('/class-detail', extra: widget.course['id']);
   }
 
   @override

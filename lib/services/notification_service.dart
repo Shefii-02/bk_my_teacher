@@ -31,7 +31,7 @@ class AppNotificationService {
     // InitializationSettings(android: androidSettings);
 
     await _notifications.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         final payload = response.payload;
 
@@ -82,10 +82,10 @@ class AppNotificationService {
     NotificationDetails(android: androidDetails);
 
     await _notifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000, // unique id
-      title,
-      body,
-      details,
+      id: DateTime.now().millisecondsSinceEpoch ~/ 1000, // id
+      title: title,
+      body: body,
+      notificationDetails: details,
       payload: payload,
     );
   }

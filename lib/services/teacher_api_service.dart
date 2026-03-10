@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io' show File; // Only for mobile/desktop
 import 'package:BookMyTeacher/model/webinar_details_model.dart';
 import 'package:BookMyTeacher/model/workshop_details_model.dart';
@@ -60,10 +61,12 @@ class TeacherApiService {
     required String offlineExp,
     required String onlineExp,
     required String homeExp,
-    required List<String> selectedDays,
-    required List<String> selectedHours,
-    required List<String> teachingGrades,
-    required List<String> teachingSubjects,
+    // required List<String> selectedDays,
+    // required List<String> selectedHours,
+    // required List<String> teachingGrades,
+    // required List<String> teachingSubjects,
+    required Map<String, dynamic> availability,
+    required Map<String, dynamic> teachingData,
     required String experience,
     PlatformFile? cvFile,
     PlatformFile? avatar,
@@ -83,10 +86,12 @@ class TeacherApiService {
         "profession": profession,
         "ready_to_work": readyToWork,
         "experience": experience,
-        "working_days": selectedDays.join(","),
-        "working_hours": selectedHours.join(","),
-        "teaching_grades": teachingGrades.join(","),
-        "teaching_subjects": teachingSubjects.join(","),
+        // "working_days": selectedDays.join(","),
+        // "working_hours": selectedHours.join(","),
+        // "teaching_grades": teachingGrades.join(","),
+        // "teaching_subjects": teachingSubjects.join(","),
+        "availability": jsonEncode(availability),
+        "teaching_data": jsonEncode(teachingData),
         "offline_exp": offlineExp,
         "online_exp": onlineExp,
         "home_exp": homeExp,
@@ -298,9 +303,7 @@ class TeacherApiService {
   }
 
   Future<ScheduleResponse> fetchTeacherSchedule() async {
-
     await _loadAuth();
-
     final response = await _dio.post('/teacher/schedule');
     // assume backend returns JSON structure as agreed
     return ScheduleResponse.fromJson(response.data);
@@ -330,7 +333,6 @@ class TeacherApiService {
     final res = await _dio.post('/teacher/workshop-details', data: {"id": id});
     return WorkshopDetailsModel.fromJson(res.data);
   }
-
 
   Future<StatisticsModel> fetchStatistics() async {
     try {
@@ -445,4 +447,180 @@ class TeacherApiService {
       return [];
     }
   }
+
+  Future<Map<String, dynamic>> createCourseClass(
+    Map<String, dynamic> payload,
+  ) async {
+    await _loadAuth();
+
+    final response = await _dio.post(
+      "/teacher/course-class/create",
+      data: payload, // no need jsonEncode
+    );
+
+    return response.data;
+  }
+
+  // ─── In your TeacherApiService class ─────────────────────────────────────────
+
+  Future<Map<String, dynamic>> uploadMaterial({
+    required int courseId,
+    required String title,
+    required String type,
+    required File file,
+    int position = 0,
+  }) async {
+    await _loadAuth();
+    try {
+      final fileName = file.path.split('/').last;
+
+      final formData = FormData.fromMap({
+        'course_id': courseId.toString(),
+        'title': title,
+        'position': position.toString(),
+        'status': 'published',
+        'file': await MultipartFile.fromFile(
+          file.path,
+          filename: fileName,
+          contentType: _getDioMediaType(type), // ✅ safe
+        ),
+      });
+
+      final response = await _dio.post(
+        '/teacher/course/material/upload',
+        data: formData,
+      );
+
+      final data = response.data;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'status': true,
+          'message': data['message'] ?? 'Uploaded successfully',
+        };
+      } else {
+        return {'status': false, 'message': data['message'] ?? 'Upload failed'};
+      }
+    } on DioException catch (e) {
+      debugPrint('uploadMaterial DioError: ${e.response?.data}');
+      final data = e.response?.data;
+      final message = (data is Map)
+          ? data['message'] ?? 'Upload failed'
+          : 'Upload failed';
+      return {'status': false, 'message': message};
+    } catch (e) {
+      debugPrint('uploadMaterial error: $e');
+      return {'status': false, 'message': 'Something went wrong'};
+    }
+  }
+
+  // ✅ Safe media type — no string splitting
+  //   DioMediaType _getDioMediaType(String type) {
+  //     switch (type) {
+  //       case 'pdf'   : return DioMediaType('application', 'pdf');
+  //       case 'image' : return DioMediaType('image', 'jpeg');
+  //       case 'voice' : return DioMediaType('audio', 'm4a');
+  //       default      : return DioMediaType('application', 'octet-stream');
+  //     }
+  //   }
+
+  // ─── MIME helper ──────────────────────────────────────────────────────────────
+
+  // ✅ Safe mime split
+  DioMediaType _getDioMediaType(String type) {
+    switch (type) {
+      case 'pdf':
+        return DioMediaType('application', 'pdf');
+      case 'image':
+        return DioMediaType('image', 'jpeg');
+      case 'voice':
+        return DioMediaType('audio', 'm4a');
+      default:
+        return DioMediaType('application', 'octet-stream');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateCourseClass(
+    Map<String, dynamic> payload,
+  ) async {
+    await _loadAuth();
+    try {
+      final response = await _dio.post(
+        '/teacher/course/class/update',
+        data: payload,
+      );
+      final data = response.data;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'status': true,
+          'message': data['message'] ?? 'Updated successfully',
+        };
+      } else {
+        return {'status': false, 'message': data['message'] ?? 'Update failed'};
+      }
+    } on DioException catch (e) {
+      final message = e.response?.data?['message'] ?? 'Update failed';
+      return {'status': false, 'message': message};
+    } catch (e) {
+      return {'status': false, 'message': 'Something went wrong'};
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteCourseClass(String classId) async {
+    await _loadAuth();
+    try {
+      final response = await _dio.post(
+        '/teacher/course/class/delete',
+        data: {'id': classId},
+      );
+
+      final data = response.data;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'status': true,
+          'message': data['message'] ?? 'Class deleted successfully',
+        };
+      } else {
+        return {'status': false, 'message': data['message'] ?? 'Delete failed'};
+      }
+    } on DioException catch (e) {
+      debugPrint('deleteCourseClass DioError: ${e.response?.data}');
+      final message = e.response?.data?['message'] ?? 'Delete failed';
+      return {'status': false, 'message': message};
+    } catch (e) {
+      debugPrint('deleteCourseClass error: $e');
+      return {'status': false, 'message': 'Something went wrong'};
+    }
+  }
+  Future<Map<String, dynamic>> deleteCourseMaterial(String materialId) async {
+    await _loadAuth();
+    try {
+      final response = await _dio.post(
+        '/teacher/course/material/delete',
+        data: {'id': materialId},
+      );
+
+      final data = response.data;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'status': true,
+          'message': data['message'] ?? 'Material deleted successfully',
+        };
+      } else {
+        return {'status': false, 'message': data['message'] ?? 'Delete failed'};
+      }
+    } on DioException catch (e) {
+      debugPrint('deleteCourseMaterial DioError: ${e.response?.data}');
+      final message = e.response?.data?['message'] ?? 'Delete failed';
+      return {'status': false, 'message': message};
+    } catch (e) {
+      debugPrint('deleteCourseMaterial error: $e');
+      return {'status': false, 'message': 'Something went wrong'};
+    }
+
+  }
+
+
 }

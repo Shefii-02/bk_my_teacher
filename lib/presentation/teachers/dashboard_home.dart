@@ -11,6 +11,7 @@ import 'package:BookMyTeacher/presentation/teachers/teacher_quick_actions.dart';
 import 'package:BookMyTeacher/presentation/teachers/watch_time_card.dart';
 import 'package:BookMyTeacher/presentation/widgets/social_media_icons.dart';
 import 'package:dio/dio.dart';
+import '../chat/screens/chat_home_screen_dummy.dart';
 import '../widgets/merchant_app_phonepe.dart';
 import '../../presentation/students/invite_friends_card.dart';
 import 'package:BookMyTeacher/presentation/teachers/signIn_with_google.dart';
@@ -27,6 +28,7 @@ import '../../services/teacher_api_service.dart';
 import '../widgets/bodyBg.dart';
 import '../widgets/connect_with_team_whatsapp.dart';
 import '../widgets/notification_bell.dart';
+import '../widgets/today_classes_section.dart';
 import '../widgets/unified_payment_page.dart';
 import '../widgets/verify_account_popup.dart';
 import '../widgets/wallet_section.dart';
@@ -41,6 +43,9 @@ class DashboardHome extends ConsumerStatefulWidget {
 
 class _DashboardHomeState extends ConsumerState<DashboardHome> {
   late Future<Map<String, dynamic>> userCard;
+
+  int unreadCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -117,9 +122,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
             body: Stack(
               children: [
                 // Background Image
-                Positioned.fill(
-                  child: BodyBg(),
-                ),
+                Positioned.fill(child: BodyBg()),
                 // Main Scrollable Content
                 SafeArea(
                   child: SingleChildScrollView(
@@ -133,37 +136,144 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
+                              Container(
+                                child: Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Welcome Back',
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20.0,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      name.length > 15
+                                          ? "${name.substring(0, 15)}.."
+                                          : name,
+                                      style: const TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20.0,
+                                      ),
+                                    ),
+
+
+                                  ],
+                                ),
+                              ),
+
                               Row(
                                 children: [
-                                  CircleAvatar(
-                                    radius: 25,
-                                    backgroundColor: Colors.grey[200],
-                                    backgroundImage:
-                                        (avatar != null && avatar.isNotEmpty)
-                                        ? NetworkImage(avatar)
-                                        : null, // no background image when avatar is null or empty
-                                    child: (avatar == null || avatar.isEmpty)
-                                        ? Icon(
-                                            Icons.person,
-                                            size: 30,
-                                            color: Colors.grey[500],
-                                          )
-                                        : null, // show icon only when no image
+                                  NotificationBell(
+                                    onTap: () =>
+                                        showNotificationsSheet(context, ref),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    name,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18.0,
+                                  // dynamic value from API
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              ChatHomeScreenDummy(),
+                                          // ChatHomeScreen(),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.black,
+                                      elevation: 1,
+                                      side: BorderSide(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text("Chat"),
+                                        SizedBox(width: 8),
+
+                                        /// ICON + BADGE
+                                        Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            Icon(Icons.chat_outlined),
+                                            if (unreadCount > 0)
+                                              Positioned(
+                                                right: -10,
+                                                top: -15,
+                                                child: Container(
+                                                  padding: EdgeInsets.all(4),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.red,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  constraints: BoxConstraints(
+                                                    minWidth: 18,
+                                                    minHeight: 18,
+                                                  ),
+                                                  child: Text(
+                                                    unreadCount > 99
+                                                        ? "99+"
+                                                        : unreadCount
+                                                              .toString(),
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
                                   ),
+                                  const SizedBox(width: 10),
                                 ],
                               ),
-                              NotificationBell(
-                                onTap: () => showNotificationsSheet(context, ref),
-                              ),
+
+                              // Row(
+                              //   children: [
+                              // CircleAvatar(
+                              //   radius: 25,
+                              //   backgroundColor: Colors.grey[200],
+                              //   backgroundImage:
+                              //       (avatar != null && avatar.isNotEmpty)
+                              //       ? NetworkImage(avatar)
+                              //       : null, // no background image when avatar is null or empty
+                              //   child: (avatar == null || avatar.isEmpty)
+                              //       ? Icon(
+                              //           Icons.person,
+                              //           size: 30,
+                              //           color: Colors.grey[500],
+                              //         )
+                              //       : null, // show icon only when no image
+                              // ),
+
+                              // Text(
+                              //   name,
+                              //   style: const TextStyle(
+                              //     color: Colors.black,
+                              //     fontWeight: FontWeight.bold,
+                              //     fontSize: 18.0,
+                              //   ),
+                              // ),
+                              //   ],
+                              // ),
                             ],
                           ),
                         ),
@@ -193,6 +303,9 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                         const SizedBox(height: 15),
                         const InviteFriendsCard(),
                         const SizedBox(height: 15),
+                        // ---------- Today's Classes Section ----------
+                        TodayClassesSection(),
+                        const SizedBox(height: 20),
                         //
                         Container(
                           width: double.infinity,
@@ -423,7 +536,9 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                         item.message,
                         style: TextStyle(
                           fontSize: 13,
-                          color: item.isRead ? Colors.grey[600] : Colors.grey[800],
+                          color: item.isRead
+                              ? Colors.grey[600]
+                              : Colors.grey[800],
                         ),
                       ),
                     ],
@@ -436,10 +551,10 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                       color: item.isRead ? Colors.grey : Colors.black,
                     ),
                     onPressed: () async {
-
                       /// Mark as read
-                      await ref
-                          .read(markNotificationReadProvider(item.id).future);
+                      await ref.read(
+                        markNotificationReadProvider(item.id).future,
+                      );
 
                       /// Refresh list
                       ref.refresh(notificationProvider);
@@ -449,12 +564,14 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                         context: context,
                         builder: (_) => AlertDialog(
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15)),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           title: Text(
                             item.title,
                             style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -468,7 +585,9 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                               Text(
                                 "Time: ${item.time}",
                                 style: TextStyle(
-                                    fontSize: 12, color: Colors.grey[700]),
+                                  fontSize: 12,
+                                  color: Colors.grey[700],
+                                ),
                               ),
                             ],
                           ),
@@ -476,7 +595,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                             TextButton(
                               onPressed: () => Navigator.pop(context),
                               child: Text("Close"),
-                            )
+                            ),
                           ],
                         ),
                       );
@@ -492,8 +611,6 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
       },
     );
   }
-
-
 }
 
 class StepData {

@@ -9,6 +9,11 @@ class CourseSearchTab extends StatefulWidget {
 
 class _CourseSearchTabState extends State<CourseSearchTab> {
   Widget build(BuildContext context) {
-    return SizedBox();
+    return SizedBox(
+      child: Align(
+        alignment: Alignment.center,
+        child: SizedBox(child: Text('This Feature is not available yet')),
+      ),
+    );
   }
 }

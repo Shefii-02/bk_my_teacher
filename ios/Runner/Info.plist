@@ -72,7 +72,8 @@
             <string>UIInterfaceOrientationLandscapeLeft</string>
             <string>UIInterfaceOrientationLandscapeRight</string>
         </array>
-
+        <key>NSMicrophoneUsageDescription</key>
+        <string>We need microphone access to record voice messages.</string>
 
         <key>UISupportedInterfaceOrientations~ipad</key>
         <array>
@@ -82,6 +83,17 @@
             <string>UIInterfaceOrientationLandscapeRight</string>
         </array>
 
+        <dict>
+            <!-- Add these keys -->
+            <key>UIBackgroundModes</key>
+            <array>
+                <string>fetch</string>
+                <string>remote-notification</string>
+            </array>
+
+            <key>FirebaseAppDelegateProxyEnabled</key>
+            <false/>
+        </dict>
 
 	</dict>
 </plist>

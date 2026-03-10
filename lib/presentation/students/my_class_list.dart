@@ -60,7 +60,6 @@ class _MyClassListState extends State<MyClassList>
       backgroundColor: Colors.grey[100],
       body: Stack(
         children: [
-
           Image.asset(
             ImagePaths.appBg,
             fit: BoxFit.contain,
@@ -157,7 +156,8 @@ class _MyClassListState extends State<MyClassList>
                       if (courses.isEmpty) {
                         return _emptyState(
                           title: 'No ${category['category']} Found',
-                          subtitle: 'You have not enrolled in any ${category['category'].toString().toLowerCase()} yet.',
+                          subtitle:
+                              'You have not enrolled in any ${category['category'].toString().toLowerCase()} yet.',
                         );
                       }
                       return ListView.builder(
@@ -170,21 +170,30 @@ class _MyClassListState extends State<MyClassList>
                               return CourseCard(
                                 course: item,
                                 // onTap: () => _showCourseDetail(item),
-                                 onTap: () => context.push('/class-detail', extra: item['id'].toString()),
+                                onTap: () => context.push(
+                                  '/student/class-detail',
+                                  extra: item['id'] as int,
+                                ),
                               );
 
                             case 'Webinar':
                               return WebinarCards(
                                 webinar: item,
                                 // onTap: () => _showWebinarDetail(item),
-                                onTap: () => context.push('/webinar-detail', extra: item['id'].toString()),
+                                onTap: () => context.push(
+                                  '/student/webinar-detail',
+                                  extra: item['id'] as int,
+                                ),
                               );
 
                             case 'Workshop':
                               return WorkshopCard(
                                 workshop: item,
                                 // onTap: () => _showWorkshopDetail(item),
-                                onTap: () => context.push('/workshop-detail', extra: item['id'].toString()),
+                                onTap: () => context.push(
+                                  '/student/workshop-detail',
+                                  extra: item['id'].toString(),
+                                ),
                               );
                             case 'Demo Class':
                               return DemoClassCard(
@@ -225,37 +234,24 @@ class _MyClassListState extends State<MyClassList>
     );
   }
 
-  Widget _emptyState({
-    required String title,
-    required String subtitle,
-  }) {
+  Widget _emptyState({required String title, required String subtitle}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.school_outlined,
-              size: 70,
-              color: Colors.grey.shade400,
-            ),
+            Icon(Icons.school_outlined, size: 70, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
           ],
@@ -269,13 +265,10 @@ class _MyClassListState extends State<MyClassList>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => DemoClassDetailBottomSheet(
-          course: course
-      ),
+      builder: (_) => DemoClassDetailBottomSheet(course: course),
     );
   }
 }
-
 
 class FullWidthIndicator extends Decoration {
   final Color color;
@@ -312,4 +305,3 @@ class _FullWidthIndicatorPainter extends BoxPainter {
     );
   }
 }
-

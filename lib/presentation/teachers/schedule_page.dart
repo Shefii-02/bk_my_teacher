@@ -1,5 +1,7 @@
 import 'package:BookMyTeacher/presentation/teachers/quick_action/class_details_screen.dart';
 import 'package:BookMyTeacher/presentation/teachers/quick_action/course_details_page.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/webinar_details_page.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/workshop_details_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -251,26 +253,43 @@ class _SchedulePageState extends State<SchedulePage> {
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 2,
                                       ),
-                                      _statusChip(event.classStatus),
+                                      Row(
+                                        children: [
+                                          _statusChip(event.classStatus),
+                                          _typeChip(event.type),
+                                        ],
+                                      )
+
                                     ],
                                   ),
                                   isThreeLine: true,
                                   trailing: IconButton(
                                     icon: const Icon(Icons.info_outline),
                                     onPressed: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          // builder: (_) => ClassDetailsScreen(
-                                          //   event: event,
-                                          //   dateKey: DateTime.utc(
-                                          //     _selectedDay!.year,
-                                          //     _selectedDay!.month,
-                                          //     _selectedDay!.day,
-                                          //   ),
-                                          // ),
-                                            builder: (_) =>CourseDetailsPage(courseId: event.id)
-                                        ),
-                                      );
+                                      if (event.type == "course") {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                CourseDetailsPage(courseId: event.courseId!.toInt()),
+                                          ),
+                                        );
+                                      } else if (event.type == "webinar") {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                WebinarDetailsPage(courseId: event.id),
+                                          ),
+                                        );
+                                      } else if (event.type == "workshop") {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                WorkshopDetailsPage(courseId: event.courseId!.toInt()),
+                                          ),
+                                        );
+                                      } else {}
+
+
                                     },
                                   ),
                                 ),
@@ -321,6 +340,26 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
+  Widget _typeChip(String type) {
+    Color bg;
+    switch (type) {
+      case 'webinar':
+        bg = Colors.purple;
+        break;
+      case 'workshop':
+        bg = Colors.blueGrey;
+        break;
+      default:
+        bg = Colors.teal;
+    }
+    return Chip(
+      label: Text(
+        type.toUpperCase(),
+        style: const TextStyle(color: Colors.white, fontSize: 10),
+      ),
+      backgroundColor: bg,
+    );
+  }
   Widget _statusChip(String status) {
     Color bg;
 

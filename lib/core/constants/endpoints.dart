@@ -1,8 +1,8 @@
 class Endpoints {
   //Domain
-  static const domain = "https://bookmyteacher.cloud";
+  // static const domain = "https://bookmyteacher.cloud";
   //
-  // static const domain = "https://stage.bookmyteacher.cloud";
+  static const domain = "https://stage.bookmyteacher.cloud";
 
   // Base
   // static const base = "https://dashboard.bookmyteacher.co.in/api";
@@ -20,6 +20,7 @@ class Endpoints {
   static const signInWithGoogle = "/user-login-email";
   static const verifyWithGoogle = "/user-verify-email";
 
+  static const appleLogin = "/apple-sign-in";
   // Fetch Data
   static const fetchGrads = "/fetch-grades";
   static const fetchSubjects = "/fetch-subjects";
@@ -85,5 +86,4 @@ class Endpoints {
   static const teacherUpdateCv = "/teacher-update-cv";
 
   static const studentUpdatePersonal = "/student-update-personal";
-
 }

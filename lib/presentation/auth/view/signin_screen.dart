@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,13 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import '../../../core/constants/image_paths.dart';
-import '../../../core/enums/app_config.dart';
 import '../../../providers/user_provider.dart';
-import '../../../services/auth_service.dart';
+import '../../../services/apple_auth_service.dart';
 import '../../../services/launch_status_service.dart';
 import '../../widgets/login_instruction_page.dart';
 import '../controller/auth_controller.dart';
@@ -28,6 +29,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool _isChecked = false;
   String _selectedCode = "+91";
   bool _isLoading = false;
+  String? _errorMessage;
 
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _isInitialized = false;
@@ -171,7 +173,88 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     }
   }
 
-  final AuthService _authService = AuthService();
+
+  // ── MAIN SIGN IN ACTION ──────────────────────
+  Future<void> _handleSignIn() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    // Haptic feedback
+    HapticFeedback.lightImpact();
+
+    try {
+      final result = await AppleAuthService.signIn();
+
+      if (!mounted) return;
+
+      if (result == null) {
+        if (mounted) setState(() => _isLoading = false);
+        // User cancelled or token error
+        return;
+      }
+
+
+      if (!result.status) {
+        // ❌ Account not found — show message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result.message),backgroundColor: Colors.red,),
+        );
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+      //
+      // // ✅ Success — navigate
+      final token    = result.token;
+      final userData = result.user;
+
+      if (token == null || userData == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed. Try again.'),backgroundColor: Colors.red,),
+        );
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+      //
+      // // Save token
+      await LaunchStatusService.saveAuthToken(token);
+      await LaunchStatusService.saveUserData(userData);
+
+      final accType     = userData['acc_type']     as String? ?? 'guest';
+      final profileFill = userData['profile_fill'] as int?    ?? 0;
+      final userId      = userData['id'].toString();
+
+      await LaunchStatusService.setUserRole(accType);
+      await LaunchStatusService.setUserId(userId);
+      //
+      if (!mounted) return;
+
+      if (profileFill != 1) {
+        context.go('/signup-stepper');
+        return;
+      }
+
+      switch (accType) {
+        case 'teacher': context.go('/'); break;
+        case 'student': context.go('/'); break;
+        case 'guest':   context.go('/guest-dashboard', extra: {'guestId': userId}); break;
+        default:        context.go('/error');
+      }
+
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Apple error: ${e.message}')),
+      );
+      if (mounted) setState(() => _isLoading = false);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Something went wrong. Try again.')),
+      );
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   Future<void> _initialize() async {
     if (_isInitialized) return;
@@ -212,7 +295,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         idToken = await user.getIdToken();
         email = user.email ?? '';
         print("*******");
-        print(email);print(idToken);
+        print(email);
+        print(idToken);
         print("*******");
       } else {
         // Start authentication flow
@@ -224,14 +308,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         print(account);
         print("*******");
         print("tokens: $tokens");
-         idToken = tokens.idToken;
+        idToken = tokens.idToken;
         print("*******");
-         email = account.email;
+        email = account.email;
         print("----------");
         print(email);
         print("----------");
-
-
       }
 
       // 🌐 WEB
@@ -489,78 +571,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                       ],
                                     ),
                                   ),
+
                                   SizedBox(height: 65),
-                                  if (Platform.isAndroid) ...[
-                                  // if (!kIsWeb) ...[
-                                    Center(
-                                      child: SizedBox(
-                                        width: 400.0,
-                                        height: 50.0,
-                                        child: ElevatedButton(
-                                          onPressed: () =>
-                                              _handleGoogleLogin(context),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.white,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            children: [
-                                              Image.asset(
-                                                'assets/images/icons/icon-google.png',
-                                              ),
-                                              const SizedBox(
-                                                width: 15,
-                                                height: 30,
-                                              ),
-                                              const Text(
-                                                "        Sign in with Google",
-                                                style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 14,
-                                                  letterSpacing: 1.1,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 15.0),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Expanded(
-                                          child: Divider(
-                                            thickness: 0.7,
-                                            color: Colors.grey.withOpacity(0.5),
-                                          ),
-                                        ),
-                                        const Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                          ),
-                                          child: Text(
-                                            'Or',
-                                            style: TextStyle(
-                                              color: Colors.black45,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Divider(
-                                            thickness: 0.7,
-                                            color: Colors.grey.withOpacity(0.5),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 15.0),
-                                  ],
                                   Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white,
@@ -744,6 +756,81 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(height: 15.0),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        child: Divider(
+                                          thickness: 0.7,
+                                          color: Colors.grey.withOpacity(0.5),
+                                        ),
+                                      ),
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                        ),
+                                        child: Text(
+                                          'Or',
+                                          style: TextStyle(
+                                            color: Colors.black45,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Divider(
+                                          thickness: 0.7,
+                                          color: Colors.grey.withOpacity(0.5),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  // if (!kIsWeb) ...[
+                                  Center(
+                                    child: SizedBox(
+                                      width: 400.0,
+                                      height: 50.0,
+                                      child: ElevatedButton(
+                                        onPressed: () =>
+                                            _handleGoogleLogin(context),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.white,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            Image.asset(
+                                              'assets/images/icons/icon-google.png',
+                                            ),
+                                            const SizedBox(
+                                              width: 15,
+                                              height: 30,
+                                            ),
+                                            const Text(
+                                              "        Sign in with Google",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 14,
+                                                letterSpacing: 1.1,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  if (Platform.isIOS) ...[
+                                    const SizedBox(height: 15.0),
+                                    _AppleSignInButton(
+                                      isLoading: _isLoading,
+                                      onPressed: _handleSignIn,
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -819,5 +906,70 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   void dispose() {
     _phoneController.dispose();
     super.dispose();
+  }
+}
+
+class _AppleSignInButton extends StatelessWidget {
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  const _AppleSignInButton({required this.isLoading, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: isLoading
+          ? _LoadingButton()
+          : ElevatedButton(
+              onPressed: () => onPressed(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.white,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    '',
+                    style: TextStyle(fontSize: 46, color: Colors.black),
+                  ),
+                  const SizedBox(width: 15, height: 30),
+                  const Text(
+                    "        Sign in with Apple",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      letterSpacing: 1.1,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+class _LoadingButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1C1E),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Center(
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2.5,
+          ),
+        ),
+      ),
+    );
   }
 }

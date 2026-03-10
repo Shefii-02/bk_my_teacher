@@ -70,7 +70,8 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
 
   void _redirectToEnrolledCourse() {
     Navigator.of(context).pop(); // close bottom sheet
-    context.push('/workshop-detail', extra: widget.course['id'].toString());
+    print(widget.course['id']);
+    context.push('/workshop-detail', extra: widget.course['id']);
   }
 
   @override

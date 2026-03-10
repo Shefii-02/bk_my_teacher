@@ -10,6 +10,7 @@ import '../model/notification_item.dart';
 import '../model/performance_summary.dart';
 import '../model/student_model.dart';
 import '../model/student_performance.dart';
+import '../model/today_class_model.dart';
 import '../model/top_banner.dart';
 import '../providers/student_performance_provider.dart';
 
@@ -340,12 +341,13 @@ class ApiService {
   // }
 
   Future<ApiResponse<Map<String, dynamic>>> userLoginEmail(
-    String idToken, String email
+    String idToken,
+    String email,
   ) async {
     try {
       final response = await _dio.post(
         Endpoints.signInWithGoogle,
-        data: json.encode({'idToken': idToken,'email' : email}),
+        data: json.encode({'idToken': idToken, 'email': email}),
       );
 
       final responseData = response.data;
@@ -368,14 +370,15 @@ class ApiService {
   }
 
   Future<ApiResponse<Map<String, dynamic>>> verifyUserEmail(
-    String idToken, String email,
+    String idToken,
+    String email,
   ) async {
     try {
       await _loadAuth();
 
       final response = await _dio.post(
         Endpoints.verifyWithGoogle,
-        data: json.encode({'idToken': idToken,'email': email}),
+        data: json.encode({'idToken': idToken, 'email': email}),
       );
 
       final responseData = response.data;
@@ -461,21 +464,37 @@ class ApiService {
 
     return response.data?['data'];
   }
+
   Future<Map<String, dynamic>> fetchWorkshopDetail(String id) async {
     await _loadAuth();
-    final response = await _dio.post("/workshop-detail", data: {"workshop_id": id});
+    final response = await _dio.post(
+      "/workshop-detail",
+      data: {"workshop_id": id},
+    );
     return response.data?['data'];
   }
 
   Future<Map<String, dynamic>> fetchWebinarDetail(String id) async {
     await _loadAuth();
-    final response = await _dio.post("/webinar-detail", data: {"webinar_id": id});
+    final response = await _dio.post(
+      "/webinar-detail",
+      data: {"webinar_id": id},
+    );
     return response.data?['data'];
   }
 
+  Future<List<TodayClassModel>> getTodayClasses() async {
+    try {
+      await _loadAuth();
+      final response = await _dio.post("/today-classes");
+      List data = response.data['data'];
 
-
-
+      return data.map((e) => TodayClassModel.fromJson(e)).toList();
+    } catch (e) {
+      print("Error: $e");
+      return [];
+    }
+  }
 
   // Future<Map<String, dynamic>> fetchWorkshopDetail(String id) async {
   //   await Future.delayed(const Duration(seconds: 1)); // simulate API delay
@@ -529,8 +548,6 @@ class ApiService {
   //     ],
   //   };
   // }
-
-
 
   // Future<Map<String, dynamic>> fetchWebinarDetail(String id) async {
   //   await Future.delayed(const Duration(seconds: 1)); // simulate API delay
@@ -941,13 +958,11 @@ class ApiService {
     return res.data;
   }
 
-
   Future<Map<String, dynamic>> fetchEnrolledCourses() async {
     await _loadAuth();
     final res = await _dio.post('/fetch-enrolled-courses');
     return Map<String, dynamic>.from(res.data);
   }
-
 
   // Future<Map<String, dynamic>?> requestTopBannerSection(String bannerId) async {
   //   try {
@@ -1041,11 +1056,10 @@ class ApiService {
     return _submitFormRequest('/request-form/submit', formData);
   }
 
-
   // 🔹 General Request Form (Form data)
   Future<Map<String, dynamic>?> findingRequestingTeacher(
-      Map<String, dynamic> formData,
-      ) async {
+    Map<String, dynamic> formData,
+  ) async {
     return _submitFormRequest('/finding-teacher-request-form/submit', formData);
   }
 
@@ -1198,13 +1212,11 @@ class ApiService {
         return {'status': false, 'message': 'Token not Matched'};
       }
 
-      final response = await _dio.post(endpoint,
-          data: jsonEncode(formData), // ✅ SEND JSON
-          options: Options(
-            headers: {
-              "Content-Type": "application/json",
-            },
-          ));
+      final response = await _dio.post(
+        endpoint,
+        data: jsonEncode(formData), // ✅ SEND JSON
+        options: Options(headers: {"Content-Type": "application/json"}),
+      );
 
       if (response.statusCode == 200) {
         return response.data;
@@ -1330,19 +1342,15 @@ class ApiService {
     return res.data["status"] == 200;
   }
 
-
   Future<bool> courseClassDoubtSubmit({
     required String doubt,
-    required String classId
+    required String classId,
   }) async {
     try {
       await _loadAuth();
       final response = await _dio.post(
         '/course-class-doubts',
-        data: {
-          'doubt': doubt,
-          'class_id': classId
-        },
+        data: {'doubt': doubt, 'class_id': classId},
       );
 
       return response.data['status'] == true;
@@ -1352,19 +1360,15 @@ class ApiService {
     }
   }
 
-
   Future<bool> workshopClassDoubtSubmit({
     required String doubt,
-    required String classId
+    required String classId,
   }) async {
     try {
       await _loadAuth();
       final response = await _dio.post(
         '/workshop-class-doubts',
-        data: {
-          'doubt': doubt,
-          'class_id': classId
-        },
+        data: {'doubt': doubt, 'class_id': classId},
       );
 
       return response.data['status'] == true;
@@ -1376,16 +1380,13 @@ class ApiService {
 
   Future<bool> webinarClassDoubtSubmit({
     required String doubt,
-    required String classId
+    required String classId,
   }) async {
     try {
       await _loadAuth();
       final response = await _dio.post(
         '/webinar-class-doubts',
-        data: {
-          'doubt': doubt,
-          'class_id': classId
-        },
+        data: {'doubt': doubt, 'class_id': classId},
       );
 
       return response.data['status'] == true;
@@ -1394,9 +1395,6 @@ class ApiService {
       return false;
     }
   }
-
-
-
 }
 
 class DropdownItem {

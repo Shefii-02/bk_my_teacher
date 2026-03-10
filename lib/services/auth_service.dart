@@ -1,12 +1,42 @@
 import 'dart:convert';
-
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive/hive.dart';
 
+import '../core/constants/endpoints.dart';
+import '../model/apple_auth_result.dart';
+import '../presentation/auth/view/signin_screen.dart';
 import 'api_service.dart';
 
 class AuthService {
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: Endpoints.base,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: {'Content-Type': 'application/json'},
+    ),
+  );
+
+  // 🔹 Add auth token to header
+  void setAuthToken(String token) {
+    _dio.options.headers['Authorization'] = 'Bearer $token';
+  }
+
+  // ---------------------------------------------------------------------------
+  // 🔹 COMMON — Load token & add in header
+  // ---------------------------------------------------------------------------
+  Future<void> _loadAuth() async {
+    final box = await Hive.openBox('app_storage');
+    final token = box.get('auth_token') ?? '';
+
+    if (token.isNotEmpty) {
+      _dio.options.headers['Authorization'] = 'Bearer $token';
+    }
+  }
+
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   bool _isInitialized = false;
   final ApiService _apiService = ApiService();
@@ -32,13 +62,12 @@ class AuthService {
     try {
       // Start authentication flow
       final GoogleSignInAccount account = await _googleSignIn.authenticate(
-        scopeHint: ['email','profile'],
+        scopeHint: ['email', 'profile'],
       );
 
       // Fetch tokens from the account
       final tokens = account.authentication; // sync in v7
       print("tokens: $tokens");
-
 
       final email = account.email;
       final idToken = tokens.idToken;
@@ -49,7 +78,7 @@ class AuthService {
       }
 
       // final accessToken = tokens.accessToken;
-      final response = await _apiService.userLoginEmail(idToken,email);
+      final response = await _apiService.userLoginEmail(idToken, email);
 
       print('++++++++++++++++++++++++++++=');
       print('Decoded data: ${response.data}');
@@ -150,4 +179,28 @@ class AuthService {
   //   await _googleSignIn.signOut();
   //   await FirebaseAuth.instance.signOut();
   // }
+
+  // ── AuthService ──
+  Future<AppleAuthResult?> appleEmailIdCheckLogin(
+    Map<String, String?> payload,
+  ) async {
+    await _loadAuth();
+    try {
+      final response = await _dio.post(
+        "${Endpoints.base}/apple-sign-in",
+        data: {
+          'idToken': payload['identity_token'],
+          'email': payload['email'],
+          'first_name': payload['first_name'],
+          'last_name': payload['last_name'],
+          'user_identifier': payload['user_identifier'],
+        },
+      );
+      // ✅ Parse here — return AppleAuthResult not raw Response
+      return AppleAuthResult.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      print('appleEmailIdCheckLogin error: $e');
+      return null;
+    }
+  }
 }
