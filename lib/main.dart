@@ -1,12 +1,9 @@
 // import 'dart:io';
 import 'dart:io' show Platform;
-
-
 import 'package:BookMyTeacher/firebase_options.dart';
 import 'package:BookMyTeacher/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
-
 
 import './routes/router.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +12,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ import
 import 'package:flutter_inappwebview/flutter_inappwebview.dart'; // Import this
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+import 'services/notification_service_helper.dart';
 
 void main() async {
   final FlutterLocalNotificationsPlugin _notifications =
@@ -47,10 +48,15 @@ void main() async {
   //   // iOS logic
   // }
 
+  await Firebase.initializeApp();
+
+  await NotificationServiceHelper.init();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+
 
   await Hive.initFlutter();
 
@@ -82,12 +88,35 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   // final CheckLaunchStatusUseCase useCase;
   // required this.useCase,
   const MyApp({ super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+
+      if (message.notification != null) {
+
+        NotificationServiceHelper.show(
+          message.notification!.title ?? "",
+          message.notification!.body ?? "",
+        );
+
+      }
+
+    });
+
+  }
+
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,

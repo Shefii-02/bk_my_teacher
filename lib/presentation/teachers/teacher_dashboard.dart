@@ -1,6 +1,7 @@
 import 'package:BookMyTeacher/presentation/teachers/quick_action/statistics_sheet.dart';
 import 'package:BookMyTeacher/presentation/teachers/schedule_page.dart';
 import 'package:BookMyTeacher/presentation/teachers/statistics_page.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../providers/user_provider.dart';
@@ -28,6 +29,7 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
     super.initState();
     requestPermissions();
     _initialize();
+    _initializeFcm();
     _screens = [
       DashboardHome(),
       SchedulePage(),
@@ -55,6 +57,39 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
     await [Permission.manageExternalStorage, Permission.storage].request();
   }
 
+  Future _initializeFcm() async {
+    // await FirebaseMessaging.instance.requestPermission();
+
+    String? token = await FirebaseMessaging.instance.getToken();
+
+    print("FCM TOKEN: $token");
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    // 1. Request permission for iOS
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('User granted permission');
+
+      // 2. IMPORTANT: For iOS, you need the APNS token before you can get the FCM token
+      String? apnsToken = await messaging.getAPNSToken();
+      if (apnsToken != null) {
+        String? fcmToken = await messaging.getToken();
+        print("FCM Token: $fcmToken");
+      }
+    }
+
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true, // Required to display a heads up notification
+          badge: true,
+          sound: true,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final teacherAsync = ref.watch(userProvider);
@@ -72,7 +107,6 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
 
         // Convert teacher model to JSON map for easy use
         final teacherData = teacher.toJson();
-
 
         print("------------");
         print(teacherData);
