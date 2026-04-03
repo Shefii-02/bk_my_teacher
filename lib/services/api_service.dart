@@ -12,6 +12,7 @@ import '../model/student_model.dart';
 import '../model/student_performance.dart';
 import '../model/today_class_model.dart';
 import '../model/top_banner.dart';
+import '../presentation/components/app_reviews.dart';
 import '../providers/student_performance_provider.dart';
 
 class ApiResponse<T> {
@@ -1393,6 +1394,38 @@ class ApiService {
     } catch (e) {
       debugPrint('Doubt submit error: $e');
       return false;
+    }
+  }
+
+  Future<ReviewModel?> fetchMyReview() async {
+    try {
+      await _loadAuth();
+
+      final res = await _dio.post("/my-review"); // ✅ FIXED
+
+      if (res.data['data'] == null) return null;
+
+      return ReviewModel.fromJson(res.data['data']);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> submitReview({
+    required String rating, // ✅ FIXED TYPE
+    required String message,
+  }) async {
+    try {
+      await _loadAuth();
+
+      final res = await _dio.post(
+        "/write-review",
+        data: {"rating": rating, "feedback": message},
+      );
+
+      return res.data;
+    } catch (e) {
+      return null;
     }
   }
 }

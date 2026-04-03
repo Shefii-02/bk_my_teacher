@@ -289,8 +289,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         ),
       ),
     );
-
-
   }
 
   Future<bool> _hasInternetConnection() async {

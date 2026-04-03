@@ -75,7 +75,6 @@ dependencies:
   table_calendar: ^3.2.0
   pdf: ^3.11.3
   flutter_rating_bar: ^4.0.1
-#  open_file: ^3.5.10
   flutter_local_notifications: ^20.1.0
   open_filex: ^4.7.0
   flutter_html: ^3.0.0
@@ -86,6 +85,10 @@ dependencies:
   audioplayers: ^6.6.0
   sign_in_with_apple: ^7.0.1
   firebase_messaging: ^16.1.2
+  top_snackbar_flutter: ^3.3.0
+  socket_io_client: ^3.1.4
+#  open_file: ^3.5.11
+  timeago: ^3.7.1
 #  phonepe_payment_sdk: ^3.0.2
 #  phonepe_payment_sdk: ^3.0.2
 #  zego_superboard: ^2.5.9+1

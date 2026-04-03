@@ -1,4 +1,5 @@
 import 'package:BookMyTeacher/core/enums/app_config.dart';
+import 'package:BookMyTeacher/presentation/components/app_reviews.dart';
 import 'package:BookMyTeacher/presentation/students/course_sections.dart';
 import 'package:BookMyTeacher/presentation/students/request_form.dart';
 import 'package:BookMyTeacher/presentation/students/subject_carousel.dart';
@@ -13,15 +14,18 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive/hive.dart';
 import 'package:neopop/widgets/buttons/neopop_tilted_button/neopop_tilted_button.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 import '../../core/constants/image_paths.dart';
 import '../../firebase_options.dart';
+import '../../model/user_model.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/user_provider.dart';
 import '../chat/screens/chat_home_screen.dart';
 import '../chat/screens/chat_home_screen_dummy.dart';
+import '../chating/screens/chat_list_screen.dart';
 import '../components/rotating_hint_text.dart';
 import '../teachers/student_reviews_scroll_section.dart';
 import '../widgets/merchant_app_phonepe.dart';
@@ -55,7 +59,12 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
   bool _isInitialized = false;
   int unreadCount = 0;
 
+   String token = '';
+
   Future<void> _initialize() async {
+    final box = await Hive.openBox('app_storage');
+      token = box.get('auth_token');
+
     if (_isInitialized) return;
     try {
       await _googleSignIn.initialize();
@@ -91,6 +100,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
 
         // ✅ Safely extract values
         final name = studentData['name'] ?? 'Unknown';
+        final id = studentData['id'] ?? 'Unknown';
         final avatar = studentData['avatar_url'] ?? "";
 
         // If email not verified → show popup
@@ -148,108 +158,127 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Container(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Welcome Back',
-                                              style: const TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20.0,
-                                              ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Welcome Back',
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20.0,
                                             ),
-                                            const SizedBox(height: 5),
-                                            Text(
-                                              name.length > 15
-                                                  ? "${name.substring(0, 15)}.."
-                                                  : name,
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            name.length > 15
+                                                ? "${name.substring(0, 15)}.."
+                                                : name,
 
-                                              style: const TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20.0,
-                                              ),
+                                            style: const TextStyle(
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20.0,
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
 
-                                      // dynamic value from API
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ChatHomeScreenDummy(),
-                                              // ChatHomeScreen(),
+                                      Row(
+                                        children: [
+                                          // dynamic value from API
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              // ✅
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ChatListScreen(
+                                                        userId: id,
+                                                        token: token,
+                                                      ),
+                                                  // ChatListScreen(currentUser: UserModel.fromJson(studentData),),
+                                                  // ChatHomeScreenDummy(),
+                                                  // ChatHomeScreen(),
+                                                ),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.white,
+                                              foregroundColor: Colors.black,
+                                              elevation: 1,
+                                              side: BorderSide(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 12,
+                                              ),
                                             ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          foregroundColor: Colors.black,
-                                          elevation: 1,
-                                          side: BorderSide(
-                                            color: Colors.grey.shade300,
-                                          ),
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 12,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text("Chat"),
-                                            SizedBox(width: 8),
-
-                                            /// ICON + BADGE
-                                            Stack(
-                                              clipBehavior: Clip.none,
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(Icons.chat_outlined),
-                                                if (unreadCount > 0)
-                                                  Positioned(
-                                                    right: -10,
-                                                    top: -15,
-                                                    child: Container(
-                                                      padding: EdgeInsets.all(
-                                                        4,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.red,
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                      constraints:
-                                                          BoxConstraints(
-                                                            minWidth: 18,
-                                                            minHeight: 18,
+                                                Text("Chat"),
+                                                SizedBox(width: 8),
+
+                                                /// ICON + BADGE
+                                                Stack(
+                                                  clipBehavior: Clip.none,
+                                                  children: [
+                                                    Icon(Icons.chat_outlined),
+                                                    if (unreadCount > 0)
+                                                      Positioned(
+                                                        right: -10,
+                                                        top: -15,
+                                                        child: Container(
+                                                          padding:
+                                                              EdgeInsets.all(4),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                                color:
+                                                                    Colors.red,
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                              ),
+                                                          constraints:
+                                                              BoxConstraints(
+                                                                minWidth: 18,
+                                                                minHeight: 18,
+                                                              ),
+                                                          child: Text(
+                                                            unreadCount > 99
+                                                                ? "99+"
+                                                                : unreadCount
+                                                                      .toString(),
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 10,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                            textAlign: TextAlign
+                                                                .center,
                                                           ),
-                                                      child: Text(
-                                                        unreadCount > 99
-                                                            ? "99+"
-                                                            : unreadCount
-                                                                  .toString(),
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 10,
-                                                          fontWeight:
-                                                              FontWeight.bold,
                                                         ),
-                                                        textAlign:
-                                                            TextAlign.center,
                                                       ),
-                                                    ),
-                                                  ),
+                                                  ],
+                                                ),
                                               ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                          NotificationBell(
+                                            onTap: () => showNotificationsSheet(
+                                              context,
+                                              ref,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -271,10 +300,9 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                   // ),
                                 ],
                               ),
-                              SizedBox(height: 5,),
+                              SizedBox(height: 5),
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   GestureDetector(
                                     onTap: () {
@@ -309,7 +337,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                           ),
                                           const SizedBox(width: 8),
                                           SizedBox(
-                                            width: 260,
+                                            width: 300,
                                             child: RotatingHintText(
                                               hints: [
                                                 "Search Maths teacher",
@@ -323,13 +351,9 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                       ),
                                     ),
                                   ),
-                                  NotificationBell(
-                                    onTap: () =>
-                                        showNotificationsSheet(context, ref),
-                                  ),
                                 ],
                               ),
-                              SizedBox(height: 15,),
+                              SizedBox(height: 15),
                             ],
                           ),
                         ),
@@ -476,6 +500,8 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                               SocialMediaIcons(),
                               const SizedBox(height: 40),
                               ConnectWithTeam(),
+                              const SizedBox(height: 20),
+                              const AppReviews(),
                               const SizedBox(height: 20),
                             ],
                           ),
