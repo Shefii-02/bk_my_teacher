@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:BookMyTeacher/services/api_service.dart';
 import 'package:BookMyTeacher/presentation/students/recorded_video_with_doubt.dart';
 import '../components/shimmer_image.dart';
+import '../record_section/video_class_screen.dart';
 
 class WorkshopDetailScreen extends StatefulWidget {
   final String classId;
@@ -170,7 +171,7 @@ class _WorkshopDetailScreenState extends State<WorkshopDetailScreen>
             context,
             MaterialPageRoute(
               builder: (_) =>
-                  RecordedVideoWithDoubt(title: title, videoUrl: joinLink, classId: c['id'].toString(), type: 'course'),
+                  VideoClassScreen(title: title, videoUrl: joinLink, classId: c['id'].toString(), type: 'course'),
             ),
           );
         }
@@ -187,7 +188,7 @@ class _WorkshopDetailScreenState extends State<WorkshopDetailScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => RecordedVideoWithDoubt(title: title, videoUrl: recorded, classId: c['id'].toString(), type: 'workshop'),
+            builder: (_) => VideoClassScreen(title: title, videoUrl: recorded, classId: c['id'].toString(), type: 'workshop'),
           ),
         );
       } else {

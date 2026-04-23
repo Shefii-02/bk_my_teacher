@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/constants/endpoints.dart';
 import '../model/grade_board_subject_model.dart';
@@ -1426,6 +1428,80 @@ class ApiService {
       return res.data;
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<void> registerDevice() async {
+    try {
+      await FirebaseMessaging.instance.requestPermission();
+
+      // iOS foreground notifications
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+
+      await _loadAuth();
+
+      final prefs = await SharedPreferences.getInstance();
+
+      // persistent device id
+      String deviceId =
+          prefs.getString('device_id') ??
+          DateTime.now().millisecondsSinceEpoch.toString();
+
+      await prefs.setString('device_id', deviceId);
+
+      // prevent duplicate listener
+      bool listenerAttached = prefs.getBool('fcm_listener_attached') ?? false;
+
+      // --------------------------------
+      // 1) Get current token every launch
+      // --------------------------------
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+
+      if (fcmToken != null && fcmToken.isNotEmpty) {
+        await _dio.post(
+          "/device/register",
+          data: {
+            "fcm_token": fcmToken,
+            "device_id": deviceId,
+            "platform": "android",
+            "last_active_at": DateTime.now().toIso8601String(),
+          },
+        );
+
+        print("FCM Registered: $fcmToken");
+      }
+
+      // --------------------------------
+      // 2) Listen if Firebase rotates token
+      // --------------------------------
+      if (!listenerAttached) {
+        FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+          print("FCM Rotated: $newToken");
+
+          try {
+            await _dio.post(
+              "/device/register",
+              data: {
+                "fcm_token": newToken,
+                "device_id": deviceId,
+                "platform": "android",
+                "last_active_at": DateTime.now().toIso8601String(),
+              },
+            );
+          } catch (e) {
+            print("Token update failed: $e");
+          }
+        });
+
+        await prefs.setBool('fcm_listener_attached', true);
+      }
+    } catch (e) {
+      print("registerDevice error: $e");
     }
   }
 }

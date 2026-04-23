@@ -24,15 +24,35 @@ class CourseInfo {
   final int id;
   final String title;
   final String thumbnailUrl;
-  final String description;
-  final String duration;
-  final String level;
-  final String language;
-  final String category;
+  final String? description;
+  final String? duration;
   final int totalClasses;
   final int completedClasses;
+  final String? mode;
+  final String? typeClass;
+  final String? price;
+  final String? actualPrice;
+  final String? courseType;
+  final List instructors;
+  final String? startedAt;
+  final String? endedAt;
+  final bool careerGuidance;
+  final bool counsellingSection;
+  final String? level;
+  final String? language;
+  final String? category;
 
   CourseInfo({
+    required this.mode,
+    required this.typeClass,
+    required this.price,
+    required this.actualPrice,
+    required this.courseType,
+    required this.instructors,
+    required this.startedAt,
+    required this.endedAt,
+    required this.careerGuidance,
+    required this.counsellingSection,
     required this.id,
     required this.title,
     required this.thumbnailUrl,
@@ -47,16 +67,26 @@ class CourseInfo {
 
   factory CourseInfo.fromJson(Map<String, dynamic> json) {
     return CourseInfo(
-      id: json['id'],
-      title: json['title'],
-      thumbnailUrl: json['thumbnail_url'],
-      description: json['description'],
-      duration: json['duration'],
-      level: json['level'],
-      language: json['language'],
-      category: json['category'],
-      totalClasses: json['total_classes'],
-      completedClasses: json['completed_classes'],
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      thumbnailUrl: json['thumbnail_url'] ?? '',
+      description: json['description'] ?? '',
+      duration: json['duration'] ?? '',
+      level: json['level'] ?? '',
+      language: json['language'] ?? '',
+      category: json['category'] ?? '',
+      totalClasses: json['total_classes'] ?? '',
+      completedClasses: json['completed_classes']?? '',
+      mode: json['mode'] ?? '',
+      typeClass: json['type_class'] ?? '',
+      actualPrice: json['actual_price'] ?? '',
+      price: json['price'] ?? '',
+      courseType: json['course_type'] ?? '',
+      instructors: json['instructors'] ?? [],
+      startedAt: json['started_at'] ?? '',
+      endedAt: json['ended_at'] ?? '',
+      careerGuidance: json['career_guidance'] ?? false,
+      counsellingSection: json['counselling_section'] ?? false,
     );
   }
 }
@@ -91,6 +121,10 @@ class ClassItem {
   final String source;
   final String? joinLink;
   final String? recordedVideo;
+  final bool attendanceTaken;
+  final int totalStudents;
+  final int presentCount;
+  final String? actualDuration;
 
 
   ClassItem({
@@ -100,22 +134,31 @@ class ClassItem {
     required this.timeStart,
     required this.timeEnd,
     required this.classStatus,
+    this.attendanceTaken = false,
     required this.source,
     required this.joinLink,
     required this.recordedVideo,
+    this.totalStudents = 0,
+    this.presentCount = 0,
+    this.actualDuration,
   });
 
   factory ClassItem.fromJson(Map<String, dynamic> json) {
     return ClassItem(
-      id: json['id'],
-      title: json['title'],
-      date: json['date_time'],
-      timeStart: json['start_date_time'],
-      timeEnd: json['end_date_time'],
-      classStatus: json['status'],
-        source: json['source'],
-        joinLink: json['join_link'],
-        recordedVideo: json['recorded_video'],
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      date: json['date_time'] ?? '',
+      timeStart: json['start_date_time'] ?? '',
+      timeEnd: json['end_date_time'] ?? '',
+      classStatus: json['status'] ?? '',
+        source: json['source'] ?? '',
+        joinLink: json['join_link'] ?? '',
+        recordedVideo: json['recorded_video'] ?? '',
+      attendanceTaken: json['attendance_taken'] == true || json['attendance_taken'] == 1,
+
+      totalStudents: json['total_students'] ?? 0,
+      presentCount: json['present_count'] ?? 0,
+      actualDuration: json['actual_duration'],
     );
   }
 }
@@ -135,10 +178,10 @@ class MaterialItem {
 
   factory MaterialItem.fromJson(Map<String, dynamic> json) {
     return MaterialItem(
-      id: json['id'],
-      title: json['title'],
-      fileUrl: json['file_url'],
-      fileType: json['file_type'],
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      fileUrl: json['file_url'] ?? '',
+      fileType: json['file_type'] ?? '',
     );
   }
 }

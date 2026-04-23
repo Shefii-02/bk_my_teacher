@@ -3,9 +3,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:BookMyTeacher/core/constants/extensions.dart';
 import 'package:BookMyTeacher/presentation/chating/models/conversation_model.dart';
 import 'package:BookMyTeacher/presentation/chating/models/message_model.dart';
 import 'package:BookMyTeacher/presentation/chating/services/chat_api.dart';
+import 'package:BookMyTeacher/presentation/chating/services/chat_api_lv.dart';
 import 'package:BookMyTeacher/presentation/chating/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -23,12 +25,12 @@ import '../../../services/launch_status_service.dart';
 class ChatScreen extends StatefulWidget {
   final ConversationModel conversation;
   final String            token;
-  final int?               currentUserId = 69;  // ✅ FIX: no more hardcoded 69
+  final int            userId;  // ✅ FIX: no more hardcoded 69
 
    const ChatScreen({
     super.key,
     required this.conversation,
-    required this.token,
+    required this.token, required this.userId,
   });
 
   @override
@@ -59,12 +61,13 @@ class _ChatScreenState extends State<ChatScreen> {
   Map<int, bool>   _playingMap  = {};
   String?          _currentPlayingUrl;
 
-  int get _myId => 69;
+  int get _myId => widget.userId;
 
   // ── Lifecycle ─────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
+    print("CHATSCREEN INIT ✅"); // ADD THIS
     _loadMessages();
     _setupSocket();
     _scrollCtrl.addListener(_onScroll);
@@ -85,10 +88,15 @@ class _ChatScreenState extends State<ChatScreen> {
   void _setupSocket() {
     final socket = SocketService();
 
+    socket.connect(widget.token);
+// ADD THIS
+    print("SOCKET CONNECTED: ${socket}");
     // ✅ FIX: join the conversation room so new_message arrives
     socket.joinConversation(widget.conversation.id);
 
     socket.onNewMessage = (msg) {
+      print("NEW MSG RECEIVED: id=${msg.id} convId=${msg.conversationId} myConv=${widget.conversation.id}");
+      print("MATCH: ${msg.conversationId == widget.conversation.id}");
       // ✅ FIX: filter by conversation_id, not msg.id
       if (msg.conversationId == widget.conversation.id && mounted) {
         setState(() => _messages.insert(0, msg));
@@ -339,7 +347,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(conv.conversationName,
+                Text(conv.conversationName.capitalize(),
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
                         color: AppTheme.textPrimary)),
                 Text(
@@ -362,7 +370,48 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
       actions: [
-        IconButton(icon: const Icon(Icons.more_vert, color: AppTheme.textSecondary), onPressed: () {}),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, color: AppTheme.textSecondary),
+          onSelected: (value) {
+            if (value == 'clear_chat') {
+              _clearChat(conv);
+            } else if (value == 'report_chat') {
+              _reportChat(conv);
+            } else if (value == 'exit_group') {
+              _exitGroup(conv);
+            }
+          },
+          itemBuilder: (context) {
+            List<PopupMenuEntry<String>> menuItems = [];
+
+            if (conv.type == 'direct') {
+              menuItems.add(
+                const PopupMenuItem(
+                  value: 'clear_chat',
+                  child: Text('Clear Chat'),
+                ),
+              );
+            }
+
+            menuItems.add(
+              const PopupMenuItem(
+                value: 'report_chat',
+                child: Text('Report Chat'),
+              ),
+            );
+
+            if (conv.type == 'group') {
+              menuItems.add(
+                const PopupMenuItem(
+                  value: 'exit_group',
+                  child: Text('Exit Group'),
+                ),
+              );
+            }
+
+            return menuItems;
+          },
+        ),
       ],
     );
   }
@@ -440,10 +489,10 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       child: Row(
         children: [
-          _AttachButton(
-            onPdf:  () => _pickFile('pdf'),
-            onDocx: () => _pickFile('docx'),
-          ),
+          // _AttachButton(
+          //   onPdf:  () => _pickFile('pdf'),
+          //   onDocx: () => _pickFile('docx'),
+          // ),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
@@ -469,10 +518,11 @@ class _ChatScreenState extends State<ChatScreen> {
           ValueListenableBuilder<TextEditingValue>(
             valueListenable: _textCtrl,
             builder: (_, val, __) {
-              final hasText = val.text.trim().isNotEmpty;
+              // final hasText = val.text.trim().isNotEmpty;
+              final hasText = true;
               return GestureDetector(
                 onLongPress: _startRecording,
-                onTap:       hasText ? _sendText : null,
+                onTap:       _sendText,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   width: 44, height: 44,
@@ -594,6 +644,102 @@ class _ChatScreenState extends State<ChatScreen> {
     final m = sec ~/ 60;
     final s = sec % 60;
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  void _clearChat(ConversationModel conv) async {
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Clear Chat"),
+        content: const Text("Are you sure you want to clear this chat?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+
+              try {
+                await ChatApiLv().clearChat(conv.id);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Chat cleared")),
+                );
+
+                // ✅ Refresh messages UI
+                setState(() {
+                  _messages.clear();
+                });
+
+              } catch (e) {
+                print(e);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Failed to clear chat")),
+                );
+              }
+            },
+            child: const Text("Clear"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _reportChat(ConversationModel conv) async {
+
+    try {
+      await ChatApiLv().reportChat(conversationId: conv.id);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Chat reported")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Report failed")),
+      );
+    }
+  }
+
+  void _exitGroup(ConversationModel conv) async {
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Exit Group"),
+        content: const Text("Are you sure you want to exit this group?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+
+              try {
+                await ChatApiLv().exitGroup(conv.id);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Exited group")),
+                );
+
+                // ✅ Go back to chat list
+                Navigator.pop(context);
+
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Failed to exit group")),
+                );
+              }
+            },
+            child: const Text("Exit"),
+          ),
+        ],
+      ),
+    );
   }
 }
 

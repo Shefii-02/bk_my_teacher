@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:BookMyTeacher/presentation/auth/view/sign_up_guest.dart';
+import 'package:BookMyTeacher/presentation/errror/suspended_account_screen.dart';
 import 'package:BookMyTeacher/presentation/guest/guest_dashboard.dart';
 import 'package:BookMyTeacher/presentation/students/my_class_list.dart';
 import 'package:BookMyTeacher/presentation/students/my_class_list_1.dart';
@@ -424,6 +425,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.noNetwork,
       builder: (context, state) => const NoNetworkScreen(),
+    ),
+    GoRoute(
+    path: AppRoutes.suspendedAccount,
+    builder: (context, state) => const SuspendedAccountScreen(),
     ),
   ],
 );

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../model/today_class_model.dart';
+import '../record_section/video_class_screen.dart';
 import '../students/recorded_video_with_doubt.dart';
 
 class TodayClassesSection extends StatefulWidget {
@@ -89,13 +90,17 @@ class _TodayClassesSectionState extends State<TodayClassesSection> {
         statusColor = Colors.red;
         buttonText = "Join Now";
         break;
+      case "ongoing":
+        statusColor = Colors.red;
+        buttonText = "Join Now";
+        break;
       case "upcoming":
         statusColor = Colors.orange;
         buttonText = "Upcoming";
         break;
       default:
-        statusColor = Colors.grey;
-        buttonText = "Completed";
+        statusColor = Colors.blueAccent;
+        buttonText = " Watch Recorded Class";
     }
 
     return Container(
@@ -157,10 +162,21 @@ class _TodayClassesSectionState extends State<TodayClassesSection> {
             ],
           ),
           const SizedBox(height: 10),
-          Text(
-            item.time,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              const Icon(Icons.access_time_filled_sharp, size: 12, color: Colors.grey),
+              SizedBox(width: 4),
+              Text(
+                item.time,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),SizedBox(width: 4),
+              Text(
+                item.timeEnd,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
+
           const SizedBox(height: 8),
           Text(
             item.title.length > 30
@@ -220,7 +236,8 @@ class _TodayClassesSectionState extends State<TodayClassesSection> {
     String? recordedLink,
   ) async {
     /// 🔴 LIVE CLASS
-    if (status == 'live') {
+
+    if (status == 'live' || status == 'ongoing') {
       if (joinLink != null && joinLink.isNotEmpty) {
         if (platform == 'gmeet') {
           await _openUrl(joinLink);
@@ -228,12 +245,14 @@ class _TodayClassesSectionState extends State<TodayClassesSection> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => RecordedVideoWithDoubt(
-                title: title,
-                videoUrl: joinLink,
-                classId: id.toString(),
-                type: type,
-              ),
+              builder: (_) =>
+              VideoClassScreen(title: title, videoUrl: joinLink, classId: id.toString(), type: type,)
+              //     RecordedVideoWithDoubt(
+              //   title: title,
+              //   videoUrl: joinLink,
+              //   classId: id.toString(),
+              //   type: type,
+              // ),
             ),
           );
         } else {
@@ -249,12 +268,14 @@ class _TodayClassesSectionState extends State<TodayClassesSection> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => RecordedVideoWithDoubt(
-              title: title,
-              videoUrl: recordedLink,
-              classId: id.toString(),
-              type: type,
-            ),
+            builder: (_) =>
+                VideoClassScreen(title: title, videoUrl: recordedLink, classId: id.toString(), type: type,)
+            //     RecordedVideoWithDoubt(
+            //   title: title,
+            //   videoUrl: recordedLink,
+            //   classId: id.toString(),
+            //   type: type,
+            // ),
           ),
         );
       } else {

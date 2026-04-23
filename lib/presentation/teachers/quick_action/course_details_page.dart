@@ -65,6 +65,14 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: const Icon(Icons.today_outlined, color: Colors.green),
+                title: const Text("Add Tasks"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showAddTaskBottomSheet(courseId: widget.courseId);
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.video_call, color: Colors.blue),
                 title: const Text("Add Class"),
                 onTap: () {
@@ -106,7 +114,7 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
           final details = snapshot.data!;
 
           return Scaffold(
-            appBar: AppBar(title: Text(details.course.title)),
+            // appBar: AppBar(title: Text(details.course.title)),
             body: RefreshIndicator(
               onRefresh: _refreshDetails,
               child: CourseDetailsContent(course: details),
@@ -669,6 +677,457 @@ class _CourseDetailsPageState extends State<CourseDetailsPage> {
                         ),
                         child: const Text(
                           "Upload Material",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ─── Bottom Sheet: Add Tasks ────────────────────────────────────────────
+
+// ─── Bottom Sheet: Add Tasks ────────────────────────────────────────────────
+
+  void _showAddTaskBottomSheet({required int courseId}) {
+    final titleCtrl = TextEditingController();
+    final descriptionCtrl = TextEditingController();
+    DateTime? taskDate;
+    DateTime? taskEndDate;
+    String? inlineMessage;
+    Color messageColor = Colors.red;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateModal) {
+            // ── Date picker helper ─────────────────────────────────────────
+            Future<void> pickDate({required bool isEndDate}) async {
+              final initial = isEndDate
+                  ? (taskDate ?? DateTime.now())
+                  : DateTime.now();
+              final first = isEndDate ? (taskDate ?? DateTime.now()) : DateTime.now();
+
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: initial,
+                firstDate: first,
+                lastDate: DateTime(2100),
+              );
+              if (picked != null) {
+                setStateModal(() {
+                  if (isEndDate) {
+                    taskEndDate = picked;
+                  } else {
+                    taskDate = picked;
+                    // Reset end date if it's before new task date
+                    if (taskEndDate != null && taskEndDate!.isBefore(picked)) {
+                      taskEndDate = null;
+                    }
+                  }
+                });
+              }
+            }
+
+            // ── Submit ─────────────────────────────────────────────────────
+            Future<void> submit() async {
+              if (titleCtrl.text.trim().isEmpty) {
+                setStateModal(() {
+                  inlineMessage = 'Please enter a title';
+                  messageColor = Colors.red;
+                });
+                return;
+              }
+              if (descriptionCtrl.text.trim().isEmpty) {
+                setStateModal(() {
+                  inlineMessage = 'Please enter a description';
+                  messageColor = Colors.red;
+                });
+                return;
+              }
+              if (taskDate == null) {
+                setStateModal(() {
+                  inlineMessage = 'Please select a task date';
+                  messageColor = Colors.red;
+                });
+                return;
+              }
+              if (taskEndDate == null) {
+                setStateModal(() {
+                  inlineMessage = 'Please select a task end date';
+                  messageColor = Colors.red;
+                });
+                return;
+              }
+
+              try {
+                // TODO: Replace with your actual API call
+                // await TeacherApiService().createTask(
+                //   courseId: courseId,
+                //   title: titleCtrl.text.trim(),
+                //   description: descriptionCtrl.text.trim(),
+                //   taskDate: taskDate!,
+                //   taskEndDate: taskEndDate!,
+                // );
+
+                setStateModal(() {
+                  inlineMessage = 'Task created successfully!';
+                  messageColor = Colors.green;
+                });
+
+                Future.delayed(const Duration(seconds: 1), () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Task Added")),
+                  );
+                  _refreshDetails();
+                });
+              } catch (e) {
+                setStateModal(() {
+                  inlineMessage = 'Failed to create task';
+                  messageColor = Colors.red;
+                });
+              }
+            }
+
+            // ── Date display helper ────────────────────────────────────────
+            String formatDate(DateTime? date) {
+              if (date == null) return '--/--/----';
+              return '${date.day.toString().padLeft(2, '0')}-'
+                  '${date.month.toString().padLeft(2, '0')}-'
+                  '${date.year}';
+            }
+
+            // ── UI ─────────────────────────────────────────────────────────
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                left: 20,
+                right: 20,
+                top: 12,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag handle
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Add Task",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1A1A2E),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close_rounded),
+                          style: IconButton.styleFrom(
+                            backgroundColor: const Color(0xFFF0F0F0),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Inline alert
+                    if (inlineMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: messageColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: messageColor),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              messageColor == Colors.green
+                                  ? Icons.check_circle
+                                  : Icons.error,
+                              color: messageColor,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                inlineMessage!,
+                                style: TextStyle(color: messageColor),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // ── Title ──────────────────────────────────────────────
+                    const _SectionLabel(label: "TITLE"),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: titleCtrl,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: InputDecoration(
+                        hintText: "Enter task title",
+                        hintStyle: const TextStyle(color: Color(0xFFBBBBBB)),
+                        prefixIcon: const Icon(
+                          Icons.task_alt_rounded,
+                          color: Color(0xFF6C63FF),
+                          size: 20,
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF7F7FF),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF6C63FF),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Description ────────────────────────────────────────
+                    const _SectionLabel(label: "DESCRIPTION"),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: descriptionCtrl,
+                      maxLines: 3,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: InputDecoration(
+                        hintText: "Enter task description",
+                        hintStyle: const TextStyle(color: Color(0xFFBBBBBB)),
+                        prefixIcon: const Padding(
+                          padding: EdgeInsets.only(bottom: 44),
+                          child: Icon(
+                            Icons.description_rounded,
+                            color: Color(0xFF6C63FF),
+                            size: 20,
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF7F7FF),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF6C63FF),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Task Date & End Date ────────────────────────────────
+                    const _SectionLabel(label: "DATES"),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        // Task Start Date
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => pickDate(isEndDate: false),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: taskDate != null
+                                    ? const Color(0xFF6C63FF).withOpacity(0.06)
+                                    : const Color(0xFFF7F7FF),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: taskDate != null
+                                      ? const Color(0xFF6C63FF)
+                                      : const Color(0xFFEEEEEE),
+                                  width: taskDate != null ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today_rounded,
+                                        size: 14,
+                                        color: taskDate != null
+                                            ? const Color(0xFF6C63FF)
+                                            : Colors.grey,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        "Task Date",
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: taskDate != null
+                                              ? const Color(0xFF6C63FF)
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    formatDate(taskDate),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: taskDate != null
+                                          ? const Color(0xFF1A1A2E)
+                                          : Colors.grey[400],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 10),
+
+                        // Arrow
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.grey[400],
+                          size: 18,
+                        ),
+
+                        const SizedBox(width: 10),
+
+                        // Task End Date
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => pickDate(isEndDate: true),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: taskEndDate != null
+                                    ? Colors.orange.withOpacity(0.06)
+                                    : const Color(0xFFF7F7FF),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: taskEndDate != null
+                                      ? Colors.orange
+                                      : const Color(0xFFEEEEEE),
+                                  width: taskEndDate != null ? 1.5 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.event_busy_rounded,
+                                        size: 14,
+                                        color: taskEndDate != null
+                                            ? Colors.orange
+                                            : Colors.grey,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        "End Date",
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: taskEndDate != null
+                                              ? Colors.orange
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    formatDate(taskEndDate),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: taskEndDate != null
+                                          ? const Color(0xFF1A1A2E)
+                                          : Colors.grey[400],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+
+                    // ── Submit ─────────────────────────────────────────────
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6C63FF),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text(
+                          "Create Task",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

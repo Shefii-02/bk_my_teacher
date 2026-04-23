@@ -170,7 +170,8 @@ class _MyClassListState extends State<MyClassList>
                               return CourseCard(
                                 course: item,
                                 // onTap: () => _showCourseDetail(item),
-                                onTap: () => context.push(
+                                onTap: () =>
+                                    context.push(
                                   '/student/class-detail',
                                   extra: item['id'] as int,
                                 ),

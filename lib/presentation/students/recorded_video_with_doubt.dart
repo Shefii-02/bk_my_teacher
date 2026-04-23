@@ -42,15 +42,18 @@ class RecordedVideoWithDoubt extends StatelessWidget {
             YouTubeVideoPlayer( videoId: videoId!),
             // YouTubeLiveChat(videoId: "No0B2G5BHjM"),
             const SizedBox(height: 20),
-            DoubtClearSection(
-              type: type,
-              classId: classId,
-            ),
+            // DoubtClearSection(
+            //   type: type,
+            //   classId: classId,
+            // ),
           ],
         ),
       ),
     );
   }
 }
+
+
+
 
 

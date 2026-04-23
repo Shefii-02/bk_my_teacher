@@ -95,18 +95,20 @@ class BaseCard extends StatelessWidget {
             //     color: Colors.grey[700],
             //   ),
             // ),
-            if(Platform.isAndroid)
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("⏳ $duration", style: const TextStyle(fontSize: 12)),
                 // Text("🎯 $level", style: const TextStyle(fontSize: 12)),
+                if(Platform.isAndroid)
                 priceView(
                   actualPrice: actualPrice,
                   netPrice:  netPrice,
                 ),
               ],
             ),
+
           ],
         ),
       ),

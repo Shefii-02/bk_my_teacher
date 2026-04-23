@@ -37,16 +37,16 @@ class _AppReviewsState extends State<AppReviews> {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Container(
-        height: 200,
+        height: 120,
 
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12), // Rounded corners
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.5), // Shadow color with opacity
+              color: Colors.black.withOpacity(0.3), // Shadow color with opacity
               offset: const Offset(0, 0), // Shadow offset (right and down)
-              blurRadius: 10.0, // Softness of the shadow
-              spreadRadius: 2.0, // Expansion of the shadow
+              blurRadius: 2.0, // Softness of the shadow
+              spreadRadius: 0.1, // Expansion of the shadow
               blurStyle: BlurStyle.outer,
             ),
           ],
@@ -56,7 +56,7 @@ class _AppReviewsState extends State<AppReviews> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -67,7 +67,7 @@ class _AppReviewsState extends State<AppReviews> {
                           : 'Share Your Experience',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 13,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -75,12 +75,17 @@ class _AppReviewsState extends State<AppReviews> {
                       existingReview != null
                           ? 'You already submitted a review'
                           : 'Give our app a smile by sharing your experience',
-                      style: const TextStyle(fontSize: 13, color: Colors.grey),
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 5),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple,
+                        fixedSize: const Size(85, 30),
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       onPressed: () async {
                         await showModalBottomSheet(
@@ -99,10 +104,23 @@ class _AppReviewsState extends State<AppReviews> {
                         /// REFRESH AFTER SUBMIT
                         loadReview();
                       },
-                      child: Text(
-                        existingReview != null ? 'Edit Now' : 'Write Now',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 10,
+                          ),
+                          SizedBox(width: 2,),
+                          Text(
+                            existingReview != null ? 'Edit Now' : 'Write Now',
+                            style: TextStyle(color: Colors.white,fontSize: 10),
+                          ),
+                        ],
+                      )
+
                     ),
                   ],
                 ),
@@ -114,7 +132,7 @@ class _AppReviewsState extends State<AppReviews> {
               padding: const EdgeInsets.only(right: 10),
               child: Image.asset(
                 'assets/images/icons/app-review.png',
-                width: 170,
+                width: 120,
               ),
             ),
           ],
@@ -181,7 +199,7 @@ class _ReviewBottomSheetState extends State<ReviewBottomSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.blueGrey,
+        color: Color(0xFF1A1A22),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Padding(

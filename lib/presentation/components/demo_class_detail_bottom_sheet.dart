@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/api_service.dart';
+import '../record_section/video_class_screen.dart';
 import '../students/recorded_video_with_doubt.dart';
 import '../widgets/show_failed_alert.dart';
 import '../widgets/show_success_alert.dart';
@@ -125,7 +126,7 @@ class DemoClassDetailBottomSheetState
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => RecordedVideoWithDoubt(
+              builder: (_) => VideoClassScreen(
                 title: title,
                 videoUrl: joinLink,
                 classId: c['id'],
@@ -167,7 +168,7 @@ class DemoClassDetailBottomSheetState
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => RecordedVideoWithDoubt(
+            builder: (_) => VideoClassScreen(
               title: title,
               videoUrl: recorded,
               classId: c['id'],

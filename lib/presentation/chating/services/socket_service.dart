@@ -1,4 +1,5 @@
 
+import 'package:BookMyTeacher/core/constants/chat_constants.dart';
 import 'package:BookMyTeacher/presentation/chating/models/message_model.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -22,11 +23,11 @@ class SocketService {
   ReadReceiptCallback? onMessagesRead;
 
   // ── Connect ────────────────────────────────────────────────
-  void connect(String url, String token) {
+  void connect( String token) {
     if (_socket != null && _socket!.connected) return; // already connected
 
     _socket = IO.io(
-      url,
+      AppConstants.baseUrl,
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()

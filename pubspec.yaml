@@ -4,8 +4,8 @@ description: "Complete Tuition App"
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 #publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-#version: 1.1.16+46    #ios
-version: 1.1.18+49     #android
+#version: 1.1.18+48    #ios
+version: 1.2.0+51     #android
 
 environment:
   sdk: ^3.9.0

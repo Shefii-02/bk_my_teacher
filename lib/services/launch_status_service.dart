@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:hive/hive.dart';
 import '../core/enums/launch_status.dart';
 
@@ -54,6 +56,12 @@ class LaunchStatusService {
   }
 
   static Future<String> getUserId() async {
+    final box = await Hive.openBox(_boxName);
+    final userId = box.get(_userIdKey);
+    return userId;
+  }
+
+  static Future<int> getUserid() async {
     final box = await Hive.openBox(_boxName);
     final userId = box.get(_userIdKey);
     return userId;

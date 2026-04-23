@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart';
 
 import '../../../model/webinar_details_model.dart';
+import '../../record_section/video_class_screen.dart';
 import '../../students/recorded_video_with_doubt.dart';
 
 class StudentWebinarDetailsContent extends StatefulWidget {
@@ -305,7 +306,7 @@ class _StudentWebinarDetailsContentState extends State<StudentWebinarDetailsCont
   //         Navigator.push(
   //           context,
   //           MaterialPageRoute(
-  //             builder: (_) => RecordedVideoWithDoubt(
+  //             builder: (_) => VideoClassScreen(
   //               title: title,
   //               videoUrl: joinLink,
   //               classId: c.id,
@@ -326,7 +327,7 @@ class _StudentWebinarDetailsContentState extends State<StudentWebinarDetailsCont
   //       Navigator.push(
   //         context,
   //         MaterialPageRoute(
-  //           builder: (_) => RecordedVideoWithDoubt(
+  //           builder: (_) => VideoClassScreen(
   //             title: title,
   //             videoUrl: recorded,
   //             classId: c.id,
@@ -517,7 +518,7 @@ class _StudentWebinarDetailsContentState extends State<StudentWebinarDetailsCont
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => RecordedVideoWithDoubt(
+              builder: (_) => VideoClassScreen(
                 title: title,
                 videoUrl: joinLink,
                 classId: c.id.toString(),
@@ -538,7 +539,7 @@ class _StudentWebinarDetailsContentState extends State<StudentWebinarDetailsCont
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => RecordedVideoWithDoubt(
+            builder: (_) => VideoClassScreen(
               title: title,
               videoUrl: recorded,
               classId: c.id.toString(),

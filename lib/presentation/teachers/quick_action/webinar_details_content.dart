@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BookMyTeacher/presentation/record_section/video_class_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
@@ -305,7 +306,7 @@ class _WebinarDetailsContentState extends State<WebinarDetailsContent>
   //         Navigator.push(
   //           context,
   //           MaterialPageRoute(
-  //             builder: (_) => RecordedVideoWithDoubt(
+  //             builder: (_) => VideoClassScreen(
   //               title: title,
   //               videoUrl: joinLink,
   //               classId: c.id,
@@ -326,7 +327,7 @@ class _WebinarDetailsContentState extends State<WebinarDetailsContent>
   //       Navigator.push(
   //         context,
   //         MaterialPageRoute(
-  //           builder: (_) => RecordedVideoWithDoubt(
+  //           builder: (_) => VideoClassScreen(
   //             title: title,
   //             videoUrl: recorded,
   //             classId: c.id,
@@ -517,7 +518,7 @@ class _WebinarDetailsContentState extends State<WebinarDetailsContent>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => RecordedVideoWithDoubt(
+              builder: (_) => VideoClassScreen(
                 title: title,
                 videoUrl: joinLink,
                 classId: c.id.toString(),
@@ -538,7 +539,7 @@ class _WebinarDetailsContentState extends State<WebinarDetailsContent>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => RecordedVideoWithDoubt(
+            builder: (_) => VideoClassScreen(
               title: title,
               videoUrl: recorded,
               classId: c.id.toString(),

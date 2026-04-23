@@ -3,6 +3,7 @@ import 'package:BookMyTeacher/core/constants/image_paths.dart';
 import 'package:BookMyTeacher/core/enums/app_config.dart';
 import 'package:BookMyTeacher/presentation/components/webinar_cards.dart';
 import 'package:BookMyTeacher/presentation/components/webinar_detail_bottom_sheet.dart';
+import 'package:BookMyTeacher/presentation/teachers/quick_action/webinar_details_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -53,17 +54,22 @@ class _TeacherCoursesScreenState extends State<TeacherCoursesScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => CourseDetailBottomSheet(course: course, redirectTo: '/teacher-course-store'),
+      builder: (_) => CourseDetailBottomSheet(
+        course: course,
+        redirectTo: '/teacher-course-store',
+      ),
     );
   }
-
 
   void _showWebinarDetail(Map<String, dynamic> course) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => WebinarDetailBottomSheet(course: course, redirectTo: '/teacher-course-store'),
+      builder: (_) => WebinarDetailBottomSheet(
+        course: course,
+        redirectTo: '/teacher-course-store',
+      ),
     );
   }
 
@@ -72,9 +78,13 @@ class _TeacherCoursesScreenState extends State<TeacherCoursesScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => WorkshopDetailBottomSheet(course: course, redirectTo: '/teacher-course-store'),
+      builder: (_) => WorkshopDetailBottomSheet(
+        course: course,
+        redirectTo: '/teacher-course-store',
+      ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -85,7 +95,6 @@ class _TeacherCoursesScreenState extends State<TeacherCoursesScreen>
       backgroundColor: Colors.grey[100],
       body: Stack(
         children: [
-
           Image.asset(
             ImagePaths.appBg,
             fit: BoxFit.contain,
@@ -108,7 +117,7 @@ class _TeacherCoursesScreenState extends State<TeacherCoursesScreen>
                   children: [
                     _circleButton(
                       Icons.keyboard_arrow_left,
-                          () => context.push('/teacher-dashboard'),
+                      () => context.push('/teacher-dashboard'),
                     ),
                     const Expanded(
                       child: Center(
@@ -195,7 +204,12 @@ class _TeacherCoursesScreenState extends State<TeacherCoursesScreen>
                             case 'Webinar':
                               return WebinarCards(
                                 webinar: item,
-                                onTap: () => _showWebinarDetail(item),
+                                onTap: () {
+
+                                  item['is_enrolled']
+                                      ? context.go('/webinar-detail',extra: item['id'])
+                                      : _showWebinarDetail(item);
+                                },
                               );
 
                             case 'Workshop':
@@ -238,7 +252,6 @@ class _TeacherCoursesScreenState extends State<TeacherCoursesScreen>
   }
 }
 
-
 class FullWidthIndicator extends Decoration {
   final Color color;
   final double thickness;
@@ -274,4 +287,3 @@ class _FullWidthIndicatorPainter extends BoxPainter {
     );
   }
 }
-

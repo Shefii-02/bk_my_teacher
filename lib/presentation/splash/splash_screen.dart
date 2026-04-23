@@ -61,6 +61,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final api = ApiService();
     final isAlive = await api.checkServer();
 
+    // context.go(AppRoutes.suspendedAccount);
+
     if (isAlive) {
       await _checkUser();
       return;
@@ -111,6 +113,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     final box = await Hive.openBox('app_storage');
     final String? token = await LaunchStatusService.getAuthToken();
+    print(token);
     if(token == null){
       context.go('/auth');
       return ;
@@ -121,9 +124,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       final userState = ref.read(userProvider);
       final user2 = userState.value;
       final data = user2?.toJson();
-      print("****");
-      print(data);
-      print("****");
+      // print("****");
+      // print(data);
+      // print("****");
       // Read current state
       final String? userId = box.get('user_id');
 
@@ -142,13 +145,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         userData = Map<String, dynamic>.from(storedUserData['data']);
       }
 
-      print("****************************");
-      print("auth Token :");
-      print(token);
-      print("****************************");
-      print("storedUserData : ");
-      print(storedUserData);
-      print("****************************");
+      // print("****************************");
+      // print("auth Token :");
+      // print(token);
+      // print("****************************");
+      // print("storedUserData : ");
+      // print(storedUserData);
+      // print("****************************");
 
       // Check for app update
       if (!kIsWeb) {
@@ -259,6 +262,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           context.go(
             '/guest-dashboard',
             extra: {'guestId': userData['id'].toString()},
+          );
+          return;
+        case 'company':
+          context.go(
+            '/student-dashboard'
           );
           return;
         default:

@@ -80,6 +80,7 @@ class _StudentCourseDetailsPageState extends State<StudentCourseDetailsPage> {
                   _showAddMaterialBottomSheet(courseId: widget.courseId);
                 },
               ),
+
             ],
           ),
         );
@@ -116,6 +117,7 @@ class _StudentCourseDetailsPageState extends State<StudentCourseDetailsPage> {
       ),
     );
   }
+
 
   // ─── Bottom Sheet: Add Material ────────────────────────────────────────────
 

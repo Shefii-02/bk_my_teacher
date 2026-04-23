@@ -108,9 +108,6 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
         // Convert teacher model to JSON map for easy use
         final teacherData = teacher.toJson();
 
-        print("------------");
-        print(teacherData);
-        print("------------");
 
         // If email not verified → show popup
         if (teacherData['email_verified_at'] == null ||

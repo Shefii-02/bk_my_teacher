@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/api_service.dart';
 import '../components/shimmer_image.dart';
+import '../record_section/video_class_screen.dart';
 
 class ClassDetailScreen extends StatefulWidget {
   final String classId;
@@ -152,7 +153,7 @@ class _ClassDetailScreenState extends State<ClassDetailScreen>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => RecordedVideoWithDoubt(
+            builder: (_) => VideoClassScreen(
               title: title,
               videoUrl: recorded, classId: '', type: '',
             ),

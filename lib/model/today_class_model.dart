@@ -4,6 +4,7 @@ class TodayClassModel {
   final String endTime;
   final String platform;
   final String time;
+  final String timeEnd;
   final String subject;
   final String course;
   final String teacherName;
@@ -17,6 +18,7 @@ class TodayClassModel {
   TodayClassModel({
     required this.id,
     required this.time,
+    required this.timeEnd,
     required this.startTime,
     required this.endTime,
     required this.platform,
@@ -34,6 +36,7 @@ class TodayClassModel {
     return TodayClassModel(
       id: json['id'],
       time: json['time'],
+      timeEnd : json['time_end'],
       subject: json['subject'],
       course: json['course'],
       teacherName: json['teacher_name'],

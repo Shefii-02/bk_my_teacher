@@ -206,7 +206,13 @@ class _CoursesScreenState extends State<CoursesScreen>
                             case 'Course':
                               return CourseCard(
                                 course: item,
-                                onTap: () => _showCourseDetail(item),
+                                onTap: () {
+                                  if (item['is_enrolled'] == true) {
+                                    context.push('/student/class-detail', extra: item['id']);
+                                  } else {
+                                    _showCourseDetail(item);
+                                  }
+                                },
                               );
 
                             case 'Webinar':

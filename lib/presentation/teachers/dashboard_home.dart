@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:BookMyTeacher/core/constants/image_paths.dart';
+import 'package:BookMyTeacher/presentation/chating/screens/chat_list_screen.dart';
 import 'package:BookMyTeacher/presentation/teachers/account_message_card.dart';
 import 'package:BookMyTeacher/presentation/teachers/quick_action/achievements_sheet.dart';
 import 'package:BookMyTeacher/presentation/teachers/quick_action/rating_reviews.dart';
@@ -11,7 +12,9 @@ import 'package:BookMyTeacher/presentation/teachers/teacher_quick_actions.dart';
 import 'package:BookMyTeacher/presentation/teachers/watch_time_card.dart';
 import 'package:BookMyTeacher/presentation/widgets/social_media_icons.dart';
 import 'package:dio/dio.dart';
+import 'package:hive/hive.dart';
 import '../chat/screens/chat_home_screen_dummy.dart';
+import '../components/app_reviews.dart';
 import '../widgets/merchant_app_phonepe.dart';
 import '../../presentation/students/invite_friends_card.dart';
 import 'package:BookMyTeacher/presentation/teachers/signIn_with_google.dart';
@@ -29,10 +32,12 @@ import '../widgets/bodyBg.dart';
 import '../widgets/connect_with_team_whatsapp.dart';
 import '../widgets/notification_bell.dart';
 import '../widgets/today_classes_section.dart';
+import '../widgets/top_banner_carousel.dart';
 import '../widgets/unified_payment_page.dart';
 import '../widgets/verify_account_popup.dart';
 import '../widgets/wallet_section.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DashboardHome extends ConsumerStatefulWidget {
   const DashboardHome({super.key});
@@ -45,10 +50,23 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
   late Future<Map<String, dynamic>> userCard;
 
   int unreadCount = 0;
+  String token = '';
 
   @override
   void initState() {
     super.initState();
+    _initialize();
+    requestPermissions();
+  }
+
+  Future<void> requestPermissions() async {
+    // Permission.camera, Permission.microphone, Permission.contacts,
+    await [Permission.manageExternalStorage, Permission.storage].request();
+  }
+
+  Future<void> _initialize() async {
+    final box = await Hive.openBox('app_storage');
+    token = box.get('auth_token');
   }
 
   StepStatus _mapStatus(String status) {
@@ -64,6 +82,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
 
   @override
   Widget build(BuildContext context) {
+
     final teacherAsync = ref.watch(userProvider);
     return teacherAsync.when(
       loading: () =>
@@ -86,6 +105,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
         final avatar = teacherData['avatar_url'] ?? "";
         final currentAccountStage =
             teacherData['current_account_stage'] ?? "verification process";
+        final id = teacherData['id'] ?? 'Unknown';
 
         final accountMsg = teacherData['account_msg'] ?? "";
 
@@ -180,7 +200,11 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              ChatHomeScreenDummy(),
+                                              ChatListScreen(
+                                                userId: id,
+                                                token: token,
+                                              ),
+                                              // ChatHomeScreenDummy(),
                                           // ChatHomeScreen(),
                                         ),
                                       );
@@ -279,7 +303,8 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                         ),
 
                         const SizedBox(height: 30),
-
+                        TopBannerCarousel(),
+                        const SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Container(
@@ -415,6 +440,8 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                 ConnectWithTeamWhatsapp(),
                                 const SizedBox(height: 30),
                                 SocialMediaIcons(),
+                                const SizedBox(height: 20),
+                                const AppReviews(),
                                 const SizedBox(height: 20),
                                 // InkWell(
                                 //   onTap: () {

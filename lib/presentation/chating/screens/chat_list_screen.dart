@@ -1,20 +1,23 @@
 // lib/screens/chat_list_screen.dart
 import 'package:BookMyTeacher/core/constants/endpoints.dart';
+import 'package:BookMyTeacher/core/constants/extensions.dart';
 import 'package:BookMyTeacher/presentation/chating/services/chat_api.dart';
 import 'package:BookMyTeacher/services/launch_status_service.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../core/app_theme.dart';
+import '../../../core/constants/extensions.dart';
 import '../models/conversation_model.dart';
 import '../../../model/user_model.dart';
 import '../../../services/chat_api_service.dart';
 import 'chat_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
-
   final String token;
-  const ChatListScreen({super.key, required this.token, required userId});
+  final int userId;
+  const ChatListScreen({super.key, required this.token, required this.userId});
 
   @override
   State<ChatListScreen> createState() => _ChatListScreenState();
@@ -23,7 +26,7 @@ class ChatListScreen extends StatefulWidget {
 class _ChatListScreenState extends State<ChatListScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<ConversationModel> _all = [];
+  List<ConversationModel> _unRead = [];
   List<ConversationModel> _groups = [];
   List<ConversationModel> _directs = [];
   bool _loading = true;
@@ -32,23 +35,30 @@ class _ChatListScreenState extends State<ChatListScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showSafetyAlertOncePerDay(context);
+    });
     _tabController = TabController(length: 3, vsync: this);
     _loadConversations();
   }
 
   Future<void> _loadConversations() async {
-
+    // If you want reset option (for testing or settings screen):
+    // await prefs.remove('chat_alert_disabled');
+    // await prefs.remove('chat_alert_date');
     setState(() => _loading = true);
     try {
       final list = await ChatApiService().getConversations(widget.token);
 
       setState(() {
-        _all = list;
+        // _unRead = list;
+        _unRead = list
+            .where((c) => c.unreadCount > 0)
+            .toList();
         _groups = list.where((c) => c.type == 'group').toList();
         _directs = list.where((c) => c.type == 'direct').toList();
         _loading = false;
       });
-
     } catch (e) {
       print(e);
       setState(() => _loading = false);
@@ -60,7 +70,7 @@ class _ChatListScreenState extends State<ChatListScreen>
     return src
         .where(
           (c) => c.displayName.toLowerCase().contains(_search.toLowerCase()),
-    )
+        )
         .toList();
   }
 
@@ -125,7 +135,7 @@ class _ChatListScreenState extends State<ChatListScreen>
               indicatorColor: AppTheme.primary,
               indicatorSize: TabBarIndicatorSize.label,
               tabs: [
-                Tab(text: 'All (${_all.length})'),
+                Tab(text: 'Unread (${_unRead.length})'),
                 Tab(text: 'Groups (${_groups.length})'),
                 Tab(text: 'Direct (${_directs.length})'),
               ],
@@ -135,7 +145,7 @@ class _ChatListScreenState extends State<ChatListScreen>
       ),
       body: Column(
         children: [
-          SizedBox(height: 10,),
+          SizedBox(height: 10),
           // ── Search bar ─────────────────────────────────────
           Container(
             color: Colors.white,
@@ -170,13 +180,13 @@ class _ChatListScreenState extends State<ChatListScreen>
             child: _loading
                 ? _buildShimmer()
                 : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildList(_filtered(_all)),
-                _buildList(_filtered(_groups)),
-                _buildList(_filtered(_directs)),
-              ],
-            ),
+                    controller: _tabController,
+                    children: [
+                      _buildList(_filtered(_unRead)),
+                      _buildList(_filtered(_groups)),
+                      _buildList(_filtered(_directs)),
+                    ],
+                  ),
           ),
         ],
       ),
@@ -184,7 +194,6 @@ class _ChatListScreenState extends State<ChatListScreen>
   }
 
   Widget _buildList(List<ConversationModel> convs) {
-
     if (convs.isEmpty) {
       return Center(
         child: Column(
@@ -219,7 +228,8 @@ class _ChatListScreenState extends State<ChatListScreen>
               MaterialPageRoute(
                 builder: (_) => ChatScreen(
                   conversation: convs[i],
-                    token: widget.token,
+                  token: widget.token,
+                  userId: widget.userId,
                 ),
               ),
             );
@@ -264,6 +274,82 @@ class _ChatListScreenState extends State<ChatListScreen>
       ),
     );
   }
+
+  Future<void> showSafetyAlertOncePerDay(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // ✅ Check if user disabled alert permanently
+    final isDisabled = prefs.getBool('chat_alert_disabled') ?? false;
+    if (isDisabled) return;
+
+    // ✅ Check daily logic
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    final lastShownDate = prefs.getString('chat_alert_date');
+
+    if (lastShownDate == today) return;
+
+    bool dontShowAgain = false;
+
+    // ✅ Show dialog
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("⚠️ Safety Alert"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "For app verification, never share your login details, OTP, or personal information with anyone.",
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ✅ Checkbox
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: dontShowAgain,
+                        onChanged: (val) {
+                          setState(() {
+                            dontShowAgain = val ?? false;
+                          });
+                        },
+                      ),
+                      const Expanded(
+                        child: Text(
+                          "Don't show again",
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+
+                    // ✅ Save today's date
+                    await prefs.setString('chat_alert_date', today);
+
+                    // ✅ Save permanent disable
+                    if (dontShowAgain) {
+                      await prefs.setBool('chat_alert_disabled', true);
+                    }
+                  },
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
 // ── Conversation Tile ────────────────────────────────────────
@@ -291,30 +377,97 @@ class _ConversationTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            // Avatar
-            Stack(
-              children: [
-                _Avatar(
-                  name: conv.conversationName,
-                  imageUrl: conv.displayAvatar,
-                  isGroup: isGroup,
-                  size: 52,
-                ),
-                if (!isGroup && conv.isOnline)
-                  Positioned(
-                    right: 2,
-                    bottom: 2,
-                    child: Container(
-                      width: 12,
-                      height: 12,
+            SizedBox(
+              width: 52,
+              height: 52,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+
+                  // Main Avatar / Group Badge
+                  if (conv.typeConversation == 'Group')
+                    Container(
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
-                        color: AppTheme.success,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFF4F46E5),
+                            Color(0xFF6366F1),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                            color: Colors.black12,
+                          )
+                        ],
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Icon(
+                            Icons.people_alt_rounded,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+
+                          // Small group indicator
+                          Positioned(
+                            right: 3,
+                            bottom: 3,
+                            child: Container(
+                              width: 14,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: Colors.orange,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  else
+                    _Avatar(
+                      name: conv.conversationName,
+                      imageUrl: conv.displayAvatar,
+                      isGroup: isGroup,
+                      size: 52,
+                    ),
+
+                  // Online indicator for 1-to-1 only
+                  if (!isGroup && conv.isOnline)
+                    Positioned(
+                      right: 2,
+                      bottom: 2,
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: AppTheme.success,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 4,
+                              color: Colors.black12,
+                            )
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(width: 12),
 
@@ -331,16 +484,31 @@ class _ConversationTile extends StatelessWidget {
                       if (!isGroup && conv.otherUserRole != null)
                         const SizedBox(width: 6),
                       Expanded(
-                        child: Text(
-                          conv.conversationName,
-                          style: TextStyle(
-                            fontWeight: hasUnread
-                                ? FontWeight.w700
-                                : FontWeight.w600,
-                            fontSize: 15,
-                            color: AppTheme.textPrimary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            Text(
+                              limitString((conv.conversationName.capitalize()),15),
+                              style: TextStyle(
+                                fontWeight: hasUnread
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                                fontSize: 15,
+                                color: AppTheme.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                            conv.roleName.isNotEmpty ? ' (${conv.roleName.capitalize()})' : '',
+                              style: TextStyle(
+                                fontWeight: hasUnread
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                                fontSize: 9,
+                                color: AppTheme.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                       Text(
@@ -467,7 +635,7 @@ class _RoleBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = {
-      'admin': [const Color(0xFFFFF3E0), const Color(0xFFF57C00)],
+      'company': [const Color(0xFFFFF3E0), const Color(0xFFF57C00)],
       'teacher': [const Color(0xFFE8F5E9), const Color(0xFF388E3C)],
       'student': [AppTheme.primaryLight, AppTheme.primary],
     };
@@ -505,11 +673,12 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final parts = name.trim().split(' ').where((p) => p.isNotEmpty).toList();
     final initials = isGroup
         ? (name.isNotEmpty ? name[0].toUpperCase() : 'G')
-        : (name.split(' ').length >= 2
-        ? '${name.split(' ')[0][0]}${name.split(' ')[1][0]}'.toUpperCase()
-        : (name.isEmpty ? '?' : name[0].toUpperCase()));
+        : (parts.length >= 2
+              ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+              : (parts.isEmpty ? '?' : parts[0][0].toUpperCase()));
 
     return Container(
       width: size,
@@ -526,12 +695,12 @@ class _Avatar extends StatelessWidget {
       ),
       child: imageUrl != null
           ? ClipOval(
-        child: Image.network(
-          imageUrl!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _initials(initials),
-        ),
-      )
+              child: Image.network(
+                imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _initials(initials),
+              ),
+            )
           : _initials(initials),
     );
   }

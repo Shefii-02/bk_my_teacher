@@ -18,7 +18,7 @@ class AppRoutes {
   static const String maintenance = "/maintenance";
   static const String noNetwork = "/no-network";
   static const String myClassList = "/myclass-list";
-
+  static const String suspendedAccount = "/suspended-account";
 
   static const String personalInfo   = "/personal-info";
   static const String teachingDetails  = "/teaching-details";

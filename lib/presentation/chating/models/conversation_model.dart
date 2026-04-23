@@ -4,6 +4,7 @@ class ConversationModel {
   final int     id;
   final String  type;
   final String? name;
+  final String roleName;
   final String? avatarUrl;
   final String? lastMessage;
   final String? lastMessageType;
@@ -21,6 +22,7 @@ class ConversationModel {
     required this.id,
     required this.type,
     this.name,
+    required this.roleName,
     this.avatarUrl,
     this.lastMessage,
     this.lastMessageType,
@@ -38,11 +40,12 @@ class ConversationModel {
     id:                j['id'],
     type:              j['type']             ?? 'direct',
     name:              j['name'],
+    roleName:          j['acc_type'] ?? '',
     avatarUrl:         j['avatar_url'],
     lastMessage:       j['last_message'],
     lastMessageType:   j['last_message_type'],
     lastMessageTime:   j['last_message_time'],
-    unreadCount:       j['unread_count']     ?? 0,
+    unreadCount:       j['unread_count']   ?? 0,
     otherUserId:       j['other_user_id'],
     otherUserName:     j['other_user_name'],
     otherUserAvatar:   j['other_user_avatar'],
@@ -51,6 +54,7 @@ class ConversationModel {
     otherUserLastSeen: j['other_user_last_seen'],
   );
 
+  String get typeConversation    => type == 'group' ? 'Group' : 'Direct';
   String  get displayName       => type == 'group' ? (name ?? 'Group') : (otherUserName ?? 'Unknown');
   String? get displayAvatar     => type == 'group' ? avatarUrl : otherUserAvatar;
   bool    get isOnline          => type == 'direct' && otherUserOnline;

@@ -19,6 +19,8 @@ import '../model/student_review.dart';
 import '../model/time_card_model.dart';
 import '../model/statistics_model.dart';
 import '../model/stats_api_response.dart' hide StatisticsModel;
+import '../presentation/teachers/quick_action/attendance_sheet.dart';
+import '../presentation/teachers/quick_action/course_details_content.dart';
 
 class TeacherApiService {
   final Dio _dio = Dio(
@@ -540,6 +542,13 @@ class TeacherApiService {
     }
   }
 
+  // ── GET course details ─────────────────────────────────────────────────────
+  Future<CourseDetailsResponse> getCourseDetails(int courseId) async {
+    await _loadAuth();
+    final res = await _dio.post('/teacher/course-details', data: {"id": courseId});
+    return CourseDetailsResponse.fromJson(res.data);
+  }
+
   Future<Map<String, dynamic>> updateCourseClass(
     Map<String, dynamic> payload,
   ) async {
@@ -593,6 +602,7 @@ class TeacherApiService {
       return {'status': false, 'message': 'Something went wrong'};
     }
   }
+
   Future<Map<String, dynamic>> deleteCourseMaterial(String materialId) async {
     await _loadAuth();
     try {
@@ -619,8 +629,49 @@ class TeacherApiService {
       debugPrint('deleteCourseMaterial error: $e');
       return {'status': false, 'message': 'Something went wrong'};
     }
-
   }
 
+  // Fetch students for a class, pre-filled with existing attendance if taken before
+  Future<List<StudentAttendance>> fetchClassStudentsWithAttendance(
+    String classId,
+  ) async {
+    await _loadAuth();
+    print('/teacher/classes/$classId/students-attendance');
+    final response = await _dio.post(
+      '/teacher/classes/$classId/students-attendance',
+    );
+    print(response);
+    final list = response.data['students'] as List;
+    return list.map((e) => StudentAttendance.fromJson(e)).toList();
+  }
 
+  // Save/update attendance for a class
+  Future<void> saveAttendance({
+    required String classId,
+    required List<Map<String, dynamic>> records,
+  }) async {
+    await _loadAuth();
+    await _dio.post(
+      '/teacher/classes/$classId/attendance',
+      data: {'records': records},
+    );
+  }
+
+  Future<void> updateClassDuration({
+    required String classId,
+    required DateTime actualStart,
+    required DateTime actualEnd,
+    required String note,
+  }) async {
+    await _loadAuth();
+
+    await _dio.post(
+      '/teacher/classes/$classId/duration', // ✅ correct endpoint (example)
+      data: {
+        'actual_start': actualStart.toIso8601String(),
+        'actual_end': actualEnd.toIso8601String(),
+        'note': note,
+      },
+    );
+  }
 }
