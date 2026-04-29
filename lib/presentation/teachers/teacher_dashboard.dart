@@ -1,14 +1,17 @@
+import 'package:BookMyTeacher/presentation/teachers/profile_screen.dart';
 import 'package:BookMyTeacher/presentation/teachers/quick_action/statistics_sheet.dart';
 import 'package:BookMyTeacher/presentation/teachers/schedule_page.dart';
 import 'package:BookMyTeacher/presentation/teachers/statistics_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../providers/user_provider.dart';
+import '../../services/api_service.dart';
 import '../widgets/verify_account_popup.dart';
 import 'teacher_courses_screen.dart';
 import 'dashboard_home.dart';
-import 'profile_screen.dart';
+import 'profile_screen_bk.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -30,6 +33,7 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
     requestPermissions();
     _initialize();
     _initializeFcm();
+    _registerDevice();
     _screens = [
       DashboardHome(),
       SchedulePage(),
@@ -37,6 +41,10 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
       StatisticsPage(),
       ProfileScreen(),
     ];
+  }
+
+  Future<void> _registerDevice() async {
+    await ApiService().registerDevice();
   }
 
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -55,6 +63,7 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
   Future<void> requestPermissions() async {
     // Permission.camera, Permission.microphone, Permission.contacts,
     await [Permission.manageExternalStorage, Permission.storage].request();
+
   }
 
   Future _initializeFcm() async {
@@ -107,7 +116,6 @@ class _TeacherDashboardState extends ConsumerState<TeacherDashboard> {
 
         // Convert teacher model to JSON map for easy use
         final teacherData = teacher.toJson();
-
 
         // If email not verified → show popup
         if (teacherData['email_verified_at'] == null ||

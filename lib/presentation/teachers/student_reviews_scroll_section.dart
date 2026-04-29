@@ -38,7 +38,7 @@ class _StudentReviewsScrollSectionState extends State<StudentReviewsScrollSectio
       // Adjusted width for better fit, maybe 90% is better for the column layout
       width: MediaQuery.of(context).size.width * 0.9,
       decoration: BoxDecoration(
-        color: Colors.white, // Changed to white/light color for visibility
+        color: Theme.of(context).colorScheme.surfaceBright, // Changed to white/light color for visibility
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           // A more standard box shadow for a card effect

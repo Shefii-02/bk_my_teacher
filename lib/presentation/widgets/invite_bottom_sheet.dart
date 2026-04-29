@@ -65,7 +65,7 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
             stats['badge_description'],
             // "• 100 coins when your friend joins\n• 50 extra coins when they join first class\n• Track your invites in Rewards → Invited List",
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.black87, fontSize: 13),
+            style: TextStyle( fontSize: 13),
           ),
         ],
       ),
@@ -119,8 +119,8 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
       builder: (ctx) {
         return Container(
           height: MediaQuery.of(ctx).size.height * 0.7,
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration:  BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceBright,
             borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           padding: const EdgeInsets.all(16),
@@ -188,8 +188,8 @@ class _InviteBottomSheetState extends State<InviteBottomSheet> {
       maxChildSize: 0.95,
       minChildSize: 0.5,
       builder: (ctx, scrollController) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration:  BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),

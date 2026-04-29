@@ -160,7 +160,7 @@ class _StudentPersonalInfoState extends ConsumerState<StudentPersonalInfo> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
           _headerGradient(),
@@ -195,7 +195,7 @@ class _StudentPersonalInfoState extends ConsumerState<StudentPersonalInfo> {
 
   Widget _formContainer() => Container(
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(25),
       boxShadow: [
         BoxShadow(
@@ -328,7 +328,7 @@ class _StudentPersonalInfoState extends ConsumerState<StudentPersonalInfo> {
         decoration: InputDecoration(
           labelText: label,
           filled: true,
-          fillColor: Colors.grey.shade100,
+          fillColor: Theme.of(context).colorScheme.surfaceBright,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10.0),
             borderSide: BorderSide.none,

@@ -1,16 +1,19 @@
+import 'package:BookMyTeacher/model/course_details_model.dart';
 import 'package:flutter/material.dart';
 import 'package:BookMyTeacher/services/api_service.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
-class AppReviews extends StatefulWidget {
-  const AppReviews({super.key});
+class CourseReview extends StatefulWidget {
+  final CourseInfo course;
+
+  const CourseReview(this.course, {super.key});
 
   @override
-  State<AppReviews> createState() => _AppReviewsState();
+  State<CourseReview> createState() => _CourseReviewState();
 }
 
-class _AppReviewsState extends State<AppReviews> {
-  ReviewModel? existingReview;
+class _CourseReviewState extends State<CourseReview> {
+  CourseReviewModel? existingReview;
   bool isLoading = true;
 
   @override
@@ -20,10 +23,11 @@ class _AppReviewsState extends State<AppReviews> {
   }
 
   Future<void> loadReview() async {
-    final data = await ApiService().fetchMyReview();
+    final course  = widget.course;
+    final data = await ApiService().fetchMyCourseReview(course.id);
 
     setState(() {
-      existingReview = data;
+      existingReview = data as CourseReviewModel;
       isLoading = false;
     });
   }
@@ -37,9 +41,9 @@ class _AppReviewsState extends State<AppReviews> {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Container(
-        height: 135,
+        height: 140,
+
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(12), // Rounded corners
           boxShadow: [
             BoxShadow(
@@ -68,7 +72,6 @@ class _AppReviewsState extends State<AppReviews> {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
-                        color: Colors.black
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -76,13 +79,13 @@ class _AppReviewsState extends State<AppReviews> {
                       existingReview != null
                           ? 'You already submitted a review'
                           : 'Give our app a smile by sharing your experience',
-                      style: const TextStyle(fontSize: 10, color: Colors.black),
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
                     ),
                     const SizedBox(height: 5),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple,
-                        fixedSize: const Size(85, 30),
+                        fixedSize: const Size(65, 25),
                         padding: const EdgeInsets.symmetric(horizontal: 2),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -99,7 +102,7 @@ class _AppReviewsState extends State<AppReviews> {
                             ),
                           ),
                           builder: (_) =>
-                              ReviewBottomSheet(existingReview: existingReview),
+                              ReviewBottomSheet(existingReview: existingReview,course : widget.course),
                         );
 
                         /// REFRESH AFTER SUBMIT
@@ -117,7 +120,7 @@ class _AppReviewsState extends State<AppReviews> {
                           SizedBox(width: 2,),
                           Text(
                             existingReview != null ? 'Edit Now' : 'Write Now',
-                            style: TextStyle(color: Colors.white,fontSize: 10),
+                            style: TextStyle(color: Colors.white,fontSize: 8),
                           ),
                         ],
                       )
@@ -143,30 +146,28 @@ class _AppReviewsState extends State<AppReviews> {
   }
 }
 
-class ReviewModel {
+class CourseReviewModel {
   String rating;
   String feedback;
-  int total;
 
-  ReviewModel({
+  CourseReviewModel({
     required this.rating,
     required this.feedback,
-    required this.total,
   });
 
-  factory ReviewModel.fromJson(Map<String, dynamic> json) {
-    return ReviewModel(
+  factory CourseReviewModel.fromJson(Map<String, dynamic> json) {
+    return CourseReviewModel(
       rating: json['rating'] ?? 0,
       feedback: json['feedback'] ?? "",
-      total: json['total_reviews'] ?? 0,
     );
   }
 }
 
 class ReviewBottomSheet extends StatefulWidget {
-  final ReviewModel? existingReview;
+  final CourseReviewModel? existingReview;
+  final CourseInfo course;
 
-  const ReviewBottomSheet({super.key, this.existingReview});
+  const ReviewBottomSheet({super.key, this.existingReview, required this.course});
 
   @override
   State<ReviewBottomSheet> createState() => _ReviewBottomSheetState();
@@ -191,7 +192,7 @@ class _ReviewBottomSheetState extends State<ReviewBottomSheet> {
     super.initState();
 
     if (widget.existingReview != null) {
-      selectedRating = widget.existingReview!.rating as String;
+      selectedRating = widget.existingReview!.rating;
       controller.text = widget.existingReview!.feedback;
     }
   }
@@ -252,7 +253,6 @@ class _ReviewBottomSheetState extends State<ReviewBottomSheet> {
 
               /// TEXT FIELD
               TextField(
-                style: TextStyle(color: Colors.black),
                 controller: controller,
                 maxLines: 4,
                 decoration: InputDecoration(
@@ -272,12 +272,23 @@ class _ReviewBottomSheetState extends State<ReviewBottomSheet> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: submitReview,
+                  onPressed: isSubmitting
+                      ? null
+                      : () => submitReview(widget.course.id),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  child: const Text(
+                  child: isSubmitting
+                      ? const SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                      : const Text(
                     "Submit",
                     style: TextStyle(color: Colors.white),
                   ),
@@ -290,27 +301,28 @@ class _ReviewBottomSheetState extends State<ReviewBottomSheet> {
     );
   }
 
-  Future<void> submitReview() async {
-    if (selectedRating == 0) {
-      showMessage("Select rating",'failed');
+  Future<void> submitReview(int id) async {
+
+    if (selectedRating.isEmpty) {
+      showMessage("Select rating", "failed");
       return;
     }
 
     setState(() => isSubmitting = true);
 
-    final res = await ApiService().submitReview(
-      rating: selectedRating, // ✅ int
+    final res = await ApiService().submitCourseReview(
+      rating: selectedRating,
       message: controller.text,
+      courseId: id,
     );
 
     setState(() => isSubmitting = false);
 
     if (res != null && res['status'] == true) {
       Navigator.pop(context);
-
-      showMessage("Review submitted",'success');
+      showMessage("Review submitted", "success");
     } else {
-      showMessage("Failed",'failed');
+      showMessage("Failed", "failed");
     }
   }
 

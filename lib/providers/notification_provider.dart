@@ -14,3 +14,9 @@ final markNotificationReadProvider =
 FutureProvider.family<bool, int>((ref, id) async {
   return await ApiService().markNotificationRead(id);
 });
+
+final markAllNotificationsReadProvider =
+FutureProvider<void>((ref) async {
+  return await ApiService()
+      .markAllNotificationRead();
+});

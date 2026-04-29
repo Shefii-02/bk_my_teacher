@@ -676,6 +676,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                                             child: SizedBox(
                                               height: 55,
                                               child: TextField(
+                                                style: TextStyle(color: Colors.black),
                                                 controller: _phoneController,
                                                 keyboardType:
                                                     TextInputType.number,

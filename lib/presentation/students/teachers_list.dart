@@ -67,9 +67,9 @@ class _TeachersListState extends State<TeachersList> {
               _buildHeader(context),
               Expanded(
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(30),
                       topRight: Radius.circular(30),
                     ),
@@ -132,9 +132,10 @@ class _TeachersListState extends State<TeachersList> {
                 padding: const EdgeInsets.only(left:12.0),
                 child: Text(
                   subject['name'],
-                  style: const TextStyle(
+                  style:  TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
               ),

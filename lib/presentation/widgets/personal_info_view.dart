@@ -26,7 +26,7 @@ class PersonalInfoView extends ConsumerWidget {
     final data = user.toJson();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
         children: [
           _headerGradient(),

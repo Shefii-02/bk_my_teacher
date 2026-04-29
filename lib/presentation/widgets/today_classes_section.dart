@@ -48,7 +48,7 @@ class _TodayClassesSectionState extends State<TodayClassesSection> {
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             "Today's Classes",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: Colors.black),
           ),
         ),
         const SizedBox(height: 12),
@@ -108,7 +108,8 @@ class _TodayClassesSectionState extends State<TodayClassesSection> {
       margin: const EdgeInsets.only(left: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(

@@ -41,6 +41,7 @@ class CourseInfo {
   final String? level;
   final String? language;
   final String? category;
+  final bool has_review;
 
   CourseInfo({
     required this.mode,
@@ -63,6 +64,7 @@ class CourseInfo {
     required this.category,
     required this.totalClasses,
     required this.completedClasses,
+    required this.has_review,
   });
 
   factory CourseInfo.fromJson(Map<String, dynamic> json) {
@@ -76,7 +78,7 @@ class CourseInfo {
       language: json['language'] ?? '',
       category: json['category'] ?? '',
       totalClasses: json['total_classes'] ?? '',
-      completedClasses: json['completed_classes']?? '',
+      completedClasses: json['completed_classes'] ?? '',
       mode: json['mode'] ?? '',
       typeClass: json['type_class'] ?? '',
       actualPrice: json['actual_price'] ?? '',
@@ -87,6 +89,7 @@ class CourseInfo {
       endedAt: json['ended_at'] ?? '',
       careerGuidance: json['career_guidance'] ?? false,
       counsellingSection: json['counselling_section'] ?? false,
+      has_review: json['has_review'] ?? false,
     );
   }
 }
@@ -95,15 +98,13 @@ class ClassGroups {
   final List<ClassItem> ongoing_upcoming;
   final List<ClassItem> completed;
 
-  ClassGroups({
-    required this.ongoing_upcoming,
-    required this.completed,
-  });
+  ClassGroups({required this.ongoing_upcoming, required this.completed});
 
   factory ClassGroups.fromJson(Map<String, dynamic> json) {
     return ClassGroups(
-      ongoing_upcoming:
-      (json['ongoing_upcoming'] as List).map((e) => ClassItem.fromJson(e)).toList(),
+      ongoing_upcoming: (json['ongoing_upcoming'] as List)
+          .map((e) => ClassItem.fromJson(e))
+          .toList(),
       completed: (json['completed'] as List)
           .map((e) => ClassItem.fromJson(e))
           .toList(),
@@ -124,8 +125,10 @@ class ClassItem {
   final bool attendanceTaken;
   final int totalStudents;
   final int presentCount;
-  final String? actualDuration;
-
+  final String actualDuration;
+  final String actualStarted;
+  final String actualEnded;
+  final String notes;
 
   ClassItem({
     required this.id,
@@ -134,13 +137,16 @@ class ClassItem {
     required this.timeStart,
     required this.timeEnd,
     required this.classStatus,
-    this.attendanceTaken = false,
+    required this.attendanceTaken,
     required this.source,
     required this.joinLink,
     required this.recordedVideo,
-    this.totalStudents = 0,
-    this.presentCount = 0,
-    this.actualDuration,
+    required this.totalStudents,
+    required this.presentCount,
+    required this.actualDuration,
+    required this.actualStarted,
+    required this.actualEnded,
+    required this.notes
   });
 
   factory ClassItem.fromJson(Map<String, dynamic> json) {
@@ -151,14 +157,18 @@ class ClassItem {
       timeStart: json['start_date_time'] ?? '',
       timeEnd: json['end_date_time'] ?? '',
       classStatus: json['status'] ?? '',
-        source: json['source'] ?? '',
-        joinLink: json['join_link'] ?? '',
-        recordedVideo: json['recorded_video'] ?? '',
-      attendanceTaken: json['attendance_taken'] == true || json['attendance_taken'] == 1,
+      source: json['source'] ?? '',
+      joinLink: json['join_link'] ?? '',
+      recordedVideo: json['recorded_video'] ?? '',
+      attendanceTaken:
+          json['attendance_taken'] == true || json['attendance_taken'] == 1,
 
       totalStudents: json['total_students'] ?? 0,
       presentCount: json['present_count'] ?? 0,
-      actualDuration: json['actual_duration'],
+      actualDuration: json['actual_duration'] ?? '',
+      actualStarted: json['actual_started'] ?? '',
+      actualEnded: json['actual_ended'],
+      notes: json['notes'],
     );
   }
 }

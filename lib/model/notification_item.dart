@@ -26,15 +26,18 @@ class NotificationItem {
 
 class NotificationResponse {
   final int count;
+  final int chatCount;
   final List<NotificationItem> notifications;
 
   NotificationResponse({
+    required this.chatCount,
     required this.count,
     required this.notifications,
   });
 
   factory NotificationResponse.fromJson(Map<String, dynamic> json) {
     return NotificationResponse(
+      chatCount: json['chat_count'] ?? 0,
       count: json['count'] ?? 0,
       notifications: (json['notifications'] as List? ?? [])
           .map((e) => NotificationItem.fromJson(e))

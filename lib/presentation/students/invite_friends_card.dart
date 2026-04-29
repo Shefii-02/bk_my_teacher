@@ -17,7 +17,7 @@ class InviteFriendsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surfaceBright,
       elevation: 4,
       margin: const EdgeInsets.all(12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

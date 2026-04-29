@@ -23,6 +23,7 @@ import '../../firebase_options.dart';
 import '../../model/user_model.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../services/settings_service.dart';
 import '../chat/screens/chat_home_screen.dart';
 import '../chat/screens/chat_home_screen_dummy.dart';
 import '../chating/screens/chat_list_screen.dart';
@@ -48,11 +49,14 @@ class DashboardHome extends ConsumerStatefulWidget {
 }
 
 class _DashboardHomeState extends ConsumerState<DashboardHome> {
+
+  bool chatEnabled = true;
   @override
   void initState() {
     super.initState();
     requestPermissions();
     _initialize();
+    chatEnabled = SettingsService.getBool("chat_option", defaultValue: true);
   }
 
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -190,6 +194,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                       Row(
                                         children: [
                                           // dynamic value from API
+                                          if(chatEnabled)
                                           ElevatedButton(
                                             onPressed: () {
                                               // ✅
@@ -272,6 +277,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                               ],
                                             ),
                                           ),
+
                                           NotificationBell(
                                             onTap: () => showNotificationsSheet(
                                               context,
@@ -326,14 +332,14 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                         horizontal: 8,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: Theme.of(context).colorScheme.surface,
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Row(
                                         children: [
                                           const Icon(
                                             Icons.search,
-                                            color: Colors.black87,
+                                            color: Colors.grey,
                                           ),
                                           const SizedBox(width: 8),
                                           SizedBox(
@@ -366,8 +372,8 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                         const SizedBox(height: 20),
                         Container(
                           width: double.infinity,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
+                          decoration:  BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(25),
                               topRight: Radius.circular(25),
@@ -497,12 +503,12 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                               const SizedBox(height: 30),
                               CourseSections(),
                               const SizedBox(height: 40),
+                              const AppReviews(),
+                              const SizedBox(height: 20),
                               SocialMediaIcons(),
                               const SizedBox(height: 40),
                               ConnectWithTeam(),
-                              const SizedBox(height: 20),
-                              const AppReviews(),
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 40),
                             ],
                           ),
                         ),

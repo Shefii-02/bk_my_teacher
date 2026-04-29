@@ -133,6 +133,7 @@ class _WalletSectionState extends State<WalletSection> {
         height: 100,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
           gradient: gradient,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
@@ -255,8 +256,8 @@ class _WalletBottomSheetState extends State<WalletBottomSheet>
       maxChildSize: 0.95,
       builder: (_, scrollController) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration:  BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceBright,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -327,7 +328,7 @@ class _WalletBottomSheetState extends State<WalletBottomSheet>
                 "${Endpoints.domain}/assets/mobile-app/icons/green-coin.png",
             title: "Green Coins",
             value: balance.toString(),
-            color: Colors.green.shade50,
+            color: Theme.of(context).colorScheme.surface,
           ),
           const SizedBox(height: 10),
 

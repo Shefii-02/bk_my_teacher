@@ -81,8 +81,8 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration:  BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceBright,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Stack(
@@ -127,7 +127,6 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
                       "body": Style(
                         fontSize: FontSize(15),
                         lineHeight: LineHeight(1.5),
-                        color: Colors.grey.shade700,
                       ),
                     },
                   ),
@@ -169,7 +168,7 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.12),
@@ -278,7 +277,7 @@ class WorkshopDetailBottomSheetState extends State<WorkshopDetailBottomSheet> {
           const SizedBox(width: 12),
           Text("$label: ", style: const TextStyle(fontWeight: FontWeight.w600)),
           Expanded(
-            child: Text(value, style: TextStyle(color: Colors.grey.shade700)),
+            child: Text(value),
           ),
         ],
       ),

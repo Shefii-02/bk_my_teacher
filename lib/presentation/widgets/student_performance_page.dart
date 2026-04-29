@@ -24,19 +24,23 @@ class StudentPerformancePage extends ConsumerWidget {
               children: [
                 /// SUMMARY SECTION
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _summaryCard("Attended", performance.attended, Colors.green),
                     const SizedBox(width: 12),
                     _summaryCard("Missed", performance.missed, Colors.red),
+                    const SizedBox(width: 12),
+                    _summaryCard(
+                      "Performance",
+                      "${performance.performancePercentage.toStringAsFixed(1)}%",
+                      Colors.blue,
+                      bigText: true,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                _summaryCard(
-                  "Performance",
-                  "${performance.performancePercentage.toStringAsFixed(1)}%",
-                  Colors.blue,
-                  bigText: true,
-                ),
+
                 const SizedBox(height: 30),
                 const Text(
                   "Monthly Performance",
@@ -139,20 +143,20 @@ class StudentPerformancePage extends ConsumerWidget {
   /// CARD WIDGET
   Widget _summaryCard(String title, dynamic value, Color color, {bool bigText = false}) {
     return Container(
-      width: 160, // << optional, based on your design
-      padding: const EdgeInsets.all(16),
+      width: 100, // << optional, based on your design
+      padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
-          Text(title, style: TextStyle(fontSize: 14, color: color)),
+          Text(title, style: TextStyle(fontSize: 12, color: color)),
           const SizedBox(height: 4),
           Text(
             "$value",
             style: TextStyle(
-              fontSize: bigText ? 26 : 22,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: color,
             ),

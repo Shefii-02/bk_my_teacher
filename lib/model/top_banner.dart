@@ -1,5 +1,6 @@
 class TopBanner {
   final int id;
+  final int sectionId;
   final String title;
   final String mainImage;
   final String thumb;
@@ -10,12 +11,15 @@ class TopBanner {
   final String ctaAction;
   final String type;
   final bool isBooked;
+  final bool isReg;
+  final bool isEnrolled;
   final String? lastBookedAt;
   final Map<String, dynamic>? typeDetails;
 
 
   TopBanner({
     required this.id,
+    required this.sectionId,
     required this.title,
     required this.mainImage,
     required this.thumb,
@@ -25,6 +29,8 @@ class TopBanner {
     required this.ctaLabel,
     required this.ctaAction,
     required this.isBooked,
+    required this.isReg,
+    required this.isEnrolled,
     required this.type,
     this.lastBookedAt,
     this.typeDetails,
@@ -34,6 +40,7 @@ class TopBanner {
   factory TopBanner.fromJson(Map<String, dynamic> json) {
     return TopBanner(
       id: json['id'],
+      sectionId: json['section_id'] ?? 0,
       title: json['title'] ?? '',
       mainImage: json['main_image'] ?? '',
       thumb: json['thumb'] ?? '',
@@ -43,6 +50,8 @@ class TopBanner {
       ctaLabel: json['cta_label'] ?? '',
       ctaAction: json['cta_action'] ?? '',
       isBooked: json['is_booked'] ?? false,
+      isReg: json['is_registered'] ?? false,
+      isEnrolled: json['is_enrolled'] ?? false,
       lastBookedAt: json['last_booked_at'],
       type: json['type'] ?? '',
       typeDetails: json['type_details'] is Map<String, dynamic>

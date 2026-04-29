@@ -292,8 +292,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             right: 0,
             bottom: 0,
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration:  BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
               ),
               child: SingleChildScrollView(
@@ -307,8 +307,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       style: const TextStyle(
                         fontFamily: 'Sora',
                         fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1226),
+                        fontWeight: FontWeight.w700
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -317,7 +316,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       email.isNotEmpty ? email : 'No email',
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF9089A8),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -326,7 +324,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       mobile.isNotEmpty ? mobile : 'No email',
                       style: const TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF9089A8),
                       ),
                     ),
                     const SizedBox(height: 12),

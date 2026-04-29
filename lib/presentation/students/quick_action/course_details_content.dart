@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BookMyTeacher/presentation/components/course_review.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +12,7 @@ import '../../../model/course_details_model.dart';
 import 'package:dio/dio.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../services/teacher_api_service.dart';
+import '../../components/app_reviews.dart';
 import '../../record_section/video_class_screen.dart';
 import '../../students/recorded_video_with_doubt.dart';
 import '../../teachers/quick_action/course_details_content.dart';
@@ -21,10 +23,12 @@ class StudentCourseDetailsContent extends StatefulWidget {
   const StudentCourseDetailsContent({super.key, required this.course});
 
   @override
-  State<StudentCourseDetailsContent> createState() => _StudentCourseDetailsContentState();
+  State<StudentCourseDetailsContent> createState() =>
+      _StudentCourseDetailsContentState();
 }
 
-class _StudentCourseDetailsContentState extends State<StudentCourseDetailsContent>
+class _StudentCourseDetailsContentState
+    extends State<StudentCourseDetailsContent>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -90,14 +94,10 @@ class _StudentCourseDetailsContentState extends State<StudentCourseDetailsConten
               _AboutTab(info: info),
               // _classesTab(classes),
               // _materialsTab(materials),
-              _ClassesTab(
-                ongoing: _ongoing,
-                completed: _completed,
-              ),
+              _ClassesTab(ongoing: _ongoing, completed: _completed),
               _MaterialsTab(
                 materials: _materials,
                 onDownload: _downloadMaterial,
-
               ),
             ],
           ),
@@ -291,8 +291,8 @@ class _StudentCourseDetailsContentState extends State<StudentCourseDetailsConten
                       Text('Date: ${_formatDateTime(c.timeStart)}'),
                     ],
                     SizedBox(height: 6),
-                    // ── Join / Start button (always shown) ──────────────────────
 
+                    // ── Join / Start button (always shown) ──────────────────────
                   ],
                 ),
                 trailing: Text(
@@ -1198,8 +1198,6 @@ class _StudentCourseDetailsContentState extends State<StudentCourseDetailsConten
 //   }
 // }
 
-
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Palette constants
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1233,6 +1231,10 @@ class _AboutTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (info.has_review == true) ...[
+          const SizedBox(height: 20),
+          CourseReview(info),
+        ],
         if (info.description?.isNotEmpty == true) ...[
           const SizedBox(height: 20),
           _SectionLabel('About this course'),
@@ -1290,24 +1292,28 @@ class _AboutTab extends StatelessWidget {
           children: [
             if (info.duration?.isNotEmpty == true)
               _InfoCard(
-                  icon: Icons.timer_outlined,
-                  label: 'Duration',
-                  value: info.duration!),
+                icon: Icons.timer_outlined,
+                label: 'Duration',
+                value: info.duration!,
+              ),
             if (info.mode?.isNotEmpty == true)
               _InfoCard(
-                  icon: Icons.live_tv_outlined,
-                  label: 'Mode',
-                  value: _cap(info.mode!)),
+                icon: Icons.live_tv_outlined,
+                label: 'Mode',
+                value: _cap(info.mode!),
+              ),
             if (info.level?.isNotEmpty == true)
               _InfoCard(
-                  icon: Icons.grade_outlined,
-                  label: 'Level',
-                  value: _cap(info.level!)),
+                icon: Icons.grade_outlined,
+                label: 'Level',
+                value: _cap(info.level!),
+              ),
             if (info.courseType?.isNotEmpty == true)
               _InfoCard(
-                  icon: Icons.auto_graph_outlined,
-                  label: 'Type',
-                  value: _cap(info.courseType!)),
+                icon: Icons.auto_graph_outlined,
+                label: 'Type',
+                value: _cap(info.courseType!),
+              ),
           ],
         ),
         const SizedBox(height: 20),
@@ -1331,15 +1337,12 @@ class _AboutTab extends StatelessWidget {
           ],
         ),
 
-
-
         const SizedBox(height: 40),
       ],
     );
   }
 
-  String _cap(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+  String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
   String _fmtDate(String? iso) {
     if (iso == null || iso.isEmpty) return '—';
@@ -1359,10 +1362,7 @@ class _ClassesTab extends StatefulWidget {
   final List<ClassItem> ongoing;
   final List<ClassItem> completed;
 
-  const _ClassesTab({
-    required this.ongoing,
-    required this.completed,
-  });
+  const _ClassesTab({required this.ongoing, required this.completed});
 
   @override
   State<_ClassesTab> createState() => _ClassesTabState();
@@ -1449,14 +1449,8 @@ class _ClassesTabState extends State<_ClassesTab>
           child: TabBarView(
             controller: _tab,
             children: [
-              _ClassList(
-                classes: widget.ongoing,
-                isCompleted: false,
-              ),
-              _ClassList(
-                classes: widget.completed,
-                isCompleted: true,
-              ),
+              _ClassList(classes: widget.ongoing, isCompleted: false),
+              _ClassList(classes: widget.completed, isCompleted: true),
             ],
           ),
         ),
@@ -1469,10 +1463,7 @@ class _ClassList extends StatelessWidget {
   final List<ClassItem> classes;
   final bool isCompleted;
 
-  const _ClassList({
-    required this.classes,
-    required this.isCompleted,
-  });
+  const _ClassList({required this.classes, required this.isCompleted});
 
   @override
   Widget build(BuildContext context) {
@@ -1504,12 +1495,8 @@ class _ClassList extends StatelessWidget {
       itemBuilder: (ctx, i) {
         final c = classes[i];
         return isCompleted
-            ? _CompletedClassCard(
-          cls: c,
-        )
-            : _OngoingClassCard(
-          cls: c,
-        );
+            ? _CompletedClassCard(cls: c)
+            : _OngoingClassCard(cls: c);
       },
     );
   }
@@ -1520,9 +1507,7 @@ class _ClassList extends StatelessWidget {
 class _OngoingClassCard extends StatelessWidget {
   final ClassItem cls;
 
-  const _OngoingClassCard({
-    required this.cls,
-  });
+  const _OngoingClassCard({required this.cls});
 
   bool get _isLive {
     final now = DateTime.now();
@@ -1590,7 +1575,7 @@ class _OngoingClassCard extends StatelessWidget {
                           _MetaChip(
                             icon: Icons.access_time_outlined,
                             label:
-                            '${_fmtTime(cls.timeStart)} – ${_fmtTime(cls.timeEnd)}',
+                                '${_fmtTime(cls.timeStart)} – ${_fmtTime(cls.timeEnd)}',
                           ),
                         ],
                       ),
@@ -1605,9 +1590,7 @@ class _OngoingClassCard extends StatelessWidget {
           Container(
             decoration: const BoxDecoration(
               color: _kSurface,
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(16),
-              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
             ),
             padding: const EdgeInsets.all(10),
             child: Row(
@@ -1625,8 +1608,6 @@ class _OngoingClassCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 6),
-
-
               ],
             ),
           ),
@@ -1637,16 +1618,16 @@ class _OngoingClassCard extends StatelessWidget {
 
   Future<void> _join(BuildContext context) async {
     if (!_isLive) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Class not started yet')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Class not started yet')));
       return;
     }
     final link = cls.joinLink;
     if (link == null || link.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Join link not available')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Join link not available')));
       return;
     }
     final uri = Uri.tryParse(link);
@@ -1658,9 +1639,7 @@ class _OngoingClassCard extends StatelessWidget {
 
 class _CompletedClassCard extends StatelessWidget {
   final ClassItem cls;
-  const _CompletedClassCard({
-    required this.cls,
-  });
+  const _CompletedClassCard({required this.cls});
 
   int get _pct => cls.totalStudents > 0
       ? (cls.presentCount / cls.totalStudents * 100).round()
@@ -1720,7 +1699,7 @@ class _CompletedClassCard extends StatelessWidget {
                           _MetaChip(
                             icon: Icons.access_time_outlined,
                             label:
-                            '${_fmtTime(cls.timeStart)} – ${_fmtTime(cls.timeEnd)}',
+                                '${_fmtTime(cls.timeStart)} – ${_fmtTime(cls.timeEnd)}',
                           ),
                           if (cls.actualDuration != null)
                             _MetaChip(
@@ -1739,8 +1718,6 @@ class _CompletedClassCard extends StatelessWidget {
             ),
           ),
 
-
-
           Container(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
@@ -1748,7 +1725,6 @@ class _CompletedClassCard extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             child: Row(
               children: [
-
                 Expanded(
                   child: _ActionBtn(
                     label: 'Watch',
@@ -1787,10 +1763,6 @@ class _CompletedClassCard extends StatelessWidget {
       ),
     );
   }
-
-
-
-
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1801,10 +1773,7 @@ class _MaterialsTab extends StatelessWidget {
   final List<MaterialItem> materials;
   final void Function(MaterialItem) onDownload;
 
-  const _MaterialsTab({
-    required this.materials,
-    required this.onDownload,
-  });
+  const _MaterialsTab({required this.materials, required this.onDownload});
 
   @override
   Widget build(BuildContext context) {
@@ -1815,8 +1784,10 @@ class _MaterialsTab extends StatelessWidget {
           children: [
             Icon(Icons.folder_open_rounded, size: 48, color: _kTextMuted),
             SizedBox(height: 12),
-            Text('No materials available',
-                style: TextStyle(color: _kTextMuted)),
+            Text(
+              'No materials available',
+              style: TextStyle(color: _kTextMuted),
+            ),
           ],
         ),
       );
@@ -1826,7 +1797,7 @@ class _MaterialsTab extends StatelessWidget {
       itemCount: materials.length,
       itemBuilder: (ctx, i) => _MaterialCard(
         material: materials[i],
-        onDownload: () => onDownload(materials[i])
+        onDownload: () => onDownload(materials[i]),
       ),
     );
   }
@@ -1836,10 +1807,7 @@ class _MaterialCard extends StatefulWidget {
   final MaterialItem material;
   final VoidCallback onDownload;
 
-  const _MaterialCard({
-    required this.material,
-    required this.onDownload,
-  });
+  const _MaterialCard({required this.material, required this.onDownload});
 
   @override
   State<_MaterialCard> createState() => _MaterialCardState();
@@ -1939,7 +1907,6 @@ class _MaterialCardState extends State<_MaterialCard> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final isVoice = widget.material.fileType == 'voice';
@@ -1994,15 +1961,13 @@ class _MaterialCardState extends State<_MaterialCard> {
                 color: _kTextMuted,
                 onTap: widget.onDownload,
               ),
-
             ],
           ),
 
           if (isVoice) ...[
             const SizedBox(height: 12),
             Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: const Color(0xFFF0FFF4),
                 borderRadius: BorderRadius.circular(12),
@@ -2023,19 +1988,19 @@ class _MaterialCardState extends State<_MaterialCard> {
                       ),
                       child: _loading
                           ? const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
+                              padding: EdgeInsets.all(10),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : Icon(
-                        _playing
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                              _playing
+                                  ? Icons.pause_rounded
+                                  : Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -2046,23 +2011,28 @@ class _MaterialCardState extends State<_MaterialCard> {
                           data: SliderTheme.of(context).copyWith(
                             trackHeight: 3,
                             thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 6),
+                              enabledThumbRadius: 6,
+                            ),
                             overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 12),
+                              overlayRadius: 12,
+                            ),
                             activeTrackColor: const Color(0xFF43A047),
                             inactiveTrackColor: const Color(0xFFCCE5CC),
                             thumbColor: const Color(0xFF43A047),
-                            overlayColor:
-                            const Color(0xFF43A047).withOpacity(0.2),
+                            overlayColor: const Color(
+                              0xFF43A047,
+                            ).withOpacity(0.2),
                           ),
                           child: Slider(
                             min: 0,
-                            max: _duration.inSeconds
-                                .toDouble()
-                                .clamp(1, double.infinity),
-                            value: _position.inSeconds
-                                .toDouble()
-                                .clamp(0, _duration.inSeconds.toDouble()),
+                            max: _duration.inSeconds.toDouble().clamp(
+                              1,
+                              double.infinity,
+                            ),
+                            value: _position.inSeconds.toDouble().clamp(
+                              0,
+                              _duration.inSeconds.toDouble(),
+                            ),
                             onChanged: (v) =>
                                 _player.seek(Duration(seconds: v.toInt())),
                           ),
@@ -2072,12 +2042,20 @@ class _MaterialCardState extends State<_MaterialCard> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(_fmt(_position),
-                                  style: const TextStyle(
-                                      fontSize: 10, color: _kTextMuted)),
-                              Text(_fmt(_duration),
-                                  style: const TextStyle(
-                                      fontSize: 10, color: _kTextMuted)),
+                              Text(
+                                _fmt(_position),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: _kTextMuted,
+                                ),
+                              ),
+                              Text(
+                                _fmt(_duration),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: _kTextMuted,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -2146,14 +2124,12 @@ class _InstructorTile extends StatelessWidget {
           children: [
             Text(
               inst.name,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600, fontSize: 14),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
             ),
             if (inst.specialization?.isNotEmpty == true)
               Text(
                 inst.specialization!,
-                style:
-                const TextStyle(fontSize: 12, color: _kTextMuted),
+                style: const TextStyle(fontSize: 12, color: _kTextMuted),
               ),
           ],
         ),
@@ -2166,8 +2142,11 @@ class _InfoCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _InfoCard(
-      {required this.icon, required this.label, required this.value});
+  const _InfoCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) => Container(
@@ -2186,12 +2165,17 @@ class _InfoCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(label,
-                  style:
-                  const TextStyle(fontSize: 10, color: _kTextMuted)),
-              Text(value,
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w600)),
+              Text(
+                label,
+                style: const TextStyle(fontSize: 10, color: _kTextMuted),
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -2212,9 +2196,7 @@ class _FeatureChip extends StatelessWidget {
       color: enabled ? _kGreenLight : _kAmberLight,
       borderRadius: BorderRadius.circular(12),
       border: Border.all(
-        color: enabled
-            ? _kGreen.withOpacity(0.3)
-            : _kAmber.withOpacity(0.3),
+        color: enabled ? _kGreen.withOpacity(0.3) : _kAmber.withOpacity(0.3),
       ),
     ),
     child: Row(
@@ -2265,12 +2247,12 @@ class _DateRow extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: color),
         const SizedBox(width: 10),
-        Text(label,
-            style: const TextStyle(fontSize: 12, color: _kTextMuted)),
+        Text(label, style: const TextStyle(fontSize: 12, color: _kTextMuted)),
         const Spacer(),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600)),
+        Text(
+          value,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
       ],
     ),
   );
@@ -2316,30 +2298,41 @@ class _StatusBadge extends StatelessWidget {
     final s = status.toLowerCase();
     final isCompleted = s == 'completed';
     final isLive = s == 'ongoing';
-    final bg = isCompleted ? _kGreenLight : isLive ? _kRedLight : _kBlueLight;
-    final fg = isCompleted ? _kGreen : isLive ? _kRed : _kBlue;
+    final bg = isCompleted
+        ? _kGreenLight
+        : isLive
+        ? _kRedLight
+        : _kBlueLight;
+    final fg = isCompleted
+        ? _kGreen
+        : isLive
+        ? _kRed
+        : _kBlue;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration:
-      BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Text(
         isLive ? 'Live' : _cap(status),
-        style:
-        TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: fg),
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: fg),
       ),
     );
   }
 
-  String _cap(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+  String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
 class _StatBox extends StatelessWidget {
   final int value;
   final String label;
   final Color color;
-  const _StatBox(
-      {required this.value, required this.label, required this.color});
+  const _StatBox({
+    required this.value,
+    required this.label,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) => Expanded(
@@ -2361,8 +2354,7 @@ class _StatBox extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(label,
-              style: const TextStyle(fontSize: 10, color: _kTextMuted)),
+          Text(label, style: const TextStyle(fontSize: 10, color: _kTextMuted)),
         ],
       ),
     ),
@@ -2390,10 +2382,7 @@ class _ActionBtn extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
     child: Container(
-      padding: EdgeInsets.symmetric(
-        vertical: 9,
-        horizontal: compact ? 10 : 4,
-      ),
+      padding: EdgeInsets.symmetric(vertical: 9, horizontal: compact ? 10 : 4),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(10),
@@ -2492,15 +2481,22 @@ class _PickerTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 11,
-                        color: _kTextMuted,
-                        fontWeight: FontWeight.w500)),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: _kTextMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text(value,
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
@@ -2525,9 +2521,8 @@ class _AlertBanner extends StatelessWidget {
       color: isError ? _kRedLight : _kGreenLight,
       borderRadius: BorderRadius.circular(10),
       border: Border.all(
-          color: isError
-              ? _kRed.withOpacity(0.4)
-              : _kGreen.withOpacity(0.4)),
+        color: isError ? _kRed.withOpacity(0.4) : _kGreen.withOpacity(0.4),
+      ),
     ),
     child: Row(
       children: [
@@ -2542,10 +2537,7 @@ class _AlertBanner extends StatelessWidget {
         Expanded(
           child: Text(
             message,
-            style: TextStyle(
-              fontSize: 13,
-              color: isError ? _kRed : _kGreen,
-            ),
+            style: TextStyle(fontSize: 13, color: isError ? _kRed : _kGreen),
           ),
         ),
       ],
@@ -2568,11 +2560,11 @@ class _ConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    shape:
-    RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    title: Text(title,
-        style: const TextStyle(
-            fontWeight: FontWeight.bold, fontSize: 16)),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    title: Text(
+      title,
+      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    ),
     content: Text(message, style: const TextStyle(fontSize: 14)),
     actions: [
       TextButton(
@@ -2582,8 +2574,10 @@ class _ConfirmDialog extends StatelessWidget {
       TextButton(
         onPressed: () => Navigator.pop(context, true),
         style: TextButton.styleFrom(foregroundColor: confirmColor),
-        child: Text(confirmLabel,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+        child: Text(
+          confirmLabel,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
     ],
   );
@@ -2616,4 +2610,3 @@ String _fmtTime(String? iso) {
 }
 
 String _cap(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
-

@@ -1,7 +1,7 @@
 // import 'dart:io';
 import 'dart:io' show Platform;
 import 'package:BookMyTeacher/firebase_options.dart';
-import 'package:BookMyTeacher/services/notification_service.dart';
+// import 'package:BookMyTeacher/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 
@@ -15,18 +15,69 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
+import 'core/theme_provider.dart';
 import 'services/notification_service_helper.dart';
 
-void main() async {
-  final FlutterLocalNotificationsPlugin _notifications =
-  FlutterLocalNotificationsPlugin();
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  NotificationServiceHelper.show(
+    message.notification?.title ?? message.data['title'] ?? '',
+    message.notification?.body ?? message.data['body'] ?? '',
+  );
+}
+
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+
+  // Register BEFORE Firebase.initializeApp
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // await Firebase.initializeApp();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+
+  //
+  // final FlutterLocalNotificationsPlugin _notifications =
+  // FlutterLocalNotificationsPlugin();
+
+  // const AndroidNotificationChannel channel =
+  // AndroidNotificationChannel(
+  //   'high_importance_channel',
+  //   'High Importance Notifications',
+  //   description: 'Used for important notifications.',
+  //   importance: Importance.max,
+  // );
+
+
+// Create Android notification channel
+//   final FlutterLocalNotificationsPlugin notifications =
+//   FlutterLocalNotificationsPlugin();
+
+  await FlutterLocalNotificationsPlugin()
+      .resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>()
+      ?.requestNotificationsPermission();
+
+  // await notifications
+  //     .resolvePlatformSpecificImplementation<
+  //     AndroidFlutterLocalNotificationsPlugin>()
+  //     ?.createNotificationChannel(channel);
+
+  await NotificationServiceHelper.init();
+
   // 🔔 Android Notification Settings
   // await AppNotificationService.initialize();
   // 🚫 Web must NEVER touch mobile notification code
   if (!kIsWeb) {
-    await AppNotificationService.initialize();
+    // await AppNotificationService.initialize();
   }
 
   // InAppWebView debugging → Android only
@@ -48,13 +99,6 @@ void main() async {
   //   // iOS logic
   // }
 
-  await Firebase.initializeApp();
-
-  await NotificationServiceHelper.init();
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
 
 
@@ -77,8 +121,6 @@ void main() async {
   // final useCase = CheckLaunchStatusUseCase(appRepo);
 
 
-
-
   runApp(
     ProviderScope(
       // ✅ wrap with ProviderScope
@@ -88,42 +130,84 @@ void main() async {
   );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends ConsumerStatefulWidget {
   // final CheckLaunchStatusUseCase useCase;
   // required this.useCase,
-  const MyApp({ super.key});
+  const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  ConsumerState<MyApp> createState() =>
+      _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState
+    extends ConsumerState<MyApp> {
+
+  @override
+
   @override
   void initState() {
     super.initState();
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
 
-      if (message.notification != null) {
 
-        NotificationServiceHelper.show(
-          message.notification!.title ?? "",
-          message.notification!.body ?? "",
-        );
+    // Foreground notifications
+    FirebaseMessaging.onMessage.listen(
+          (RemoteMessage message) {
 
-      }
+        if (message.notification != null) {
 
-    });
+          NotificationServiceHelper.show(
+            message.notification!.title ?? '',
+            message.notification!.body ?? '',
+          );
+
+        } else if (message.data.isNotEmpty) {
+
+          NotificationServiceHelper.show(
+            message.data['title'] ?? '',
+            message.data['body'] ?? '',
+          );
+
+        }
+
+      },
+    );
 
   }
 
+  // Widget build(BuildContext context) {
+  //
+  //   return MaterialApp.router(
+  //     debugShowCheckedModeBanner: false,
+  //     routerConfig: appRouter,
+  //     theme: ThemeData(
+  //       fontFamily: 'PetrovSans',
+  //     ),
+  //   );
+  // }
+  @override
   Widget build(BuildContext context) {
+
+    final themeMode =
+    ref.watch(themeProvider);
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
+
+      themeMode: themeMode,
+
       theme: ThemeData(
+        brightness: Brightness.light,
         fontFamily: 'PetrovSans',
       ),
+
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        fontFamily: 'PetrovSans',
+      ),
+
     );
   }
 }

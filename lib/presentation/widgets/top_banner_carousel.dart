@@ -31,28 +31,60 @@ class TopBannerCarousel extends ConsumerWidget {
 
             return GestureDetector(
               onTap: () {
-                switch (banner.type) {
-                  case 'webinar':
-                    _showWebinarDetail(context, banner);
-                    break;
+                print(banner.sectionId);
+                print(banner.isEnrolled);
+                print(banner.isReg);
+                print(banner.isBooked);
+                if(banner.isEnrolled){
+                  switch (banner.type) {
+                    case 'webinar':
+                      context.push('/student/webinar-detail',extra: banner.sectionId);
+                      break;
+                    case 'workshop':
+                      context.push('/student/workshop-detail',extra: banner.sectionId);
+                      break;
 
-                  case 'workshop':
-                    _showWorkshopDetail(context, banner);
-                    break;
+                    case 'course':
+                      context.push('/student/class-detail',extra: banner.sectionId);
+                      break;
 
-                  case 'course':
-                    _showCourseDetail(context, banner);
-                    break;
-
-                  default:
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TopBannerDetailPage(
-                          bannerId: banner.id.toString(),
+                    default:
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              TopBannerDetailPage(
+                                bannerId: banner.id.toString(),
+                              ),
                         ),
-                      ),
-                    );
+                      );
+                  }
+                }
+                else {
+                  switch (banner.type) {
+                    case 'webinar':
+                      _showWebinarDetail(context, banner);
+                      break;
+
+                    case 'workshop':
+                      _showWorkshopDetail(context, banner);
+                      break;
+
+                    case 'course':
+                      _showCourseDetail(context, banner);
+                      break;
+
+                    default:
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              TopBannerDetailPage(
+                                bannerId: banner.id.toString(),
+                              ),
+                        ),
+                      );
+                  }
                 }
               },
               child: Padding(

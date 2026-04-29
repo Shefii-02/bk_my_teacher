@@ -14,6 +14,7 @@ import '../components/workshop_card.dart';
 import 'package:intl/intl.dart';
 
 import '../components/workshop_detail_bottom_sheet.dart';
+import '../course_purchase/course_purchase_page.dart';
 
 class CoursesScreen extends StatefulWidget {
   const CoursesScreen({super.key});
@@ -53,7 +54,6 @@ class _CoursesScreenState extends State<CoursesScreen>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (_) => CourseDetailBottomSheet(
         course: course,
         redirectTo: '/student-course-store',
@@ -139,7 +139,7 @@ class _CoursesScreenState extends State<CoursesScreen>
               // TabBar
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -182,7 +182,7 @@ class _CoursesScreenState extends State<CoursesScreen>
               // TabBarView
               Expanded(
                 child: Container(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   child: TabBarView(
                     controller: _tabController,
                     children: _categories.map((category) {
@@ -210,7 +210,16 @@ class _CoursesScreenState extends State<CoursesScreen>
                                   if (item['is_enrolled'] == true) {
                                     context.push('/student/class-detail', extra: item['id']);
                                   } else {
-                                    _showCourseDetail(item);
+                                    if(item['has_payment']) {
+                                      Navigator.push(context, MaterialPageRoute(
+                                        builder: (_) =>
+                                            CoursePurchasePage(
+                                                courseId: item['id']),
+                                      ));
+                                    }
+                                    else {
+                                      _showCourseDetail(item);
+                                    }
                                   }
                                 },
                               );
@@ -218,13 +227,27 @@ class _CoursesScreenState extends State<CoursesScreen>
                             case 'Webinar':
                               return WebinarCards(
                                 webinar: item,
-                                onTap: () => _showWebinarDetail(item),
+                                onTap: () {
+                                  if (item['is_enrolled'] == true) {
+                                    context.push('/student/webinar-detail', extra: item['id']);
+                                  } else {
+                                    _showWebinarDetail(item);
+                                  }
+                                },
+                                // onTap: () => _showWebinarDetail(item),
                               );
 
                             case 'Workshop':
                               return WorkshopCard(
                                 workshop: item,
-                                onTap: () => _showWorkshopDetail(item),
+                                onTap: () {
+                                  if (item['is_enrolled'] == true) {
+                                    context.push('/student/workshop-detail', extra: item['id']);
+                                  } else {
+                                    _showWorkshopDetail(item);
+                                  }
+                                },
+                                // onTap: () => _showWorkshopDetail(item),
                               );
 
                             default:

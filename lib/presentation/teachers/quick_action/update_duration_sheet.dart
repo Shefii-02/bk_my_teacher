@@ -28,8 +28,12 @@ class _UpdateDurationSheetState extends State<UpdateDurationSheet> {
   void initState() {
     super.initState();
     // ✅ parse from ClassItem.timeStart / timeEnd (ISO datetime strings)
-    _actualStart = _parseFromIso(widget.cls.timeStart);
-    _actualEnd = _parseFromIso(widget.cls.timeEnd);
+    // _actualStart = _parseFromIso(widget.cls.timeStart);
+    // _actualEnd = _parseFromIso(widget.cls.timeEnd);
+
+    _actualStart = widget.cls.actualStarted != '' ? _parseFromIso(widget.cls.actualStarted) : _parseFromIso(widget.cls.timeStart);
+    _actualEnd =  widget.cls.actualEnded != '' ? _parseFromIso(widget.cls.actualEnded) : _parseFromIso(widget.cls.timeEnd);
+    _noteCtrl.text = widget.cls.notes ?? '';
   }
 
   // ✅ parses ISO datetime "2024-01-01T09:00:00" → TimeOfDay(9, 0)
@@ -131,8 +135,9 @@ class _UpdateDurationSheetState extends State<UpdateDurationSheet> {
   @override
   Widget build(BuildContext context) {
     // ✅ scheduled times parsed once for display
-    final scheduledStart = _parseFromIso(widget.cls.timeStart);
-    final scheduledEnd = _parseFromIso(widget.cls.timeEnd);
+    final ClassItem = widget.cls;
+    final scheduledStart = _parseFromIso(ClassItem.timeStart);
+    final scheduledEnd = _parseFromIso(ClassItem.timeEnd);
 
     return Container(
       decoration: const BoxDecoration(

@@ -636,11 +636,9 @@ class TeacherApiService {
     String classId,
   ) async {
     await _loadAuth();
-    print('/teacher/classes/$classId/students-attendance');
     final response = await _dio.post(
       '/teacher/classes/$classId/students-attendance',
     );
-    print(response);
     final list = response.data['students'] as List;
     return list.map((e) => StudentAttendance.fromJson(e)).toList();
   }
@@ -651,6 +649,7 @@ class TeacherApiService {
     required List<Map<String, dynamic>> records,
   }) async {
     await _loadAuth();
+    print(records);
     await _dio.post(
       '/teacher/classes/$classId/attendance',
       data: {'records': records},

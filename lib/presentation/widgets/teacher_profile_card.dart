@@ -37,7 +37,7 @@ class TeacherProfileCard extends StatelessWidget {
               child: Container(
                 height: 130,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surfaceBright,
                   borderRadius: BorderRadius.circular(9),
                   boxShadow: [
                     BoxShadow(
@@ -71,7 +71,6 @@ class TeacherProfileCard extends StatelessWidget {
                   fontFamily: 'Arial',
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
-                  color: Colors.black,
                 ),
               ),
             ),
@@ -101,7 +100,6 @@ class TeacherProfileCard extends StatelessWidget {
                   fontFamily: 'Arial',
                   fontWeight: FontWeight.w700,
                   fontSize: 10,
-                  color: Colors.black,
                 ),
               ),
             ),

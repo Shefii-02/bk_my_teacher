@@ -1143,6 +1143,7 @@ class _CompletedClassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -1197,10 +1198,10 @@ class _CompletedClassCard extends StatelessWidget {
                             label:
                             '${_fmtTime(cls.timeStart)} – ${_fmtTime(cls.timeEnd)}',
                           ),
-                          if (cls.actualDuration != null)
+                          if (cls.actualDuration != '')
                             _MetaChip(
                               icon: Icons.timer_outlined,
-                              label: cls.actualDuration!,
+                              label: "${cls.actualDuration} Min",
                               color: _kTeal,
                               bgColor: _kTealLight,
                             ),
@@ -1279,9 +1280,11 @@ class _CompletedClassCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: _ActionBtn(
-                    label: 'Duration',
+                    label: cls.actualDuration != ''
+                        ? 'Edit Duration'
+                        : 'Write Duration',
                     icon: Icons.timer_outlined,
-                    bgColor: _kTealLight,
+                    bgColor: cls.actualDuration != '' ? _kTealLight : Colors.white,
                     textColor: _kTeal,
                     borderColor: _kTeal,
                     onTap: () => _openDuration(context),
@@ -1292,8 +1295,8 @@ class _CompletedClassCard extends StatelessWidget {
                   child: _ActionBtn(
                     label: 'Watch',
                     icon: Icons.play_circle_outline_rounded,
-                    bgColor: Colors.white,
-                    textColor: _kTextMuted,
+                    bgColor: cls.recordedVideo != '' ? Colors.red : Colors.white,
+                    textColor: cls.recordedVideo != '' ? Colors.white : _kTextMuted,
                     borderColor: _kBorder,
                     onTap: () {
                       final url = cls.recordedVideo;

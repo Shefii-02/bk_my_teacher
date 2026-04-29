@@ -49,7 +49,6 @@ class DashboardHome extends ConsumerStatefulWidget {
 class _DashboardHomeState extends ConsumerState<DashboardHome> {
   late Future<Map<String, dynamic>> userCard;
 
-  int unreadCount = 0;
   String token = '';
 
   @override
@@ -82,8 +81,20 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
 
   @override
   Widget build(BuildContext context) {
-
     final teacherAsync = ref.watch(userProvider);
+
+    final notifAsync = ref.watch(notificationProvider);
+
+    final unreadCount = notifAsync.maybeWhen(
+      data: (data) => data.count,
+      orElse: () => 0,
+    );
+
+    final chatUnreadCount = notifAsync.maybeWhen(
+      data: (data) => data.chatCount,
+      orElse: () => 0,
+    );
+
     return teacherAsync.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
@@ -158,8 +169,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                             children: [
                               Container(
                                 child: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     Text(
@@ -181,8 +191,6 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                         fontSize: 20.0,
                                       ),
                                     ),
-
-
                                   ],
                                 ),
                               ),
@@ -199,12 +207,11 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              ChatListScreen(
-                                                userId: id,
-                                                token: token,
-                                              ),
-                                              // ChatHomeScreenDummy(),
+                                          builder: (context) => ChatListScreen(
+                                            userId: id,
+                                            token: token,
+                                          ),
+                                          // ChatHomeScreenDummy(),
                                           // ChatHomeScreen(),
                                         ),
                                       );
@@ -232,7 +239,7 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                           clipBehavior: Clip.none,
                                           children: [
                                             Icon(Icons.chat_outlined),
-                                            if (unreadCount > 0)
+                                            if (chatUnreadCount > 0)
                                               Positioned(
                                                 right: -10,
                                                 top: -15,
@@ -247,9 +254,9 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                                     minHeight: 18,
                                                   ),
                                                   child: Text(
-                                                    unreadCount > 99
+                                                    chatUnreadCount > 99
                                                         ? "99+"
-                                                        : unreadCount
+                                                        : chatUnreadCount
                                                               .toString(),
                                                     style: TextStyle(
                                                       color: Colors.white,
@@ -437,11 +444,11 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
                                 SizedBox(height: 10),
                                 StudentAchievementCardSection(),
                                 const SizedBox(height: 20),
+                                const AppReviews(),
+                                const SizedBox(height: 20),
                                 ConnectWithTeamWhatsapp(),
                                 const SizedBox(height: 30),
                                 SocialMediaIcons(),
-                                const SizedBox(height: 20),
-                                const AppReviews(),
                                 const SizedBox(height: 20),
                                 // InkWell(
                                 //   onTap: () {
@@ -520,122 +527,178 @@ class _DashboardHomeState extends ConsumerState<DashboardHome> {
   void showNotificationsSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) {
-        final asyncData = ref.watch(notificationProvider);
+      isScrollControlled: true,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.65,
+        minChildSize: 0.40,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, controller) {
+          // showModalBottomSheet(
+          //   context: context,
+          //   isScrollControlled: true,
+          //   shape: const RoundedRectangleBorder(
+          //     borderRadius: BorderRadius.vertical(
+          //       top: Radius.circular(20),
+          //     ),
+          //   ),
+          //
+          //   builder: (_) {
 
-        return asyncData.when(
-          data: (data) {
-            final list = data.notifications;
+          final asyncData = ref.watch(notificationProvider);
 
-            if (list.isEmpty) {
-              return const Center(child: Text("No notifications"));
-            }
+          return asyncData.when(
+            loading: () => Center(child: CircularProgressIndicator()),
 
-            return ListView.separated(
-              padding: EdgeInsets.all(16),
-              itemCount: list.length,
-              separatorBuilder: (_, __) => Divider(),
-              itemBuilder: (_, index) {
-                final item = list[index];
+            error: (_, __) =>
+                Center(child: Text("Failed to load notifications")),
 
-                return ListTile(
-                  leading: Icon(
-                    Icons.notifications_active_rounded,
-                    color: item.isRead ? Colors.grey : Colors.black,
+            data: (data) {
+              final list = data.notifications;
+
+              if (list.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(30),
+                    child: Text("No notifications"),
                   ),
+                );
+              }
 
-                  /// TITLE + SUBTITLE MERGED
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.title,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: item.isRead ? Colors.grey : Colors.black,
+              return Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Notifications",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        item.message,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: item.isRead
-                              ? Colors.grey[600]
-                              : Colors.grey[800],
-                        ),
-                      ),
-                    ],
-                  ),
 
-                  /// RIGHT SIDE INFO BUTTON
-                  trailing: IconButton(
-                    icon: Icon(
-                      Icons.info_outline_rounded,
-                      color: item.isRead ? Colors.grey : Colors.black,
+                        TextButton(
+                          onPressed: () async {
+                            await ref.read(
+                              markAllNotificationsReadProvider.future,
+                            );
+
+                            ref.invalidate(notificationProvider);
+                          },
+                          child: Text("Mark all read"),
+                        ),
+                      ],
                     ),
-                    onPressed: () async {
-                      /// Mark as read
-                      await ref.read(
-                        markNotificationReadProvider(item.id).future,
-                      );
+                  ),
 
-                      /// Refresh list
-                      ref.refresh(notificationProvider);
+                  Expanded(
+                    child: ListView.separated(
+                      padding: EdgeInsets.all(16),
 
-                      /// Open details popup
-                      showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
+                      itemCount: list.length,
+
+                      separatorBuilder: (_, __) => Divider(),
+
+                      itemBuilder: (_, index) {
+                        final item = list[index];
+
+                        return ListTile(
+                          leading: Icon(
+                            Icons.notifications_active_rounded,
+                            color: item.isRead ? Colors.grey : Colors.black,
                           ),
-                          title: Text(
-                            item.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
+
+                          title: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                item.message,
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              SizedBox(height: 12),
-                              Text(
-                                "Time: ${item.time}",
+                                item.title,
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w600,
+                                  color: item.isRead
+                                      ? Colors.grey
+                                      : Colors.black,
+                                ),
+                              ),
+
+                              SizedBox(height: 4),
+
+                              Text(
+                                item.message,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: item.isRead
+                                      ? Colors.grey[600]
+                                      : Colors.grey[800],
                                 ),
                               ),
                             ],
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: Text("Close"),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+
+                          trailing: IconButton(
+                            icon: Icon(Icons.info_outline),
+
+                            onPressed: () async {
+                              await ref.read(
+                                markNotificationReadProvider(item.id).future,
+                              );
+
+                              ref.invalidate(notificationProvider);
+
+                              showDialog(
+                                context: context,
+
+                                builder: (_) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+
+                                  title: Text(item.title),
+
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(item.message),
+
+                                      SizedBox(height: 12),
+
+                                      Text(
+                                        "Time: ${item.time}",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text("Close"),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                );
-              },
-            );
-          },
-          loading: () => Center(child: CircularProgressIndicator()),
-          error: (_, __) => Center(child: Text("Failed to load notifications")),
-        );
-      },
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

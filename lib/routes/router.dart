@@ -94,7 +94,6 @@ final GoRouter appRouter = GoRouter(
         return PersonalInfoView(); // ✅ correct syntax
       },
     ),
-
     GoRoute(
       path: '/student-personal-info',
       builder: (context, state) {
@@ -108,7 +107,6 @@ final GoRouter appRouter = GoRouter(
         return PersonalInfoView(); // ✅ correct syntax
       },
     ),
-
     GoRoute(
       path: AppRoutes.teachingDetails,
       builder: (context, state) => const TeachingDetails(),

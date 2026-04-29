@@ -21,20 +21,20 @@ class YoutubeNoLogo extends StatelessWidget {
               Container(color: Colors.black, child: player),
         ),
         // Top bar — channel name / title
-        Positioned(
-          top: 0, left: 0, right: 0,
-          child: Container(height: 30, color: Colors.black),
-        ),
-        // Bottom-left — YouTube logo
-        Positioned(
-          bottom: 0, left: 0,
-          child: Container(width: 80, height: 32, color: Colors.black),
-        ),
-        // Bottom-right — "Watch on YouTube" button
-        Positioned(
-          bottom: 0, right: 0,
-          child: Container(width: 80, height: 32, color: Colors.black),
-        ),
+        // Positioned(
+        //   top: 0, left: 0, right: 0,
+        //   child: Container(height: 30, color: Colors.black),
+        // ),
+        // // Bottom-left — YouTube logo
+        // Positioned(
+        //   bottom: 0, left: 0,
+        //   child: Container(width: 80, height: 32, color: Colors.black),
+        // ),
+        // // Bottom-right — "Watch on YouTube" button
+        // Positioned(
+        //   bottom: 0, right: 0,
+        //   child: Container(width: 80, height: 32, color: Colors.black),
+        // ),
       ],
     );
   }

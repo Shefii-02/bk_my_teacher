@@ -1,5 +1,6 @@
 import 'package:BookMyTeacher/presentation/students/my_class_list.dart';
 import 'package:BookMyTeacher/presentation/students/teachers_list.dart';
+import 'package:BookMyTeacher/services/api_service.dart';
 import 'package:BookMyTeacher/services/student_api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -11,7 +12,7 @@ import '../students/profile_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/user_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-
+import 'package:geolocator/geolocator.dart';
 import '../widgets/verify_account_popup.dart';
 
 class StudentDashboard extends ConsumerStatefulWidget {
@@ -29,6 +30,7 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     super.initState();
     requestPermissions();
     _initialize();
+    _registerDevice();
 
     _screens = [
       DashboardHome(),
@@ -50,6 +52,11 @@ class _StudentDashboardState extends ConsumerState<StudentDashboard> {
     } catch (e) {
       print("Google Sign-In init failed: $e");
     }
+  }
+
+  Future<void> _registerDevice() async {
+    await ApiService().registerDevice();
+    await ApiService().saveUsage();
   }
 
   Future<void> requestPermissions() async {

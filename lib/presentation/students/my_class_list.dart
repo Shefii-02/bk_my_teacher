@@ -104,7 +104,7 @@ class _MyClassListState extends State<MyClassList>
               // TabBar
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -147,7 +147,7 @@ class _MyClassListState extends State<MyClassList>
               // TabBarView
               Expanded(
                 child: Container(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   child: TabBarView(
                     controller: _tabController,
                     children: _categories.map((category) {
@@ -193,7 +193,7 @@ class _MyClassListState extends State<MyClassList>
                                 // onTap: () => _showWorkshopDetail(item),
                                 onTap: () => context.push(
                                   '/student/workshop-detail',
-                                  extra: item['id'].toString(),
+                                  extra: item['id'] as int,
                                 ),
                               );
                             case 'Demo Class':

@@ -66,7 +66,7 @@ class _RotatingHintTextState extends State<RotatingHintText> {
             child: Text(
               widget.hints[index],
               key: ValueKey(widget.hints[index]),
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.grey),
             ),
           ),
         ),

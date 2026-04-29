@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter/foundation.dart';
 import '../core/constants/endpoints.dart';
 import '../model/grade_board_subject_model.dart';
 import '../model/notification_item.dart';
@@ -15,7 +17,11 @@ import '../model/student_performance.dart';
 import '../model/today_class_model.dart';
 import '../model/top_banner.dart';
 import '../presentation/components/app_reviews.dart';
+import '../presentation/components/course_review.dart';
 import '../providers/student_performance_provider.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io';
+import 'package:geolocator/geolocator.dart';
 
 class ApiResponse<T> {
   final bool success;
@@ -1345,6 +1351,11 @@ class ApiService {
     return res.data["status"] == 200;
   }
 
+  Future<void> markAllNotificationRead() async {
+    await _loadAuth();
+    final res = await _dio.post("/notifications/mark-all-read");
+  }
+
   Future<bool> courseClassDoubtSubmit({
     required String doubt,
     required String classId,
@@ -1413,6 +1424,20 @@ class ApiService {
     }
   }
 
+  Future<CourseReviewModel?> fetchMyCourseReview(int $courseId) async {
+    try {
+      await _loadAuth();
+
+      final res = await _dio.post("/my-course-review",data: {'course_id' : $courseId}); // ✅ FIXED
+
+      if (res.data['data'] == null) return null;
+
+      return CourseReviewModel.fromJson(res.data['data']);
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>?> submitReview({
     required String rating, // ✅ FIXED TYPE
     required String message,
@@ -1431,6 +1456,28 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>?> submitCourseReview({
+    required String rating, // ✅ FIXED TYPE
+    required String message,
+    required int courseId,
+  }) async {
+    try {
+      await _loadAuth();
+
+      final res = await _dio.post(
+        "/write-course-review",
+        data: {"rating": rating, "feedback": message,"course_id" : courseId},
+      );
+
+      return res.data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+
+
+
   Future<void> registerDevice() async {
     try {
       await FirebaseMessaging.instance.requestPermission();
@@ -1443,7 +1490,7 @@ class ApiService {
             sound: true,
           );
 
-      await _loadAuth();
+
 
       final prefs = await SharedPreferences.getInstance();
 
@@ -1457,18 +1504,50 @@ class ApiService {
       // prevent duplicate listener
       bool listenerAttached = prefs.getBool('fcm_listener_attached') ?? false;
 
+      // ---------------------------------------
+      // GPS permission check
+      // ---------------------------------------
+
+      double? latitude;
+      double? longitude;
+
+      // ---------------------------------------
+      // App version
+      // ---------------------------------------
+      final packageInfo = await PackageInfo.fromPlatform();
+
+      String appVersion = packageInfo.version;
+
       // --------------------------------
       // 1) Get current token every launch
       // --------------------------------
       String? fcmToken = await FirebaseMessaging.instance.getToken();
 
+      // --------------------------------
+
+      // --------------------------------
       if (fcmToken != null && fcmToken.isNotEmpty) {
+        await _loadAuth();
         await _dio.post(
           "/device/register",
           data: {
+            "platform": kIsWeb
+                ? 'Web'
+                : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                ? 'iOS'
+                : 'Unknown',
+            "ip_address": "",
+            "device_info": "",
+            "app_version": appVersion,
             "fcm_token": fcmToken,
+            "status": "active",
             "device_id": deviceId,
-            "platform": "android",
+            "latitude": latitude,
+            "longitude": longitude,
+            "district": "",
+            "city": "",
             "last_active_at": DateTime.now().toIso8601String(),
           },
         );
@@ -1484,12 +1563,27 @@ class ApiService {
           print("FCM Rotated: $newToken");
 
           try {
+            await _loadAuth();
             await _dio.post(
               "/device/register",
               data: {
+                "platform": kIsWeb
+                    ? 'Web'
+                    : Platform.isAndroid
+                    ? 'Android'
+                    : Platform.isIOS
+                    ? 'iOS'
+                    : 'Unknown',
+                "ip_address": "",
+                "device_info": "",
+                "app_version": appVersion,
                 "fcm_token": newToken,
+                "status": "active",
                 "device_id": deviceId,
-                "platform": "android",
+                "latitude": latitude,
+                "longitude": longitude,
+                "district": "",
+                "city": "",
                 "last_active_at": DateTime.now().toIso8601String(),
               },
             );
@@ -1504,6 +1598,24 @@ class ApiService {
       print("registerDevice error: $e");
     }
   }
+
+  Future<void> saveUsage() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String today = DateTime.now().toIso8601String().split('T')[0];
+
+    String? lastVisitSent = prefs.getString('last_visitor_sent');
+
+    String? deviceId = prefs.getString('device_id');
+
+    await _loadAuth();
+
+    if (lastVisitSent != today) {
+      await _dio.post('/visitor/store', data: {"device_id": deviceId});
+
+      await prefs.setString('last_visitor_sent', today);
+    }
+  }
 }
 
 class DropdownItem {
@@ -1515,4 +1627,42 @@ class DropdownItem {
   factory DropdownItem.fromJson(Map<String, dynamic> json) {
     return DropdownItem(id: json['id'], name: json['name']);
   }
+}
+
+Future<String> getDeviceInfoJson() async {
+  final deviceInfo = DeviceInfoPlugin();
+
+  Map data = {};
+  if (kIsWeb) {
+    WebBrowserInfo web = await deviceInfo.webBrowserInfo;
+
+    data = {
+      "platform": "web",
+      "browser": web.browserName.name,
+      "user_agent": web.userAgent,
+      "vendor": web.vendor,
+    };
+  } else if (Platform.isAndroid) {
+    AndroidDeviceInfo android = await deviceInfo.androidInfo;
+
+    data = {
+      "brand": android.brand,
+      "model": android.model,
+      "manufacturer": android.manufacturer,
+      "android_version": android.version.release,
+      "sdk_int": android.version.sdkInt,
+      "is_physical_device": android.isPhysicalDevice,
+    };
+  } else if (Platform.isIOS) {
+    IosDeviceInfo ios = await deviceInfo.iosInfo;
+
+    data = {
+      "model": ios.model,
+      "system_name": ios.systemName,
+      "system_version": ios.systemVersion,
+      "is_physical_device": ios.isPhysicalDevice,
+    };
+  }
+
+  return jsonEncode(data);
 }
